@@ -1018,12 +1018,18 @@ async function syncUserProfile() {
 function renderPracticeTasks() {
   const listEl = document.getElementById('practice-tasks-list');
   const summaryEl = document.getElementById('practice-summary');
+  const streakEl = document.getElementById('practice-streak');
   if (!listEl || !summaryEl) return;
   const session = readSession();
   if (!session || session.mode !== 'user') {
     summaryEl.textContent = '请先登录';
+    if (streakEl) streakEl.textContent = '连续打卡：0 天';
     listEl.innerHTML = '<div class="task-item"><div class="task-label">请设置您的功课内容</div></div>';
     return;
+  }
+  if (streakEl) {
+    const streak = Number(App.userProfile?.checkin_streak || 0);
+    streakEl.textContent = `连续打卡：${streak} 天`;
   }
   if (!App.practiceTasks.length) {
     summaryEl.textContent = '未设置';
@@ -1031,14 +1037,28 @@ function renderPracticeTasks() {
     return;
   }
   summaryEl.textContent = `${App.practiceTasks.length} 条`;
-  listEl.innerHTML = App.practiceTasks.map(t => `
-    <div class="task-item">
-      <div class="task-label">${t.content}</div>
-      <input type="number" min="0" value="${t.progress}" style="width:68px" onchange="updatePracticeProgress('${t.id}', this.value)">
-      <button class="btn btn-ghost btn-sm" onclick="editPracticeContent('${t.id}')">改</button>
-      <button class="btn btn-ghost btn-sm" onclick="deletePracticeTask('${t.id}')">删</button>
+  listEl.innerHTML = App.practiceTasks.map(t => {
+    const progress = Math.max(0, Number(t.progress || 0));
+    const progressPct = Math.min(100, progress);
+    return `
+    <div class="practice-card">
+      <div class="practice-card-head">
+        <div class="practice-title">${t.content}</div>
+        <strong style="font-size:12px;color:var(--tibet-yellow)">${progressPct}%</strong>
+      </div>
+      <div class="practice-progress">
+        <div class="practice-progress-bar"><div class="practice-progress-fill" style="width:${progressPct}%"></div></div>
+        <div class="practice-meta"><span>当前进度 ${progress}</span><span>目标 100</span></div>
+      </div>
+      <div class="practice-actions">
+        <button onclick="stepPracticeProgress('${t.id}', 10)">+10%</button>
+        <button onclick="updatePracticeProgressPrompt('${t.id}')">手动进度</button>
+        <button onclick="editPracticeContent('${t.id}')">修改内容</button>
+        <button onclick="deletePracticeTask('${t.id}')">删除</button>
+      </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 async function addPracticePrompt() {
@@ -1071,6 +1091,21 @@ async function updatePracticeProgress(id, progress) {
   }
 }
 
+async function stepPracticeProgress(id, delta) {
+  const cur = App.practiceTasks.find(t => t.id === id);
+  if (!cur) return;
+  const next = Math.max(0, Math.min(100, Number(cur.progress || 0) + Number(delta || 0)));
+  await updatePracticeProgress(id, next);
+}
+
+async function updatePracticeProgressPrompt(id) {
+  const cur = App.practiceTasks.find(t => t.id === id);
+  const v = prompt('请输入进度（0-100）', String(cur?.progress ?? 0));
+  if (v === null) return;
+  const next = Math.max(0, Math.min(100, Number(v)));
+  await updatePracticeProgress(id, next);
+}
+
 async function editPracticeContent(id) {
   const cur = App.practiceTasks.find(t => t.id === id);
   const content = prompt('修改功课内容', cur?.content || '');
@@ -1096,6 +1131,25 @@ async function deletePracticeTask(id) {
     await syncUserProfile();
   } catch (err) {
     showToast(`删除失败：${err.message}`);
+  }
+}
+
+async function dailyPracticeCheckin() {
+  const session = readSession();
+  if (!session || session.mode !== 'user') {
+    showToast('请先登录后打卡');
+    return;
+  }
+  try {
+    const data = await authedFetchJson('/api/user/checkin', { method: 'POST' });
+    if (data.alreadyCheckedIn) {
+      showToast(`今天已打卡，连续 ${data.streak} 天`);
+    } else {
+      showToast(`打卡成功，连续 ${data.streak} 天`);
+    }
+    await syncUserProfile();
+  } catch (err) {
+    showToast(`打卡失败：${err.message}`);
   }
 }
 
@@ -2598,7 +2652,10 @@ Object.assign(window, {
   closePracticeSetupModal,
   submitPracticeSetup,
   addPracticePrompt,
+  dailyPracticeCheckin,
   updatePracticeProgress,
+  stepPracticeProgress,
+  updatePracticeProgressPrompt,
   editPracticeContent,
   deletePracticeTask,
 });

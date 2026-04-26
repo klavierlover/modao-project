@@ -43,11 +43,23 @@ module.exports = async function handler(req, res) {
         return sendJson(res, 400, { ok: false, error: 'companion_id is required' });
       }
 
+      const { data: existingProfile } = await supabase
+        .from('user_companion_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
       const row = {
         user_id: userId,
         companion_id: companionId,
         onboarding_skipped: onboardingSkipped,
         onboarding_completed: onboardingCompleted,
+        checkin_streak: body.checkin_streak === undefined
+          ? Number(existingProfile?.checkin_streak || 0)
+          : Number(body.checkin_streak || 0),
+        last_checkin_date: body.last_checkin_date === undefined
+          ? (existingProfile?.last_checkin_date || null)
+          : (body.last_checkin_date || null),
         updated_at: new Date().toISOString(),
       };
       const { error } = await supabase

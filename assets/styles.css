@@ -1359,6 +1359,114 @@ nav {
   font-size: 13px;
 }
 .task-item:last-child { border-bottom: none; }
+.practice-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 10px;
+  margin-bottom: 8px;
+}
+.practice-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.practice-title {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.practice-progress {
+  margin-top: 8px;
+}
+.practice-progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--paper-deep);
+  overflow: hidden;
+}
+.practice-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #c89b3c, #e0bc67);
+  border-radius: 999px;
+  transition: width .25s ease;
+}
+.practice-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ink-40);
+  margin-top: 6px;
+}
+.practice-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.practice-actions button {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: var(--ink-70);
+  font-size: 11px;
+  cursor: pointer;
+}
+.practice-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 10px;
+  margin-bottom: 8px;
+}
+.practice-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.practice-title {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.practice-progress {
+  margin-top: 8px;
+}
+.practice-progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--paper-deep);
+  overflow: hidden;
+}
+.practice-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #c89b3c, #e0bc67);
+  border-radius: 999px;
+  transition: width .25s ease;
+}
+.practice-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ink-40);
+  margin-top: 6px;
+}
+.practice-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.practice-actions button {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: var(--ink-70);
+  font-size: 11px;
+  cursor: pointer;
+}
 
 .task-check {
   width: 18px; height: 18px;

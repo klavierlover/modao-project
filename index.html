@@ -270,10 +270,12 @@
           <div class="today-box-title">今日功课</div>
           <div class="today-box-sub" id="practice-summary">请先设置</div>
         </div>
+        <div style="font-size:12px;color:var(--ink-50);margin-bottom:10px" id="practice-streak">连续打卡：0 天</div>
         <div id="practice-tasks-list">
           <div class="task-item"><div class="task-label">请设置您的功课内容</div></div>
         </div>
         <div style="display:flex; gap:8px; margin-top:10px">
+          <button class="btn btn-primary btn-sm" onclick="dailyPracticeCheckin()">今日打卡</button>
           <button class="btn btn-outline btn-sm" onclick="openPracticeSetupModal()">设置功课</button>
           <button class="btn btn-ghost btn-sm" onclick="addPracticePrompt()">新增功课</button>
         </div>

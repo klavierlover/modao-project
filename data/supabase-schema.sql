@@ -78,6 +78,8 @@ create table if not exists public.user_companion_profiles (
   companion_id text not null default 'hui-ming',
   onboarding_completed boolean not null default false,
   onboarding_skipped boolean not null default false,
+  checkin_streak int not null default 0,
+  last_checkin_date date,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
