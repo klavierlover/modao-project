@@ -268,27 +268,14 @@
       <div class="today-box">
         <div class="today-box-head">
           <div class="today-box-title">今日功课</div>
-          <div class="today-box-sub">3 / 4</div>
+          <div class="today-box-sub" id="practice-summary">请先设置</div>
         </div>
-        <div class="task-item">
-          <div class="task-check done" onclick="toggleTask(this)">✓</div>
-          <div class="task-label done">早课 · 念佛 108 遍</div>
-          <div class="task-time">06:30</div>
+        <div id="practice-tasks-list">
+          <div class="task-item"><div class="task-label">请设置您的功课内容</div></div>
         </div>
-        <div class="task-item">
-          <div class="task-check done" onclick="toggleTask(this)">✓</div>
-          <div class="task-label done">禅坐 · 20 分钟</div>
-          <div class="task-time">07:00</div>
-        </div>
-        <div class="task-item">
-          <div class="task-check done" onclick="toggleTask(this)">✓</div>
-          <div class="task-label done">读经 · 心经一遍</div>
-          <div class="task-time">10:00</div>
-        </div>
-        <div class="task-item">
-          <div class="task-check" onclick="toggleTask(this)"></div>
-          <div class="task-label">晚课 · 回向功德</div>
-          <div class="task-time">21:30</div>
+        <div style="display:flex; gap:8px; margin-top:10px">
+          <button class="btn btn-outline btn-sm" onclick="openPracticeSetupModal()">设置功课</button>
+          <button class="btn btn-ghost btn-sm" onclick="addPracticePrompt()">新增功课</button>
         </div>
       </div>
 
@@ -810,7 +797,7 @@
 
     <div id="auth-login-panel">
       <h3>欢迎回来</h3>
-      <input id="auth-login-username" class="auth-input" placeholder="用户名">
+      <input id="auth-login-email" class="auth-input" placeholder="邮箱">
       <input id="auth-login-password" class="auth-input" type="password" placeholder="密码">
       <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="loginUser()">登录</button>
       <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="continueAsGuest()">以访客模式进入</button>
@@ -818,7 +805,7 @@
 
     <div id="auth-register-panel" style="display:none">
       <h3>创建账号</h3>
-      <input id="auth-register-username" class="auth-input" placeholder="用户名（3-16位）">
+      <input id="auth-register-email" class="auth-input" placeholder="邮箱">
       <input id="auth-register-password" class="auth-input" type="password" placeholder="密码（至少6位）">
       <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="registerUser()">注册并登录</button>
       <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="continueAsGuest()">先以访客模式浏览</button>
@@ -826,10 +813,26 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="practice-setup-overlay" onclick="if(event.target===this)closePracticeSetupModal()">
+  <div class="modal auth-modal">
+    <button class="modal-close" onclick="closePracticeSetupModal()">✕</button>
+    <h3>初始化您的修行档案</h3>
+    <select id="setup-companion" class="auth-input">
+      <option value="hui-ming">慧明（亲切温和）</option>
+      <option value="zhi-yuan">智渊（禅意深邃）</option>
+      <option value="jing-xin">静心（严谨持戒）</option>
+    </select>
+    <textarea id="setup-practice-content" class="auth-input" rows="3" placeholder="填写您的首个功课内容，例如：每日念佛108遍"></textarea>
+    <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="submitPracticeSetup(false)">保存并开始</button>
+    <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="submitPracticeSetup(true)">先跳过</button>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./assets/app.js"></script>
 
 </body>

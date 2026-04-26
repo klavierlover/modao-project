@@ -636,14 +636,17 @@ const App = {
   currentVeganTab: 'restaurants',
   llmHintShown: false,
   publishedVersionMap: {},
+  userProfile: null,
+  practiceTasks: [],
 };
-const AUTH_STORAGE_KEY = 'modao-users';
 const SESSION_STORAGE_KEY = 'modao-session';
 const LLM_BASE_URL_KEY = 'modao-llm-base-url';
 const LLM_MODEL_KEY = 'modao-llm-model';
 const LLM_API_KEY = 'modao-llm-api-key';
 const DEFAULT_LLM_BASE_URL = 'https://api.siliconflow.cn/v1/chat/completions';
 const DEFAULT_LLM_MODEL = 'Qwen/Qwen2.5-7B-Instruct';
+const SUPABASE_URL_KEY = 'modao-supabase-url';
+const SUPABASE_ANON_KEY = 'modao-supabase-anon';
 
 const IMMERSIVE_HERO_CONFIG = {
   companion: {
@@ -800,13 +803,6 @@ function showToast(msg, duration = 2500) {
   toast._timer = setTimeout(() => toast.classList.remove('show'), duration);
 }
 
-function readUsers() {
-  try { return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || '[]'); }
-  catch { return []; }
-}
-function writeUsers(users) {
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(users));
-}
 function readSession() {
   try { return JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY) || 'null'); }
   catch { return null; }
@@ -815,11 +811,50 @@ function writeSession(session) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
 }
 
+function getUserAuthConfig() {
+  const url = localStorage.getItem(SUPABASE_URL_KEY) || window.MODAO_SUPABASE_URL || '';
+  const anonKey = localStorage.getItem(SUPABASE_ANON_KEY) || window.MODAO_SUPABASE_ANON_KEY || '';
+  return { url, anonKey };
+}
+
+function setUserAuthConfig({ url, anonKey } = {}) {
+  if (url) localStorage.setItem(SUPABASE_URL_KEY, url);
+  if (anonKey) localStorage.setItem(SUPABASE_ANON_KEY, anonKey);
+}
+
+function getSupabaseClient() {
+  const sdk = window.supabase;
+  if (!sdk?.createClient) return null;
+  const cfg = getUserAuthConfig();
+  if (!cfg.url || !cfg.anonKey) return null;
+  return sdk.createClient(cfg.url, cfg.anonKey);
+}
+
+async function authedFetchJson(url, options = {}) {
+  const session = readSession();
+  const token = session?.accessToken || '';
+  const headers = { ...(options.headers || {}) };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const resp = await fetch(url, { ...options, headers });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+  return data;
+}
+
 function switchAuthTab(tab) {
   document.getElementById('auth-tab-login')?.classList.toggle('active', tab === 'login');
   document.getElementById('auth-tab-register')?.classList.toggle('active', tab === 'register');
   document.getElementById('auth-login-panel').style.display = tab === 'login' ? '' : 'none';
   document.getElementById('auth-register-panel').style.display = tab === 'register' ? '' : 'none';
+}
+function ensureUserAuthConfig() {
+  const cfg = getUserAuthConfig();
+  if (cfg.url && cfg.anonKey) return cfg;
+  const url = prompt('请输入 SUPABASE_URL（用户登录用）');
+  const anonKey = prompt('请输入 SUPABASE_ANON_KEY（用户登录用）');
+  if (!url || !anonKey) return null;
+  setUserAuthConfig({ url, anonKey });
+  return { url, anonKey };
 }
 function openAuthModal() {
   document.getElementById('auth-overlay')?.classList.add('open');
@@ -827,43 +862,68 @@ function openAuthModal() {
 function closeAuthModal() {
   document.getElementById('auth-overlay')?.classList.remove('open');
 }
-function loginUser() {
-  const username = document.getElementById('auth-login-username')?.value.trim();
+async function loginUser() {
+  const email = document.getElementById('auth-login-email')?.value.trim();
   const password = document.getElementById('auth-login-password')?.value || '';
-  const user = readUsers().find(u => u.username === username && u.password === password);
-  if (!user) return showToast('用户名或密码错误');
-  writeSession({ mode: 'user', username: user.username });
+  if (!email || !password) return showToast('请输入邮箱和密码');
+  if (!ensureUserAuthConfig()) return showToast('请先配置 Supabase 用户登录参数');
+  const client = getSupabaseClient();
+  if (!client) return showToast('Supabase 初始化失败，请检查配置');
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  if (error || !data?.session?.access_token) return showToast(`登录失败：${error?.message || '未知错误'}`);
+  writeSession({
+    mode: 'user',
+    email,
+    userId: data.user.id,
+    accessToken: data.session.access_token,
+  });
+  await syncUserProfile();
   renderAuthState();
   closeAuthModal();
-  showToast(`欢迎回来，${user.username}`);
+  showToast(`欢迎回来，${email}`);
 }
-function registerUser() {
-  const username = document.getElementById('auth-register-username')?.value.trim();
+async function registerUser() {
+  const email = document.getElementById('auth-register-email')?.value.trim();
   const password = document.getElementById('auth-register-password')?.value || '';
-  if (!username || username.length < 3 || username.length > 16) return showToast('用户名需 3-16 位');
+  if (!email || !email.includes('@')) return showToast('请输入有效邮箱');
   if (password.length < 6) return showToast('密码至少 6 位');
-  const users = readUsers();
-  if (users.some(u => u.username === username)) return showToast('用户名已存在');
-  users.push({
-    username,
-    password,
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616c7e0c8ca?w=80&q=80'
+  if (!ensureUserAuthConfig()) return showToast('请先配置 Supabase 用户登录参数');
+  const client = getSupabaseClient();
+  if (!client) return showToast('Supabase 初始化失败，请检查配置');
+  const { data, error } = await client.auth.signUp({ email, password });
+  if (error) return showToast(`注册失败：${error.message}`);
+  if (!data?.session?.access_token) {
+    showToast('注册成功，请先完成邮箱验证后登录');
+    switchAuthTab('login');
+    return;
+  }
+  writeSession({
+    mode: 'user',
+    email,
+    userId: data.user.id,
+    accessToken: data.session.access_token,
   });
-  writeUsers(users);
-  writeSession({ mode: 'user', username });
+  await syncUserProfile();
   renderAuthState();
   closeAuthModal();
   showToast('注册成功，已自动登录');
 }
 function continueAsGuest() {
   writeSession({ mode: 'guest' });
+  App.userProfile = null;
+  App.practiceTasks = [];
   renderAuthState();
+  renderPracticeTasks();
   closeAuthModal();
   showToast('已进入访客模式');
 }
-function logoutUser() {
+async function logoutUser() {
+  try { await getSupabaseClient()?.auth.signOut(); } catch (_err) {}
   localStorage.removeItem(SESSION_STORAGE_KEY);
+  App.userProfile = null;
+  App.practiceTasks = [];
   renderAuthState();
+  renderPracticeTasks();
   document.getElementById('user-menu')?.classList.remove('open');
   showToast('已退出登录');
 }
@@ -889,11 +949,154 @@ function renderAuthState() {
     avatarBtn.style.display = 'none';
     return;
   }
-  const user = readUsers().find(u => u.username === session.username);
   btn.style.display = 'none';
   avatarBtn.style.display = '';
-  avatarBtn.title = user?.username || '我的';
-  if (user?.avatar) avatarImg.src = user.avatar;
+  avatarBtn.title = session.email || '我的';
+  if (session.email) {
+    const hashSeed = encodeURIComponent(session.email);
+    avatarImg.src = `https://api.dicebear.com/9.x/thumbs/svg?seed=${hashSeed}`;
+  }
+}
+
+function openPracticeSetupModal() {
+  const session = readSession();
+  if (!session || session.mode !== 'user') {
+    showToast('请先登录账号');
+    openAuthModal();
+    return;
+  }
+  document.getElementById('practice-setup-overlay')?.classList.add('open');
+}
+
+function closePracticeSetupModal() {
+  document.getElementById('practice-setup-overlay')?.classList.remove('open');
+}
+
+async function submitPracticeSetup(skip = false) {
+  try {
+    const companionId = document.getElementById('setup-companion')?.value || 'hui-ming';
+    const content = document.getElementById('setup-practice-content')?.value.trim() || '';
+    await authedFetchJson('/api/user/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        companion_id: companionId,
+        onboarding_skipped: skip,
+        onboarding_completed: true,
+      }),
+    });
+    if (!skip && content) {
+      await authedFetchJson('/api/user/practices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+    }
+    await syncUserProfile();
+    closePracticeSetupModal();
+    showToast(skip ? '已跳过初始化，可随时补充功课' : '已完成初始化');
+  } catch (err) {
+    showToast(`初始化失败：${err.message}`);
+  }
+}
+
+async function syncUserProfile() {
+  const session = readSession();
+  if (!session || session.mode !== 'user' || !session.accessToken) return;
+  const data = await authedFetchJson('/api/user/settings');
+  App.userProfile = data.profile || null;
+  App.practiceTasks = data.practices || [];
+  if (App.userProfile?.companion_id) {
+    App.currentCompanion = App.userProfile.companion_id;
+  }
+  renderPracticeTasks();
+  if (!App.userProfile?.onboarding_completed) {
+    openPracticeSetupModal();
+  }
+}
+
+function renderPracticeTasks() {
+  const listEl = document.getElementById('practice-tasks-list');
+  const summaryEl = document.getElementById('practice-summary');
+  if (!listEl || !summaryEl) return;
+  const session = readSession();
+  if (!session || session.mode !== 'user') {
+    summaryEl.textContent = '请先登录';
+    listEl.innerHTML = '<div class="task-item"><div class="task-label">请设置您的功课内容</div></div>';
+    return;
+  }
+  if (!App.practiceTasks.length) {
+    summaryEl.textContent = '未设置';
+    listEl.innerHTML = '<div class="task-item"><div class="task-label">请设置您的功课内容</div></div>';
+    return;
+  }
+  summaryEl.textContent = `${App.practiceTasks.length} 条`;
+  listEl.innerHTML = App.practiceTasks.map(t => `
+    <div class="task-item">
+      <div class="task-label">${t.content}</div>
+      <input type="number" min="0" value="${t.progress}" style="width:68px" onchange="updatePracticeProgress('${t.id}', this.value)">
+      <button class="btn btn-ghost btn-sm" onclick="editPracticeContent('${t.id}')">改</button>
+      <button class="btn btn-ghost btn-sm" onclick="deletePracticeTask('${t.id}')">删</button>
+    </div>
+  `).join('');
+}
+
+async function addPracticePrompt() {
+  const session = readSession();
+  if (!session || session.mode !== 'user') return showToast('请先登录账号');
+  const content = prompt('请输入新的功课内容');
+  if (!content || !content.trim()) return;
+  try {
+    await authedFetchJson('/api/user/practices', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: content.trim() }),
+    });
+    await syncUserProfile();
+  } catch (err) {
+    showToast(`新增失败：${err.message}`);
+  }
+}
+
+async function updatePracticeProgress(id, progress) {
+  try {
+    await authedFetchJson('/api/user/practices', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, progress: Number(progress || 0) }),
+    });
+    await syncUserProfile();
+  } catch (err) {
+    showToast(`保存进度失败：${err.message}`);
+  }
+}
+
+async function editPracticeContent(id) {
+  const cur = App.practiceTasks.find(t => t.id === id);
+  const content = prompt('修改功课内容', cur?.content || '');
+  if (!content || !content.trim()) return;
+  try {
+    await authedFetchJson('/api/user/practices', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, content: content.trim() }),
+    });
+    await syncUserProfile();
+  } catch (err) {
+    showToast(`修改失败：${err.message}`);
+  }
+}
+
+async function deletePracticeTask(id) {
+  if (!confirm('确认删除这个功课？')) return;
+  try {
+    await authedFetchJson(`/api/user/practices?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+    await syncUserProfile();
+  } catch (err) {
+    showToast(`删除失败：${err.message}`);
+  }
 }
 
 // ============= 首页 =============
@@ -1052,13 +1255,27 @@ function getCompanionSystemPrompt() {
 }
 
 async function requestCompanionReply(userText) {
-  const cfg = getCompanionModelConfig();
-  if (!cfg.apiKey) return null;
   const messages = [
     { role: 'system', content: getCompanionSystemPrompt() },
     ...App.companionHistory.slice(-10),
     { role: 'user', content: userText },
   ];
+  // First priority: server-side proxy (works after deployment).
+  try {
+    const proxyResp = await fetch('/api/ai/companion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages }),
+    });
+    const proxyData = await proxyResp.json().catch(() => ({}));
+    if (proxyResp.ok && proxyData?.text) return String(proxyData.text).trim();
+  } catch (_err) {
+    // fallback below
+  }
+
+  // Fallback: keep local configurable provider for development.
+  const cfg = getCompanionModelConfig();
+  if (!cfg.apiKey) return null;
   const resp = await fetch(cfg.baseUrl, {
     method: 'POST',
     headers: {
@@ -1072,14 +1289,9 @@ async function requestCompanionReply(userText) {
       stream: false,
     }),
   });
-  if (!resp.ok) {
-    throw new Error(`LLM HTTP ${resp.status}`);
-  }
+  if (!resp.ok) throw new Error(`LLM HTTP ${resp.status}`);
   const data = await resp.json();
-  const text = data?.choices?.[0]?.message?.content
-    || data?.output?.text
-    || data?.reply
-    || '';
+  const text = data?.choices?.[0]?.message?.content || data?.output?.text || data?.reply || '';
   return String(text).trim() || null;
 }
 
@@ -2308,6 +2520,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (target && target.tagName === 'IMG') onImageError(target);
   }, true);
   renderAuthState();
+  renderPracticeTasks();
+  const session = readSession();
+  if (session?.mode === 'user' && session?.accessToken) {
+    try {
+      await syncUserProfile();
+    } catch (err) {
+      showToast(`用户数据同步失败：${err.message}`);
+    }
+  }
   setInterval(loadPublishedContent, 10000);
 });
 
@@ -2367,9 +2588,17 @@ Object.assign(window, {
   openAuthModal,
   closeAuthModal,
   switchAuthTab,
+  setUserAuthConfig,
   loginUser,
   registerUser,
   continueAsGuest,
   logoutUser,
   toggleUserMenu,
+  openPracticeSetupModal,
+  closePracticeSetupModal,
+  submitPracticeSetup,
+  addPracticePrompt,
+  updatePracticeProgress,
+  editPracticeContent,
+  deletePracticeTask,
 });

@@ -73,9 +73,29 @@ create table if not exists public.publish_versions (
   published_at timestamptz not null default now()
 );
 
+create table if not exists public.user_companion_profiles (
+  user_id uuid primary key,
+  companion_id text not null default 'hui-ming',
+  onboarding_completed boolean not null default false,
+  onboarding_skipped boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.user_practice_tasks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  content text not null,
+  progress int not null default 0 check (progress >= 0),
+  status text not null default 'active' check (status in ('active', 'archived')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create index if not exists idx_content_blocks_module_status on public.content_blocks(module_key, status);
 create index if not exists idx_articles_module_status on public.articles(module_key, status);
 create index if not exists idx_publish_versions_module on public.publish_versions(module_key, id desc);
+create index if not exists idx_user_practice_tasks_user_id on public.user_practice_tasks(user_id, created_at);
 
 insert into public.module_configs (module_key, display_name)
 values
