@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
 const MODULES = [
-  { key: 'home', label: '首页' },
-  { key: 'companion', label: '修法伴侣' },
-  { key: 'library', label: '佛学书库' },
-  { key: 'pilgrimage', label: '朝圣' },
-  { key: 'vegan', label: '茹素' },
-  { key: 'forum', label: '论坛' },
+  { key: 'home', label: '首页', icon: '🏠', desc: '首页视觉与推荐内容配置' },
+  { key: 'companion', label: '修法伴侣', icon: '🤖', desc: 'AI 对话入口与引导内容' },
+  { key: 'library', label: '佛学书库', icon: '📚', desc: '书库内容与分类配置' },
+  { key: 'pilgrimage', label: '朝圣', icon: '🕍', desc: '朝圣地点与线路攻略内容' },
+  { key: 'vegan', label: '茹素', icon: '🥗', desc: '素食推荐与菜谱内容' },
+  { key: 'forum', label: '论坛', icon: '🗣️', desc: '论坛帖子与跳转内容管理' },
 ];
 const MODULE_KEY_FALLBACKS = {
   pilgrimage: ['pilgrimage', 'pilgrim'],
@@ -24,6 +24,9 @@ let state = {
 };
 
 function byId(id) { return document.getElementById(id); }
+function getModuleMeta(moduleKey) {
+  return MODULES.find(m => m.key === moduleKey);
+}
 function showToast(text, isError = false) {
   const el = byId('toast');
   if (!el) return;
@@ -32,6 +35,11 @@ function showToast(text, isError = false) {
   el.classList.add('show');
   clearTimeout(showToast._timer);
   showToast._timer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+function updateStats() {
+  byId('stat-articles').textContent = String(state.articles.length || 0);
+  byId('stat-users').textContent = String(state.users.length || 0);
+  byId('stat-role').textContent = state.profile?.role || '未登录';
 }
 function authHeaders() {
   return state.token ? { Authorization: `Bearer ${state.token}` } : {};
@@ -73,8 +81,11 @@ async function refreshProfile() {
     const data = await fetchJson('/api/admin/profile', { headers: { ...authHeaders() } });
     state.profile = data.profile;
     byId('auth-status').textContent = `已登录：${state.profile.role} / ${data.user.email || '-'}`;
+    updateStats();
   } catch (err) {
     byId('auth-status').textContent = '未登录';
+    state.profile = null;
+    updateStats();
   }
 }
 
@@ -86,6 +97,9 @@ function logout() {
   byId('module-json').value = '';
   byId('article-list').innerHTML = '';
   byId('user-list').innerHTML = '';
+  state.articles = [];
+  state.users = [];
+  updateStats();
   showToast('已退出登录');
 }
 
@@ -93,21 +107,40 @@ function initModuleNav() {
   const nav = byId('module-nav');
   nav.innerHTML = MODULES.map(m => `<button data-key="${m.key}" data-short="${m.label.slice(0, 1)}">${m.label}</button>`).join('');
   nav.querySelectorAll('button').forEach(btn => {
-    btn.onclick = async () => {
-      if (!state.token) return showToast('请先登录后台账号', true);
-      state.moduleKey = btn.dataset.key;
-      nav.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
-      updateActiveModuleText();
-      await reloadAll();
-    };
+    btn.onclick = async () => switchModule(btn.dataset.key);
     if (btn.dataset.key === state.moduleKey) btn.classList.add('active');
   });
   updateActiveModuleText();
+  renderModuleGallery();
+}
+
+function renderModuleGallery() {
+  const root = byId('module-gallery');
+  root.innerHTML = MODULES.map(m => `
+    <article class="module-card ${m.key === state.moduleKey ? 'active' : ''}" data-key="${m.key}">
+      <div class="module-icon">${m.icon}</div>
+      <div class="module-title">${m.label}</div>
+    </article>
+  `).join('');
+  root.querySelectorAll('.module-card').forEach(card => {
+    card.onclick = () => switchModule(card.dataset.key);
+  });
+}
+
+async function switchModule(moduleKey) {
+  if (!state.token) return showToast('请先登录后台账号', true);
+  state.moduleKey = moduleKey;
+  byId('module-nav').querySelectorAll('button')
+    .forEach(b => b.classList.toggle('active', b.dataset.key === moduleKey));
+  updateActiveModuleText();
+  renderModuleGallery();
+  await reloadAll();
 }
 
 function updateActiveModuleText() {
-  const module = MODULES.find(m => m.key === state.moduleKey);
+  const module = getModuleMeta(state.moduleKey);
   byId('active-module-title').textContent = `当前模块：${module?.label || state.moduleKey}`;
+  byId('active-module-desc').textContent = module?.desc || '可编辑模块 JSON、文章列表、图片与用户配置。';
 }
 
 async function loadModuleDraft() {
@@ -155,6 +188,7 @@ async function loadArticles() {
       });
       state.articles = data.articles || [];
       renderArticleList();
+      updateStats();
       return;
     } catch (err) {
       lastError = err;
@@ -177,8 +211,10 @@ function renderArticleList() {
   }
   root.innerHTML = list.map(a => `
     <div class="item" data-slug="${a.slug}">
+      ${a.cover_url ? `<img class="article-cover" src="${a.cover_url}" alt="${a.title}">` : ''}
       <div class="title">${a.title}</div>
       <div class="meta">slug: ${a.slug} · 排序: ${a.sort_order || 0}</div>
+      <div class="meta">${a.summary || '无摘要'}</div>
       <div class="actions">
         <button class="ghost" data-action="edit">编辑</button>
       </div>
@@ -285,6 +321,7 @@ async function loadUsers() {
   const data = await fetchJson('/api/admin/users', { headers: { ...authHeaders() } });
   state.users = data.users || [];
   renderUserList();
+  updateStats();
 }
 
 function renderUserList() {
@@ -303,7 +340,11 @@ function renderUserList() {
   root.innerHTML = list.map(u => `
     <div class="item" data-id="${u.id}">
       <div class="title">${u.display_name || u.email || u.id}</div>
-      <div class="meta">role: ${u.role} · status: ${u.status}</div>
+      <div class="meta">
+        <span class="tag role-${u.role}">${u.role}</span>
+        <span class="tag status-${u.status}">${u.status}</span>
+      </div>
+      <div class="meta">${u.email || u.id}</div>
     </div>
   `).join('');
   root.querySelectorAll('.item').forEach(el => {
@@ -385,6 +426,17 @@ function bindEvents() {
   byId('reload-users-btn').onclick = loadUsers;
   byId('reload-all-btn').onclick = reloadAll;
   byId('toggle-sidebar-btn').onclick = toggleSidebar;
+  byId('file-input').onchange = () => {
+    const file = byId('file-input').files?.[0];
+    const preview = byId('upload-preview');
+    if (!file) {
+      preview.style.display = 'none';
+      preview.removeAttribute('src');
+      return;
+    }
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = 'block';
+  };
   byId('article-search').oninput = (event) => {
     state.articleKeyword = event.target.value || '';
     renderArticleList();
@@ -399,6 +451,7 @@ async function boot() {
   applyInitialLayout();
   initModuleNav();
   bindEvents();
+  updateStats();
   if (state.token) {
     await refreshProfile();
     try {
