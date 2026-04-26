@@ -9,7 +9,11 @@
 <body>
   <div id="app">
     <aside class="sidebar">
-      <h1>莫道后台</h1>
+      <div class="sidebar-header">
+        <h1>莫道后台</h1>
+        <button id="toggle-sidebar-btn" class="ghost icon-btn" title="折叠侧栏">≡</button>
+      </div>
+      <p class="hint">内容先保存为草稿，点击“上线当前模块”后前台生效。</p>
       <div class="auth-box">
         <input id="email" placeholder="管理员邮箱">
         <input id="password" placeholder="密码" type="password">
@@ -22,6 +26,15 @@
       <button id="publish-btn" class="publish-btn">上线当前模块</button>
     </aside>
     <main class="main">
+      <section class="topbar">
+        <div>
+          <h2 id="active-module-title">当前模块：首页</h2>
+          <p id="active-module-desc">可编辑模块 JSON、文章列表、图片与用户配置。</p>
+        </div>
+        <div class="actions">
+          <button id="reload-all-btn" class="ghost">刷新当前模块</button>
+        </div>
+      </section>
       <section class="panel">
         <h2>模块草稿内容</h2>
         <textarea id="module-json" rows="14"></textarea>
@@ -31,6 +44,7 @@
       </section>
       <section class="panel">
         <h2>文章管理</h2>
+        <input id="article-search" placeholder="搜索文章标题或 slug">
         <div class="row">
           <input id="article-slug" placeholder="slug">
           <input id="article-title" placeholder="标题">
@@ -43,9 +57,12 @@
         <textarea id="article-md" rows="8" placeholder="正文 Markdown（可选）"></textarea>
         <div class="row">
           <button id="upsert-article-btn">新增/更新文章</button>
-          <button id="reload-article-btn" class="ghost">刷新文章列表</button>
+          <button id="clear-article-btn" class="ghost">清空表单</button>
         </div>
-        <pre id="article-list"></pre>
+        <div class="row">
+          <button id="delete-article-btn" class="danger">删除当前 slug 文章</button>
+        </div>
+        <div id="article-list" class="list"></div>
       </section>
       <section class="panel">
         <h2>图片上传（替换图片）</h2>
@@ -57,6 +74,7 @@
       </section>
       <section class="panel">
         <h2>用户管理</h2>
+        <input id="user-search" placeholder="搜索用户（邮箱/显示名/角色）">
         <div class="row">
           <input id="user-id" placeholder="用户ID">
           <input id="user-display-name" placeholder="显示名">
@@ -69,10 +87,11 @@
           <button id="update-user-btn">更新用户</button>
           <button id="reload-users-btn" class="ghost">刷新用户列表</button>
         </div>
-        <pre id="user-list"></pre>
+        <div id="user-list" class="list"></div>
       </section>
     </main>
   </div>
+  <div id="toast" class="toast"></div>
   <script type="module" src="./admin.js"></script>
 </body>
 </html>

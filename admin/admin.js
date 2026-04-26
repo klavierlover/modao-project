@@ -13,9 +13,23 @@ let state = {
   token: localStorage.getItem('modao-admin-token') || '',
   moduleKey: 'home',
   profile: null,
+  articles: [],
+  users: [],
+  articleKeyword: '',
+  userKeyword: '',
+  sidebarCollapsed: localStorage.getItem('modao-admin-sidebar-collapsed') === '1',
 };
 
 function byId(id) { return document.getElementById(id); }
+function showToast(text, isError = false) {
+  const el = byId('toast');
+  if (!el) return;
+  el.textContent = text;
+  el.style.borderColor = isError ? '#ff5c5c' : '#2f3a55';
+  el.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => el.classList.remove('show'), 2200);
+}
 function authHeaders() {
   return state.token ? { Authorization: `Bearer ${state.token}` } : {};
 }
@@ -31,18 +45,19 @@ async function login() {
   const password = byId('password').value.trim();
   const supabaseUrl = localStorage.getItem('modao-supabase-url') || prompt('输入 SUPABASE_URL');
   const anonKey = localStorage.getItem('modao-supabase-anon') || prompt('输入 SUPABASE_ANON_KEY');
-  if (!email || !password || !supabaseUrl || !anonKey) return alert('登录信息不完整');
+  if (!email || !password || !supabaseUrl || !anonKey) return showToast('登录信息不完整', true);
 
   localStorage.setItem('modao-supabase-url', supabaseUrl);
   localStorage.setItem('modao-supabase-anon', anonKey);
 
   const client = createClient(supabaseUrl, anonKey);
   const { data, error } = await client.auth.signInWithPassword({ email, password });
-  if (error) return alert(`登录失败: ${error.message}`);
+  if (error) return showToast(`登录失败: ${error.message}`, true);
   state.token = data.session.access_token;
   localStorage.setItem('modao-admin-token', state.token);
   await refreshProfile();
   await reloadAll();
+  showToast('登录成功');
 }
 
 async function refreshProfile() {
@@ -60,20 +75,37 @@ function logout() {
   state.profile = null;
   localStorage.removeItem('modao-admin-token');
   byId('auth-status').textContent = '未登录';
+  byId('module-json').value = '';
+  byId('article-list').innerHTML = '';
+  byId('user-list').innerHTML = '';
+  showToast('已退出登录');
 }
 
 function initModuleNav() {
   const nav = byId('module-nav');
-  nav.innerHTML = MODULES.map(m => `<button data-key="${m.key}">${m.label}</button>`).join('');
+  nav.innerHTML = MODULES.map(m => `<button data-key="${m.key}" data-short="${m.label.slice(0, 1)}">${m.label}</button>`).join('');
   nav.querySelectorAll('button').forEach(btn => {
     btn.onclick = async () => {
+      if (!state.token) return showToast('请先登录后台账号', true);
       state.moduleKey = btn.dataset.key;
       nav.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
-      await loadModuleDraft();
-      await loadArticles();
+      updateActiveModuleText();
+      try {
+        await loadModuleDraft();
+        await loadArticles();
+        showToast(`已切换到 ${MODULES.find(m => m.key === state.moduleKey)?.label || state.moduleKey}`);
+      } catch (err) {
+        showToast(`模块加载失败: ${err.message}`, true);
+      }
     };
     if (btn.dataset.key === state.moduleKey) btn.classList.add('active');
   });
+  updateActiveModuleText();
+}
+
+function updateActiveModuleText() {
+  const module = MODULES.find(m => m.key === state.moduleKey);
+  byId('active-module-title').textContent = `当前模块：${module?.label || state.moduleKey}`;
 }
 
 async function loadModuleDraft() {
@@ -85,7 +117,12 @@ async function loadModuleDraft() {
 }
 
 async function saveModuleDraft() {
-  const payload = JSON.parse(byId('module-json').value || '{}');
+  let payload = {};
+  try {
+    payload = JSON.parse(byId('module-json').value || '{}');
+  } catch (err) {
+    return showToast('模块 JSON 格式错误，请先修正', true);
+  }
   await fetchJson('/api/admin/content', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
@@ -95,14 +132,62 @@ async function saveModuleDraft() {
       payload,
     }),
   });
-  alert('模块草稿已保存');
+  showToast('模块草稿已保存');
 }
 
 async function loadArticles() {
   const data = await fetchJson(`/api/admin/articles?module=${encodeURIComponent(state.moduleKey)}`, {
     headers: { ...authHeaders() },
   });
-  byId('article-list').textContent = JSON.stringify(data.articles || [], null, 2);
+  state.articles = data.articles || [];
+  renderArticleList();
+}
+
+function renderArticleList() {
+  const root = byId('article-list');
+  const keyword = state.articleKeyword.trim().toLowerCase();
+  const list = state.articles.filter(a => {
+    if (!keyword) return true;
+    return String(a.title || '').toLowerCase().includes(keyword)
+      || String(a.slug || '').toLowerCase().includes(keyword);
+  });
+  if (!list.length) {
+    root.innerHTML = '<div class="meta">当前模块暂无草稿文章</div>';
+    return;
+  }
+  root.innerHTML = list.map(a => `
+    <div class="item" data-slug="${a.slug}">
+      <div class="title">${a.title}</div>
+      <div class="meta">slug: ${a.slug} · 排序: ${a.sort_order || 0}</div>
+      <div class="actions">
+        <button class="ghost" data-action="edit">编辑</button>
+      </div>
+    </div>
+  `).join('');
+  root.querySelectorAll('.item').forEach(el => {
+    el.onclick = (event) => {
+      if (event.target.dataset.action === 'edit' || !event.target.closest('.actions')) {
+        fillArticleForm(el.dataset.slug);
+      }
+    };
+  });
+}
+
+function fillArticleForm(slug) {
+  const article = state.articles.find(a => a.slug === slug);
+  if (!article) return;
+  byId('article-slug').value = article.slug || '';
+  byId('article-title').value = article.title || '';
+  byId('article-url').value = article.article_url || '';
+  byId('article-cover').value = article.cover_url || '';
+  byId('article-summary').value = article.summary || '';
+  byId('article-md').value = article.content_md || '';
+  showToast(`已载入文章：${article.title}`);
+}
+
+function clearArticleForm() {
+  ['article-slug', 'article-title', 'article-url', 'article-cover', 'article-summary', 'article-md']
+    .forEach(id => { byId(id).value = ''; });
 }
 
 async function upsertArticle() {
@@ -121,12 +206,29 @@ async function upsertArticle() {
     body: JSON.stringify(payload),
   });
   await loadArticles();
-  alert('文章已保存');
+  showToast('文章已保存');
+}
+
+async function deleteArticle() {
+  const slug = byId('article-slug').value.trim();
+  if (!slug) return showToast('请先填写或选择要删除的 slug', true);
+  if (!confirm(`确认删除文章 slug = ${slug} ?`)) return;
+  await fetchJson('/api/admin/articles', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({
+      module_key: state.moduleKey,
+      slug,
+    }),
+  });
+  await loadArticles();
+  clearArticleForm();
+  showToast('文章已删除');
 }
 
 async function uploadMedia() {
   const file = byId('file-input').files?.[0];
-  if (!file) return alert('请先选择图片');
+  if (!file) return showToast('请先选择图片', true);
   const reader = new FileReader();
   reader.onload = async () => {
     const dataUrl = String(reader.result || '');
@@ -141,6 +243,7 @@ async function uploadMedia() {
       }),
     });
     byId('upload-result').value = data.publicUrl;
+    showToast('图片上传成功，可复制 URL 使用');
   };
   reader.readAsDataURL(file);
 }
@@ -151,12 +254,47 @@ async function publishModule() {
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ moduleKey: state.moduleKey }),
   });
-  alert(`发布成功，版本：${data.version}`);
+  showToast(`发布成功，版本：${data.version}`);
 }
 
 async function loadUsers() {
   const data = await fetchJson('/api/admin/users', { headers: { ...authHeaders() } });
-  byId('user-list').textContent = JSON.stringify(data.users || [], null, 2);
+  state.users = data.users || [];
+  renderUserList();
+}
+
+function renderUserList() {
+  const root = byId('user-list');
+  const keyword = state.userKeyword.trim().toLowerCase();
+  const list = state.users.filter(u => {
+    if (!keyword) return true;
+    return String(u.display_name || '').toLowerCase().includes(keyword)
+      || String(u.email || '').toLowerCase().includes(keyword)
+      || String(u.role || '').toLowerCase().includes(keyword);
+  });
+  if (!list.length) {
+    root.innerHTML = '<div class="meta">暂无用户数据</div>';
+    return;
+  }
+  root.innerHTML = list.map(u => `
+    <div class="item" data-id="${u.id}">
+      <div class="title">${u.display_name || u.email || u.id}</div>
+      <div class="meta">role: ${u.role} · status: ${u.status}</div>
+    </div>
+  `).join('');
+  root.querySelectorAll('.item').forEach(el => {
+    el.onclick = () => fillUserForm(el.dataset.id);
+  });
+}
+
+function fillUserForm(id) {
+  const user = state.users.find(u => u.id === id);
+  if (!user) return;
+  byId('user-id').value = user.id || '';
+  byId('user-display-name').value = user.display_name || '';
+  byId('user-role').value = user.role || '';
+  byId('user-status').value = user.status || '';
+  showToast('已载入用户信息');
 }
 
 async function updateUser() {
@@ -166,17 +304,28 @@ async function updateUser() {
     role: byId('user-role').value.trim(),
     status: byId('user-status').value.trim(),
   };
-  if (!payload.id) return alert('请先输入用户ID');
+  if (!payload.id) return showToast('请先输入用户ID', true);
   await fetchJson('/api/admin/users', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(payload),
   });
   await loadUsers();
-  alert('用户信息已更新');
+  showToast('用户信息已更新');
+}
+
+function toggleSidebar() {
+  state.sidebarCollapsed = !state.sidebarCollapsed;
+  document.body.classList.toggle('sidebar-collapsed', state.sidebarCollapsed);
+  localStorage.setItem('modao-admin-sidebar-collapsed', state.sidebarCollapsed ? '1' : '0');
+}
+
+function applyInitialLayout() {
+  document.body.classList.toggle('sidebar-collapsed', state.sidebarCollapsed);
 }
 
 async function reloadAll() {
+  if (!state.token) return;
   await loadModuleDraft();
   await loadArticles();
   await loadUsers();
@@ -187,19 +336,35 @@ function bindEvents() {
   byId('logout-btn').onclick = logout;
   byId('save-module-btn').onclick = saveModuleDraft;
   byId('upsert-article-btn').onclick = upsertArticle;
-  byId('reload-article-btn').onclick = loadArticles;
+  byId('delete-article-btn').onclick = deleteArticle;
+  byId('clear-article-btn').onclick = clearArticleForm;
   byId('publish-btn').onclick = publishModule;
   byId('upload-btn').onclick = uploadMedia;
   byId('update-user-btn').onclick = updateUser;
   byId('reload-users-btn').onclick = loadUsers;
+  byId('reload-all-btn').onclick = reloadAll;
+  byId('toggle-sidebar-btn').onclick = toggleSidebar;
+  byId('article-search').oninput = (event) => {
+    state.articleKeyword = event.target.value || '';
+    renderArticleList();
+  };
+  byId('user-search').oninput = (event) => {
+    state.userKeyword = event.target.value || '';
+    renderUserList();
+  };
 }
 
 async function boot() {
+  applyInitialLayout();
   initModuleNav();
   bindEvents();
   if (state.token) {
     await refreshProfile();
-    await reloadAll();
+    try {
+      await reloadAll();
+    } catch (err) {
+      showToast(`初始化加载失败: ${err.message}`, true);
+    }
   }
 }
 
