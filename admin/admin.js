@@ -8,6 +8,9 @@ const MODULES = [
   { key: 'vegan', label: '茹素' },
   { key: 'forum', label: '论坛' },
 ];
+const MODULE_KEY_FALLBACKS = {
+  pilgrimage: ['pilgrimage', 'pilgrim'],
+};
 
 let state = {
   token: localStorage.getItem('modao-admin-token') || '',
@@ -38,6 +41,11 @@ async function fetchJson(url, options = {}) {
   const data = await resp.json().catch(() => ({}));
   if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
   return data;
+}
+
+function getModuleKeyCandidates(moduleKey) {
+  const candidates = MODULE_KEY_FALLBACKS[moduleKey] || [moduleKey];
+  return [...new Set(candidates)];
 }
 
 async function login() {
@@ -90,13 +98,7 @@ function initModuleNav() {
       state.moduleKey = btn.dataset.key;
       nav.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
       updateActiveModuleText();
-      try {
-        await loadModuleDraft();
-        await loadArticles();
-        showToast(`已切换到 ${MODULES.find(m => m.key === state.moduleKey)?.label || state.moduleKey}`);
-      } catch (err) {
-        showToast(`模块加载失败: ${err.message}`, true);
-      }
+      await reloadAll();
     };
     if (btn.dataset.key === state.moduleKey) btn.classList.add('active');
   });
@@ -109,11 +111,20 @@ function updateActiveModuleText() {
 }
 
 async function loadModuleDraft() {
-  const data = await fetchJson(`/api/admin/content?module=${encodeURIComponent(state.moduleKey)}`, {
-    headers: { ...authHeaders() },
-  });
-  const root = (data.blocks || []).find(x => x.block_key === 'module_root');
-  byId('module-json').value = JSON.stringify(root?.payload || {}, null, 2);
+  let lastError = null;
+  for (const key of getModuleKeyCandidates(state.moduleKey)) {
+    try {
+      const data = await fetchJson(`/api/admin/content?module=${encodeURIComponent(key)}`, {
+        headers: { ...authHeaders() },
+      });
+      const root = (data.blocks || []).find(x => x.block_key === 'module_root');
+      byId('module-json').value = JSON.stringify(root?.payload || {}, null, 2);
+      return;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError || new Error('加载模块草稿失败');
 }
 
 async function saveModuleDraft() {
@@ -136,11 +147,20 @@ async function saveModuleDraft() {
 }
 
 async function loadArticles() {
-  const data = await fetchJson(`/api/admin/articles?module=${encodeURIComponent(state.moduleKey)}`, {
-    headers: { ...authHeaders() },
-  });
-  state.articles = data.articles || [];
-  renderArticleList();
+  let lastError = null;
+  for (const key of getModuleKeyCandidates(state.moduleKey)) {
+    try {
+      const data = await fetchJson(`/api/admin/articles?module=${encodeURIComponent(key)}`, {
+        headers: { ...authHeaders() },
+      });
+      state.articles = data.articles || [];
+      renderArticleList();
+      return;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError || new Error('加载文章失败');
 }
 
 function renderArticleList() {
@@ -191,8 +211,9 @@ function clearArticleForm() {
 }
 
 async function upsertArticle() {
+  const moduleKey = getModuleKeyCandidates(state.moduleKey)[0];
   const payload = {
-    module_key: state.moduleKey,
+    module_key: moduleKey,
     slug: byId('article-slug').value.trim(),
     title: byId('article-title').value.trim(),
     article_url: byId('article-url').value.trim(),
@@ -213,11 +234,12 @@ async function deleteArticle() {
   const slug = byId('article-slug').value.trim();
   if (!slug) return showToast('请先填写或选择要删除的 slug', true);
   if (!confirm(`确认删除文章 slug = ${slug} ?`)) return;
+  const moduleKey = getModuleKeyCandidates(state.moduleKey)[0];
   await fetchJson('/api/admin/articles', {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({
-      module_key: state.moduleKey,
+      module_key: moduleKey,
       slug,
     }),
   });
@@ -229,6 +251,7 @@ async function deleteArticle() {
 async function uploadMedia() {
   const file = byId('file-input').files?.[0];
   if (!file) return showToast('请先选择图片', true);
+  const moduleKey = getModuleKeyCandidates(state.moduleKey)[0];
   const reader = new FileReader();
   reader.onload = async () => {
     const dataUrl = String(reader.result || '');
@@ -236,7 +259,7 @@ async function uploadMedia() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({
-        moduleKey: state.moduleKey,
+        moduleKey,
         fileName: file.name,
         mimeType: file.type || 'image/png',
         base64Data: dataUrl,
@@ -249,10 +272,11 @@ async function uploadMedia() {
 }
 
 async function publishModule() {
+  const moduleKey = getModuleKeyCandidates(state.moduleKey)[0];
   const data = await fetchJson('/api/admin/publish', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify({ moduleKey: state.moduleKey }),
+    body: JSON.stringify({ moduleKey }),
   });
   showToast(`发布成功，版本：${data.version}`);
 }
@@ -326,9 +350,26 @@ function applyInitialLayout() {
 
 async function reloadAll() {
   if (!state.token) return;
-  await loadModuleDraft();
-  await loadArticles();
-  await loadUsers();
+  let hasError = false;
+  try {
+    await loadModuleDraft();
+  } catch (err) {
+    hasError = true;
+    showToast(`模块内容加载失败: ${err.message}`, true);
+  }
+  try {
+    await loadArticles();
+  } catch (err) {
+    hasError = true;
+    showToast(`文章加载失败: ${err.message}`, true);
+  }
+  try {
+    await loadUsers();
+  } catch (err) {
+    hasError = true;
+    showToast(`用户加载失败: ${err.message}`, true);
+  }
+  if (!hasError) showToast('数据刷新完成');
 }
 
 function bindEvents() {
