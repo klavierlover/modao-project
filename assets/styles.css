@@ -730,6 +730,7 @@ nav {
 }
 .hero-banner-meta .meta-label { font-size: 10px; letter-spacing: 3px; opacity: 0.6; }
 .hero-banner-meta .meta-val { font-family: var(--font-display); font-size: 28px; margin-top: 4px; }
+#home-tibetan-date { font-size: 24px !important; opacity: .95 !important; }
 
 /* 首页功能入口 */
 .quick-grid {

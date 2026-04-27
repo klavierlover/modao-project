@@ -822,6 +822,14 @@ function readProfiles() {
 function writeProfiles(map) {
   localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(map || {}));
 }
+function resetAllUserData() {
+  if (!confirm('确认清空本地用户信息并重新注册？')) return;
+  localStorage.removeItem(SESSION_STORAGE_KEY);
+  localStorage.removeItem(USER_PROFILE_STORAGE_KEY);
+  renderAuthState();
+  switchAuthTab('register');
+  showToast('本地用户信息已清空，请重新注册');
+}
 
 function switchAuthTab(tab) {
   document.getElementById('auth-tab-login')?.classList.toggle('active', tab === 'login');
@@ -889,7 +897,10 @@ function saveProfileChanges() {
   if (!session || session.mode !== 'user') return showToast('请先登录');
   const key = session.email || session.username || '';
   const displayName = document.getElementById('profile-name')?.value.trim() || '';
-  const avatar = document.getElementById('profile-avatar')?.value.trim() || '';
+  const avatarRaw = document.getElementById('profile-avatar')?.value.trim() || '';
+  const avatar = /^https?:|^data:|^\//i.test(avatarRaw)
+    ? avatarRaw
+    : (avatarRaw ? `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(avatarRaw)}` : '');
   const map = readProfiles();
   map[key] = { ...(map[key] || {}), displayName, avatar };
   writeProfiles(map);
@@ -913,7 +924,6 @@ function registerUser() {
   const password = document.getElementById('auth-register-password')?.value || '';
   if (!username) return showToast('请输入邮箱');
   if (password.length < 6) return showToast('密码至少 6 位');
-  if (!avatar) return showToast('请先选择头像（emoji / 上传 / URL）');
   const users = readUsers();
   if (users.some(u => u.username === username || u.email === username)) return showToast('账号已存在');
   users.push({
@@ -946,11 +956,6 @@ function logoutUser() {
 function toggleUserMenu() {
   document.getElementById('user-menu')?.classList.toggle('open');
 }
-function avatarFromEmoji(emoji) {
-  const txt = String(emoji || '🪷');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="100%" height="100%" rx="48" ry="48" fill="#f6f1e4"/><text x="50%" y="58%" text-anchor="middle" font-size="56">${txt}</text></svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-}
 function renderAuthState() {
   const session = readSession();
   const btn = document.getElementById('auth-status-btn');
@@ -977,7 +982,9 @@ function renderAuthState() {
   avatarBtn.style.display = '';
   avatarBtn.title = p.displayName || user?.email || user?.username || '我的';
   if (p.avatar) {
-    const avatarVal = /^https?:|^data:|^\//i.test(p.avatar) ? p.avatar : avatarFromEmoji(p.avatar);
+    const avatarVal = /^https?:|^data:|^\//i.test(p.avatar)
+      ? p.avatar
+      : `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(p.avatar)}`;
     avatarImg.src = avatarVal;
   }
   else if (user?.avatar) avatarImg.src = user.avatar;
@@ -1009,17 +1016,19 @@ function renderHome() {
 
 function updateHomeCalendarDisplay() {
   const now = new Date();
-  const labelEl = document.getElementById('home-meta-label');
   const homeDateEl = document.getElementById('home-date');
+  const weekLabelEl = document.getElementById('home-week-label');
   const lunarEl = document.getElementById('home-lunar-date');
   const tibetanEl = document.getElementById('home-tibetan-date');
-  const weekMap = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-  if (labelEl) labelEl.textContent = `${now.getMonth() + 1}月${now.getDate()}日 · ${weekMap[now.getDay()]}`;
+  const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
   if (homeDateEl) {
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
     const d = String(now.getDate()).padStart(2, '0');
     homeDateEl.textContent = `${y}年${m}月${d}日`;
+  }
+  if (weekLabelEl) {
+    weekLabelEl.textContent = `${now.getMonth() + 1}月${now.getDate()}日 ${weekDays[now.getDay()]}`;
   }
   if (lunarEl) {
     try {
@@ -1046,17 +1055,6 @@ function updateHomeCalendarDisplay() {
       tibetanEl.textContent = `藏历 ${lunarEl?.textContent?.replace('农历 ', '') || '日期不可用'}`;
     }
   }
-}
-
-function resetAllUserData() {
-  if (!confirm('确认清除本地用户信息并重新注册？')) return;
-  localStorage.removeItem(AUTH_STORAGE_KEY);
-  localStorage.removeItem(USER_PROFILE_STORAGE_KEY);
-  localStorage.removeItem(SESSION_STORAGE_KEY);
-  renderAuthState();
-  closeAuthModal();
-  openAuthModal();
-  showToast('已清除本地用户信息，请重新注册');
 }
 
 function formatNum(n) {
