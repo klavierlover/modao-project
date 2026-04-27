@@ -640,6 +640,7 @@ const App = {
   practiceTasks: [],
 };
 const SESSION_STORAGE_KEY = 'modao-session';
+const USER_PROFILE_STORAGE_KEY = 'modao-user-profiles';
 const LLM_BASE_URL_KEY = 'modao-llm-base-url';
 const LLM_MODEL_KEY = 'modao-llm-model';
 const LLM_API_KEY = 'modao-llm-api-key';
@@ -647,6 +648,7 @@ const DEFAULT_LLM_BASE_URL = 'https://api.siliconflow.cn/v1/chat/completions';
 const DEFAULT_LLM_MODEL = 'Qwen/Qwen2.5-7B-Instruct';
 const SUPABASE_URL_KEY = 'modao-supabase-url';
 const SUPABASE_ANON_KEY = 'modao-supabase-anon';
+let registerAvatarSelection = '';
 
 const IMMERSIVE_HERO_CONFIG = {
   companion: {
@@ -667,7 +669,7 @@ const IMMERSIVE_HERO_CONFIG = {
   pilgrimage: {
     title: '朝圣',
     quote: '莫舍己道，勿扰他心。',
-    image: 'http://y2.ifengimg.com/a/2015_34/75f0a8211e105c3.jpg'
+    image: 'https://y2.ifengimg.com/a/2015_34/75f0a8211e105c3.jpg'
   },
   forum: {
     title: '论坛',
@@ -810,6 +812,13 @@ function readSession() {
 function writeSession(session) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
 }
+function readProfiles() {
+  try { return JSON.parse(localStorage.getItem(USER_PROFILE_STORAGE_KEY) || '{}'); }
+  catch { return {}; }
+}
+function writeProfiles(map) {
+  localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(map || {}));
+}
 
 function getUserAuthConfig() {
   const url = localStorage.getItem(SUPABASE_URL_KEY) || window.MODAO_SUPABASE_URL || '';
@@ -862,6 +871,27 @@ function openAuthModal() {
 function closeAuthModal() {
   document.getElementById('auth-overlay')?.classList.remove('open');
 }
+function selectAvatarEmoji(emoji, el) {
+  registerAvatarSelection = emoji || '';
+  document.querySelectorAll('#auth-avatar-emoji-row .auth-avatar-emoji')
+    .forEach(btn => btn.classList.toggle('active', btn === el));
+}
+function onAvatarFileSelected(event) {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = String(reader.result || '');
+    if (dataUrl) {
+      document.getElementById('auth-register-avatar').value = dataUrl;
+      registerAvatarSelection = '';
+      document.querySelectorAll('#auth-avatar-emoji-row .auth-avatar-emoji')
+        .forEach(btn => btn.classList.remove('active'));
+      showToast('头像图片已选择');
+    }
+  };
+  reader.readAsDataURL(file);
+}
 async function loginUser() {
   const email = document.getElementById('auth-login-email')?.value.trim();
   const password = document.getElementById('auth-login-password')?.value || '';
@@ -884,6 +914,7 @@ async function loginUser() {
 }
 async function registerUser() {
   const email = document.getElementById('auth-register-email')?.value.trim();
+  const avatarUrl = document.getElementById('auth-register-avatar')?.value.trim() || '';
   const password = document.getElementById('auth-register-password')?.value || '';
   if (!email || !email.includes('@')) return showToast('请输入有效邮箱');
   if (password.length < 6) return showToast('密码至少 6 位');
@@ -903,6 +934,13 @@ async function registerUser() {
     userId: data.user.id,
     accessToken: data.session.access_token,
   });
+  const profiles = readProfiles();
+  profiles[email] = {
+    ...(profiles[email] || {}),
+    displayName: profiles[email]?.displayName || email.split('@')[0],
+    avatar: avatarUrl || registerAvatarSelection || profiles[email]?.avatar || '',
+  };
+  writeProfiles(profiles);
   await syncUserProfile();
   renderAuthState();
   closeAuthModal();
@@ -930,6 +968,10 @@ async function logoutUser() {
 function toggleUserMenu() {
   document.getElementById('user-menu')?.classList.toggle('open');
 }
+function avatarFromEmoji(emoji) {
+  const txt = String(emoji || '🪷');
+  return `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(txt)}`;
+}
 function renderAuthState() {
   const session = readSession();
   const btn = document.getElementById('auth-status-btn');
@@ -951,11 +993,56 @@ function renderAuthState() {
   }
   btn.style.display = 'none';
   avatarBtn.style.display = '';
-  avatarBtn.title = session.email || '我的';
-  if (session.email) {
-    const hashSeed = encodeURIComponent(session.email);
-    avatarImg.src = `https://api.dicebear.com/9.x/thumbs/svg?seed=${hashSeed}`;
+  const profiles = readProfiles();
+  const p = profiles[session.email || ''] || {};
+  avatarBtn.title = p.displayName || session.email || '我的';
+  if (p.avatar) {
+    avatarImg.src = p.avatar.length <= 3 ? avatarFromEmoji(p.avatar) : p.avatar;
+  } else if (session.email) {
+    avatarImg.src = `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(session.email)}`;
   }
+}
+
+function openProfileModal() {
+  const session = readSession();
+  if (!session || session.mode !== 'user') return showToast('请先登录');
+  const map = readProfiles();
+  const p = map[session.email || ''] || {};
+  document.getElementById('profile-name').value = p.displayName || '';
+  document.getElementById('profile-avatar').value = p.avatar || '';
+  document.getElementById('profile-overlay')?.classList.add('open');
+}
+function closeProfileModal() {
+  document.getElementById('profile-overlay')?.classList.remove('open');
+}
+function selectProfileAvatarEmoji(emoji) {
+  document.getElementById('profile-avatar').value = emoji;
+}
+function onProfileAvatarFileSelected(event) {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = String(reader.result || '');
+    if (dataUrl) {
+      document.getElementById('profile-avatar').value = dataUrl;
+      showToast('头像图片已选择');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+function saveProfileChanges() {
+  const session = readSession();
+  if (!session || session.mode !== 'user') return showToast('请先登录');
+  const key = session.email || '';
+  const displayName = document.getElementById('profile-name')?.value.trim() || '';
+  const avatar = document.getElementById('profile-avatar')?.value.trim() || '';
+  const map = readProfiles();
+  map[key] = { ...(map[key] || {}), displayName, avatar };
+  writeProfiles(map);
+  renderAuthState();
+  closeProfileModal();
+  showToast('资料已保存');
 }
 
 function openPracticeSetupModal() {
@@ -1155,6 +1242,7 @@ async function dailyPracticeCheckin() {
 
 // ============= 首页 =============
 function renderHome() {
+  updateHomeCalendarDisplay();
   // 瀑布流推荐内容
   const masonry = document.getElementById('home-masonry');
   if (!masonry) return;
@@ -1176,6 +1264,34 @@ function renderHome() {
   `).join('');
 }
 
+function updateHomeCalendarDisplay() {
+  const now = new Date();
+  const homeDateEl = document.getElementById('home-date');
+  const lunarEl = document.getElementById('home-lunar-date');
+  const tibetanEl = document.getElementById('home-tibetan-date');
+  if (homeDateEl) {
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    homeDateEl.textContent = `${y}年${m}月${d}日`;
+  }
+  if (lunarEl) {
+    try {
+      lunarEl.textContent = `农历 ${new Intl.DateTimeFormat('zh-CN-u-ca-chinese', { month: 'long', day: 'numeric' }).format(now)}`;
+    } catch (_err) {
+      lunarEl.textContent = '农历 日期不可用';
+    }
+  }
+  if (tibetanEl) {
+    try {
+      const tibetanLike = new Intl.DateTimeFormat('bo-CN-u-ca-chinese', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+      tibetanEl.textContent = `藏历 ${tibetanLike}`;
+    } catch (_err) {
+      tibetanEl.textContent = '藏历 日期不可用';
+    }
+  }
+}
+
 function formatNum(n) {
   if (n >= 10000) return (n / 10000).toFixed(1) + 'w';
   if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
@@ -1190,10 +1306,9 @@ function initCompanion() {
   const greeting = `${comp.greeting}\n\n欢迎来到莫道。我已看到您今日的修行记录——早课念佛和禅坐都已完成，精进！\n\n您今天想继续完成剩下的功课，还是有什么修行上的困惑想与我探讨？`;
   appendMessage('ai', comp.avatar, greeting);
   addCompanionHistory('assistant', greeting);
-  const cfg = getCompanionModelConfig();
-  if (!cfg.apiKey && !App.llmHintShown) {
+  if (!App.llmHintShown) {
     App.llmHintShown = true;
-    showToast('未配置大模型 Key，当前使用本地回复。可在控制台调用 setCompanionModelConfig(...) 接入真实模型。', 4200);
+    showToast('AI 优先使用服务器端 DeepSeek，如未生效请检查 DEEPSEEK_API_KEY 环境变量。', 3200);
   }
 }
 
@@ -2351,7 +2466,7 @@ function openForumPost(id) {
 function onImageError(imgEl) {
   if (!imgEl || imgEl.dataset.fallbackApplied === '1') return;
   imgEl.dataset.fallbackApplied = '1';
-  imgEl.src = './assets/images/home-hero-larunggar.jpg';
+  imgEl.src = '/assets/images/home-hero-larunggar.jpg';
 }
 
 async function loadPublishedContent() {
@@ -2390,7 +2505,7 @@ function applyPublishedSnapshot(moduleKey, snapshot) {
         time: '刚刚更新',
         section: a.section || '同修精选',
         title: a.title,
-        cover: a.cover_url || './assets/images/home-hero-larunggar.jpg',
+        cover: a.cover_url || '/assets/images/home-hero-larunggar.jpg',
         coverHeight: 320,
         excerpt: a.summary || '',
         likes: Number(a.likes || 0),
@@ -2641,6 +2756,13 @@ Object.assign(window, {
   renderRecipes,
   openAuthModal,
   closeAuthModal,
+  openProfileModal,
+  closeProfileModal,
+  saveProfileChanges,
+  selectAvatarEmoji,
+  onAvatarFileSelected,
+  selectProfileAvatarEmoji,
+  onProfileAvatarFileSelected,
   switchAuthTab,
   setUserAuthConfig,
   loginUser,

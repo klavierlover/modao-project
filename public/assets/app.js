@@ -639,6 +639,7 @@ const App = {
 };
 const AUTH_STORAGE_KEY = 'modao-users';
 const SESSION_STORAGE_KEY = 'modao-session';
+const USER_PROFILE_STORAGE_KEY = 'modao-user-profiles';
 const LLM_BASE_URL_KEY = 'modao-llm-base-url';
 const LLM_MODEL_KEY = 'modao-llm-model';
 const LLM_API_KEY = 'modao-llm-api-key';
@@ -664,7 +665,7 @@ const IMMERSIVE_HERO_CONFIG = {
   pilgrimage: {
     title: '朝圣',
     quote: '莫舍己道，勿扰他心。',
-    image: 'http://y2.ifengimg.com/a/2015_34/75f0a8211e105c3.jpg'
+    image: 'https://y2.ifengimg.com/a/2015_34/75f0a8211e105c3.jpg'
   },
   forum: {
     title: '论坛',
@@ -814,6 +815,13 @@ function readSession() {
 function writeSession(session) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
 }
+function readProfiles() {
+  try { return JSON.parse(localStorage.getItem(USER_PROFILE_STORAGE_KEY) || '{}'); }
+  catch { return {}; }
+}
+function writeProfiles(map) {
+  localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(map || {}));
+}
 
 function switchAuthTab(tab) {
   document.getElementById('auth-tab-login')?.classList.toggle('active', tab === 'login');
@@ -827,30 +835,61 @@ function openAuthModal() {
 function closeAuthModal() {
   document.getElementById('auth-overlay')?.classList.remove('open');
 }
+function openProfileModal() {
+  const session = readSession();
+  if (!session || session.mode !== 'user') return showToast('请先登录');
+  const profiles = readProfiles();
+  const key = session.email || session.username || '';
+  const p = profiles[key] || {};
+  document.getElementById('profile-name').value = p.displayName || '';
+  document.getElementById('profile-avatar').value = p.avatar || '';
+  document.getElementById('profile-overlay')?.classList.add('open');
+}
+function closeProfileModal() {
+  document.getElementById('profile-overlay')?.classList.remove('open');
+}
+function saveProfileChanges() {
+  const session = readSession();
+  if (!session || session.mode !== 'user') return showToast('请先登录');
+  const key = session.email || session.username || '';
+  const displayName = document.getElementById('profile-name')?.value.trim() || '';
+  const avatar = document.getElementById('profile-avatar')?.value.trim() || '';
+  const map = readProfiles();
+  map[key] = { ...(map[key] || {}), displayName, avatar };
+  writeProfiles(map);
+  renderAuthState();
+  closeProfileModal();
+  showToast('资料已保存');
+}
 function loginUser() {
-  const username = document.getElementById('auth-login-username')?.value.trim();
+  const username = document.getElementById('auth-login-email')?.value.trim() || document.getElementById('auth-login-username')?.value.trim();
   const password = document.getElementById('auth-login-password')?.value || '';
-  const user = readUsers().find(u => u.username === username && u.password === password);
+  const user = readUsers().find(u => (u.username === username || u.email === username) && u.password === password);
   if (!user) return showToast('用户名或密码错误');
-  writeSession({ mode: 'user', username: user.username });
+  writeSession({ mode: 'user', username: user.username || user.email, email: user.email || user.username });
   renderAuthState();
   closeAuthModal();
-  showToast(`欢迎回来，${user.username}`);
+  showToast(`欢迎回来，${user.email || user.username}`);
 }
 function registerUser() {
-  const username = document.getElementById('auth-register-username')?.value.trim();
+  const username = document.getElementById('auth-register-email')?.value.trim() || document.getElementById('auth-register-username')?.value.trim();
+  const avatar = document.getElementById('auth-register-avatar')?.value.trim() || '';
   const password = document.getElementById('auth-register-password')?.value || '';
-  if (!username || username.length < 3 || username.length > 16) return showToast('用户名需 3-16 位');
+  if (!username) return showToast('请输入邮箱');
   if (password.length < 6) return showToast('密码至少 6 位');
   const users = readUsers();
-  if (users.some(u => u.username === username)) return showToast('用户名已存在');
+  if (users.some(u => u.username === username || u.email === username)) return showToast('账号已存在');
   users.push({
-    username,
+    username: username,
+    email: username,
     password,
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616c7e0c8ca?w=80&q=80'
+    avatar: avatar || 'https://images.unsplash.com/photo-1494790108755-2616c7e0c8ca?w=80&q=80'
   });
   writeUsers(users);
-  writeSession({ mode: 'user', username });
+  const profiles = readProfiles();
+  profiles[username] = { displayName: username.split('@')[0], avatar: avatar || '' };
+  writeProfiles(profiles);
+  writeSession({ mode: 'user', username, email: username });
   renderAuthState();
   closeAuthModal();
   showToast('注册成功，已自动登录');
@@ -889,11 +928,14 @@ function renderAuthState() {
     avatarBtn.style.display = 'none';
     return;
   }
-  const user = readUsers().find(u => u.username === session.username);
+  const user = readUsers().find(u => u.username === session.username || u.email === session.email);
+  const profiles = readProfiles();
+  const p = profiles[session.email || session.username] || {};
   btn.style.display = 'none';
   avatarBtn.style.display = '';
-  avatarBtn.title = user?.username || '我的';
-  if (user?.avatar) avatarImg.src = user.avatar;
+  avatarBtn.title = p.displayName || user?.email || user?.username || '我的';
+  if (p.avatar) avatarImg.src = p.avatar;
+  else if (user?.avatar) avatarImg.src = user.avatar;
 }
 
 // ============= 首页 =============
@@ -933,10 +975,9 @@ function initCompanion() {
   const greeting = `${comp.greeting}\n\n欢迎来到莫道。我已看到您今日的修行记录——早课念佛和禅坐都已完成，精进！\n\n您今天想继续完成剩下的功课，还是有什么修行上的困惑想与我探讨？`;
   appendMessage('ai', comp.avatar, greeting);
   addCompanionHistory('assistant', greeting);
-  const cfg = getCompanionModelConfig();
-  if (!cfg.apiKey && !App.llmHintShown) {
+  if (!App.llmHintShown) {
     App.llmHintShown = true;
-    showToast('未配置大模型 Key，当前使用本地回复。可在控制台调用 setCompanionModelConfig(...) 接入真实模型。', 4200);
+    showToast('AI 优先使用服务器端 DeepSeek，如未生效请检查 DEEPSEEK_API_KEY 环境变量。', 3200);
   }
 }
 
@@ -1052,13 +1093,23 @@ function getCompanionSystemPrompt() {
 }
 
 async function requestCompanionReply(userText) {
-  const cfg = getCompanionModelConfig();
-  if (!cfg.apiKey) return null;
   const messages = [
     { role: 'system', content: getCompanionSystemPrompt() },
     ...App.companionHistory.slice(-10),
     { role: 'user', content: userText },
   ];
+  try {
+    const proxyResp = await fetch('/api/ai/companion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages }),
+    });
+    const proxyData = await proxyResp.json().catch(() => ({}));
+    if (proxyResp.ok && proxyData?.text) return String(proxyData.text).trim();
+  } catch (_err) {}
+
+  const cfg = getCompanionModelConfig();
+  if (!cfg.apiKey) return null;
   const resp = await fetch(cfg.baseUrl, {
     method: 'POST',
     headers: {
@@ -2085,7 +2136,7 @@ function openForumPost(id) {
 function onImageError(imgEl) {
   if (!imgEl || imgEl.dataset.fallbackApplied === '1') return;
   imgEl.dataset.fallbackApplied = '1';
-  imgEl.src = './assets/images/home-hero-larunggar.jpg';
+  imgEl.src = '/assets/images/home-hero-larunggar.jpg';
 }
 
 async function loadPublishedContent() {
@@ -2124,7 +2175,7 @@ function applyPublishedSnapshot(moduleKey, snapshot) {
         time: '刚刚更新',
         section: a.section || '同修精选',
         title: a.title,
-        cover: a.cover_url || './assets/images/home-hero-larunggar.jpg',
+        cover: a.cover_url || '/assets/images/home-hero-larunggar.jpg',
         coverHeight: 320,
         excerpt: a.summary || '',
         likes: Number(a.likes || 0),
@@ -2240,6 +2291,18 @@ function submitPost() {
   showToast('发布成功（演示）');
   closeNewPost();
 }
+
+// Backward-compat no-op handlers for new HTML controls.
+function openPracticeSetupModal() { showToast('请先在新版用户系统中初始化功课'); }
+function closePracticeSetupModal() {}
+function submitPracticeSetup() { showToast('请先在新版用户系统中初始化功课'); }
+function addPracticePrompt() { showToast('请先登录后新增功课'); }
+function updatePracticeProgress() { showToast('请在新版功课卡中调整进度'); }
+function editPracticeContent() { showToast('请在新版功课卡中修改内容'); }
+function deletePracticeTask() { showToast('请在新版功课卡中删除内容'); }
+function dailyPracticeCheckin() { showToast('请先登录后打卡'); }
+function stepPracticeProgress() {}
+function updatePracticeProgressPrompt() {}
 
 function renderRecipes() {
   const grid = document.getElementById('recipe-grid');
@@ -2366,10 +2429,23 @@ Object.assign(window, {
   renderRecipes,
   openAuthModal,
   closeAuthModal,
+  openProfileModal,
+  closeProfileModal,
+  saveProfileChanges,
   switchAuthTab,
   loginUser,
   registerUser,
   continueAsGuest,
   logoutUser,
   toggleUserMenu,
+  openPracticeSetupModal,
+  closePracticeSetupModal,
+  submitPracticeSetup,
+  addPracticePrompt,
+  updatePracticeProgress,
+  editPracticeContent,
+  deletePracticeTask,
+  dailyPracticeCheckin,
+  stepPracticeProgress,
+  updatePracticeProgressPrompt,
 });
