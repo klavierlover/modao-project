@@ -972,6 +972,35 @@ function avatarFromEmoji(emoji) {
   const txt = String(emoji || '🪷');
   return `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(txt)}`;
 }
+function isLikelyEmojiAvatar(value) {
+  const v = String(value || '').trim();
+  if (!v) return false;
+  return !/^https?:|^data:|^\//i.test(v) && v.length <= 4;
+}
+function normalizeAvatarValue(value) {
+  const v = String(value || '').trim();
+  if (!v) return '';
+  return isLikelyEmojiAvatar(v) ? avatarFromEmoji(v) : v;
+}
+function renderProfileAvatarPreview(value) {
+  const preview = document.getElementById('profile-avatar-preview');
+  if (!preview) return;
+  const v = String(value || '').trim();
+  preview.innerHTML = '';
+  if (!v) {
+    preview.textContent = '🪷';
+    return;
+  }
+  if (isLikelyEmojiAvatar(v)) {
+    preview.textContent = v;
+    return;
+  }
+  const img = document.createElement('img');
+  img.src = v;
+  img.alt = 'avatar-preview';
+  img.onerror = () => { preview.textContent = '🪷'; };
+  preview.appendChild(img);
+}
 function renderAuthState() {
   const session = readSession();
   const btn = document.getElementById('auth-status-btn');
@@ -997,7 +1026,7 @@ function renderAuthState() {
   const p = profiles[session.email || ''] || {};
   avatarBtn.title = p.displayName || session.email || '我的';
   if (p.avatar) {
-    avatarImg.src = p.avatar.length <= 3 ? avatarFromEmoji(p.avatar) : p.avatar;
+    avatarImg.src = normalizeAvatarValue(p.avatar);
   } else if (session.email) {
     avatarImg.src = `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(session.email)}`;
   }
@@ -1010,6 +1039,12 @@ function openProfileModal() {
   const p = map[session.email || ''] || {};
   document.getElementById('profile-name').value = p.displayName || '';
   document.getElementById('profile-avatar').value = p.avatar || '';
+  renderProfileAvatarPreview(p.avatar || '');
+  const avatarInput = document.getElementById('profile-avatar');
+  if (avatarInput && !avatarInput.dataset.bindPreview) {
+    avatarInput.dataset.bindPreview = '1';
+    avatarInput.addEventListener('input', () => renderProfileAvatarPreview(avatarInput.value));
+  }
   document.getElementById('profile-overlay')?.classList.add('open');
 }
 function closeProfileModal() {
@@ -1017,6 +1052,7 @@ function closeProfileModal() {
 }
 function selectProfileAvatarEmoji(emoji) {
   document.getElementById('profile-avatar').value = emoji;
+  renderProfileAvatarPreview(emoji);
 }
 // Backward-compatible aliases for stale cached HTML handlers.
 function selectAvatarEmoji1(emoji, el) { selectAvatarEmoji(emoji, el); }
@@ -1029,6 +1065,7 @@ function onProfileAvatarFileSelected(event) {
     const dataUrl = String(reader.result || '');
     if (dataUrl) {
       document.getElementById('profile-avatar').value = dataUrl;
+      renderProfileAvatarPreview(dataUrl);
       showToast('头像图片已选择');
     }
   };
@@ -1039,7 +1076,8 @@ function saveProfileChanges() {
   if (!session || session.mode !== 'user') return showToast('请先登录');
   const key = session.email || '';
   const displayName = document.getElementById('profile-name')?.value.trim() || '';
-  const avatar = document.getElementById('profile-avatar')?.value.trim() || '';
+  const avatarRaw = document.getElementById('profile-avatar')?.value.trim() || '';
+  const avatar = normalizeAvatarValue(avatarRaw);
   const map = readProfiles();
   map[key] = { ...(map[key] || {}), displayName, avatar };
   writeProfiles(map);
@@ -1280,17 +1318,27 @@ function updateHomeCalendarDisplay() {
   }
   if (lunarEl) {
     try {
-      lunarEl.textContent = `农历 ${new Intl.DateTimeFormat('zh-CN-u-ca-chinese', { month: 'long', day: 'numeric' }).format(now)}`;
+      const lunarRaw = new Intl.DateTimeFormat('zh-CN-u-ca-chinese', { month: 'long', day: 'numeric' }).format(now);
+      const dayMap = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十',
+        '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
+        '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
+      const m = lunarRaw.match(/(.+?月)(\d+)日/);
+      if (m) {
+        const dayIndex = Math.max(1, Math.min(30, Number(m[2] || 1))) - 1;
+        lunarEl.textContent = `农历 ${m[1]}${dayMap[dayIndex]}`;
+      } else {
+        lunarEl.textContent = `农历 ${lunarRaw}`;
+      }
     } catch (_err) {
       lunarEl.textContent = '农历 日期不可用';
     }
   }
   if (tibetanEl) {
     try {
-      const tibetanLike = new Intl.DateTimeFormat('bo-CN-u-ca-chinese', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+      const tibetanLike = new Intl.DateTimeFormat('bo-CN-u-ca-chinese', { year: 'numeric', month: 'long', day: 'numeric' }).format(now);
       tibetanEl.textContent = `藏历 ${tibetanLike}`;
     } catch (_err) {
-      tibetanEl.textContent = '藏历 日期不可用';
+      tibetanEl.textContent = `藏历 ${lunarEl?.textContent?.replace('农历 ', '') || '日期不可用'}`;
     }
   }
 }
@@ -2647,7 +2695,8 @@ function renderRecipes() {
 
 // ============= 初始化 =============
 window.addEventListener('DOMContentLoaded', async () => {
-  await loadPublishedContent();
+  updateHomeCalendarDisplay();
+  loadPublishedContent();
   initImmersivePages();
   renderHome();
   initReaderSelection();

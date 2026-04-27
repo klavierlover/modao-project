@@ -889,7 +889,10 @@ function saveProfileChanges() {
   if (!session || session.mode !== 'user') return showToast('请先登录');
   const key = session.email || session.username || '';
   const displayName = document.getElementById('profile-name')?.value.trim() || '';
-  const avatar = document.getElementById('profile-avatar')?.value.trim() || '';
+  const avatarRaw = document.getElementById('profile-avatar')?.value.trim() || '';
+  const avatar = /^https?:|^data:|^\//i.test(avatarRaw)
+    ? avatarRaw
+    : (avatarRaw ? `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(avatarRaw)}` : '');
   const map = readProfiles();
   map[key] = { ...(map[key] || {}), displayName, avatar };
   writeProfiles(map);
@@ -970,12 +973,18 @@ function renderAuthState() {
   btn.style.display = 'none';
   avatarBtn.style.display = '';
   avatarBtn.title = p.displayName || user?.email || user?.username || '我的';
-  if (p.avatar) avatarImg.src = p.avatar;
+  if (p.avatar) {
+    const avatarVal = /^https?:|^data:|^\//i.test(p.avatar)
+      ? p.avatar
+      : `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(p.avatar)}`;
+    avatarImg.src = avatarVal;
+  }
   else if (user?.avatar) avatarImg.src = user.avatar;
 }
 
 // ============= 首页 =============
 function renderHome() {
+  updateHomeCalendarDisplay();
   // 瀑布流推荐内容
   const masonry = document.getElementById('home-masonry');
   if (!masonry) return;
@@ -995,6 +1004,35 @@ function renderHome() {
       </div>
     </div>
   `).join('');
+}
+
+function updateHomeCalendarDisplay() {
+  const now = new Date();
+  const homeDateEl = document.getElementById('home-date');
+  const lunarEl = document.getElementById('home-lunar-date');
+  const tibetanEl = document.getElementById('home-tibetan-date');
+  if (homeDateEl) {
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    homeDateEl.textContent = `${y}年${m}月${d}日`;
+  }
+  if (lunarEl) {
+    try {
+      const lunarRaw = new Intl.DateTimeFormat('zh-CN-u-ca-chinese', { month: 'long', day: 'numeric' }).format(now);
+      lunarEl.textContent = `农历 ${lunarRaw}`;
+    } catch (_err) {
+      lunarEl.textContent = '农历 日期不可用';
+    }
+  }
+  if (tibetanEl) {
+    try {
+      const tibetanLike = new Intl.DateTimeFormat('bo-CN-u-ca-chinese', { year: 'numeric', month: 'long', day: 'numeric' }).format(now);
+      tibetanEl.textContent = `藏历 ${tibetanLike}`;
+    } catch (_err) {
+      tibetanEl.textContent = `藏历 ${lunarEl?.textContent?.replace('农历 ', '') || '日期不可用'}`;
+    }
+  }
 }
 
 function formatNum(n) {
@@ -2362,7 +2400,8 @@ function renderRecipes() {
 
 // ============= 初始化 =============
 window.addEventListener('DOMContentLoaded', async () => {
-  await loadPublishedContent();
+  updateHomeCalendarDisplay();
+  loadPublishedContent();
   initImmersivePages();
   renderHome();
   initReaderSelection();

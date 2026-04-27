@@ -827,9 +827,13 @@
 </div>
 
 <div class="modal-overlay" id="profile-overlay" onclick="if(event.target===this)closeProfileModal()">
-  <div class="modal auth-modal">
+  <div class="modal auth-modal profile-modal">
     <button class="modal-close" onclick="closeProfileModal()">✕</button>
     <h3>个人资料</h3>
+    <div class="profile-avatar-preview-wrap">
+      <div class="profile-avatar-preview" id="profile-avatar-preview">🪷</div>
+      <div class="profile-avatar-preview-text">头像预览</div>
+    </div>
     <input id="profile-name" class="auth-input" placeholder="昵称">
     <input id="profile-avatar" class="auth-input" placeholder="头像 URL">
     <div class="auth-avatar-picker">
