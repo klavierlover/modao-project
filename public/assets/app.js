@@ -835,6 +835,26 @@ function openAuthModal() {
 function closeAuthModal() {
   document.getElementById('auth-overlay')?.classList.remove('open');
 }
+function selectAvatarEmoji(emoji, el) {
+  document.getElementById('auth-register-avatar').value = emoji || '';
+  const row = document.getElementById('auth-avatar-emoji-row');
+  row?.querySelectorAll('.auth-avatar-emoji').forEach(btn => btn.classList.toggle('active', btn === el));
+}
+function onAvatarFileSelected(event) {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = String(reader.result || '');
+    if (dataUrl) {
+      document.getElementById('auth-register-avatar').value = dataUrl;
+      document.getElementById('auth-avatar-emoji-row')
+        ?.querySelectorAll('.auth-avatar-emoji')
+        .forEach(btn => btn.classList.remove('active'));
+    }
+  };
+  reader.readAsDataURL(file);
+}
 function openProfileModal() {
   const session = readSession();
   if (!session || session.mode !== 'user') return showToast('请先登录');
@@ -848,6 +868,22 @@ function openProfileModal() {
 function closeProfileModal() {
   document.getElementById('profile-overlay')?.classList.remove('open');
 }
+function selectProfileAvatarEmoji(emoji) {
+  document.getElementById('profile-avatar').value = emoji || '';
+}
+function onProfileAvatarFileSelected(event) {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = String(reader.result || '');
+    if (dataUrl) document.getElementById('profile-avatar').value = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+// Backward-compatible aliases for stale cached HTML handlers.
+function selectAvatarEmoji1(emoji, el) { selectAvatarEmoji(emoji, el); }
+function selectProfileAvatarEmoji1(emoji) { selectProfileAvatarEmoji(emoji); }
 function saveProfileChanges() {
   const session = readSession();
   if (!session || session.mode !== 'user') return showToast('请先登录');
@@ -2429,8 +2465,14 @@ Object.assign(window, {
   renderRecipes,
   openAuthModal,
   closeAuthModal,
+  selectAvatarEmoji,
+  selectAvatarEmoji1,
+  onAvatarFileSelected,
   openProfileModal,
   closeProfileModal,
+  selectProfileAvatarEmoji,
+  selectProfileAvatarEmoji1,
+  onProfileAvatarFileSelected,
   saveProfileChanges,
   switchAuthTab,
   loginUser,

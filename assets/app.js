@@ -1018,6 +1018,9 @@ function closeProfileModal() {
 function selectProfileAvatarEmoji(emoji) {
   document.getElementById('profile-avatar').value = emoji;
 }
+// Backward-compatible aliases for stale cached HTML handlers.
+function selectAvatarEmoji1(emoji, el) { selectAvatarEmoji(emoji, el); }
+function selectProfileAvatarEmoji1(emoji) { selectProfileAvatarEmoji(emoji); }
 function onProfileAvatarFileSelected(event) {
   const file = event?.target?.files?.[0];
   if (!file) return;
@@ -2760,8 +2763,10 @@ Object.assign(window, {
   closeProfileModal,
   saveProfileChanges,
   selectAvatarEmoji,
+  selectAvatarEmoji1,
   onAvatarFileSelected,
   selectProfileAvatarEmoji,
+  selectProfileAvatarEmoji1,
   onProfileAvatarFileSelected,
   switchAuthTab,
   setUserAuthConfig,
