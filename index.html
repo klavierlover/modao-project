@@ -12,6 +12,12 @@
 <link rel="stylesheet" href="./assets/styles.css">
 </head>
 <body>
+<script>
+  window.openAuthModal = window.openAuthModal || function () {
+    const el = document.getElementById('auth-overlay');
+    if (el) el.classList.add('open');
+  };
+</script>
 
 <!-- ═══════════════════════ NAV ═══════════════════════ -->
 <nav>
@@ -54,9 +60,9 @@
     <!-- Hero Banner -->
     <div class="hero-banner">
       <div class="hero-banner-meta">
-        <div class="meta-label">TODAY · 今</div>
+        <div class="meta-label" id="home-meta-label">TODAY · 今</div>
         <div class="meta-val" id="home-lunar-date">农历加载中…</div>
-        <div class="meta-val" id="home-tibetan-date" style="font-size:12px;opacity:.86">藏历加载中…</div>
+        <div class="meta-val" id="home-tibetan-date" style="font-size:18px;opacity:.92">藏历加载中…</div>
       </div>
       <div class="hero-content">
         <div class="hero-badge">莫道 · 2026</div>
@@ -822,6 +828,7 @@
       <input id="auth-register-password" class="auth-input" type="password" placeholder="密码（至少6位）">
       <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="registerUser()">注册并登录</button>
       <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="continueAsGuest()">先以访客模式浏览</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="resetAllUserData()">清除本地用户信息并重新注册</button>
     </div>
   </div>
 </div>

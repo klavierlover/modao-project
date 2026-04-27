@@ -918,6 +918,7 @@ async function registerUser() {
   const password = document.getElementById('auth-register-password')?.value || '';
   if (!email || !email.includes('@')) return showToast('请输入有效邮箱');
   if (password.length < 6) return showToast('密码至少 6 位');
+  if (!avatarUrl && !registerAvatarSelection) return showToast('请先选择头像（emoji / 上传 / URL）');
   if (!ensureUserAuthConfig()) return showToast('请先配置 Supabase 用户登录参数');
   const client = getSupabaseClient();
   if (!client) return showToast('Supabase 初始化失败，请检查配置');
@@ -970,7 +971,8 @@ function toggleUserMenu() {
 }
 function avatarFromEmoji(emoji) {
   const txt = String(emoji || '🪷');
-  return `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(txt)}`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="100%" height="100%" rx="48" ry="48" fill="#f6f1e4"/><text x="50%" y="58%" text-anchor="middle" font-size="56">${txt}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 function isLikelyEmojiAvatar(value) {
   const v = String(value || '').trim();
@@ -1076,8 +1078,7 @@ function saveProfileChanges() {
   if (!session || session.mode !== 'user') return showToast('请先登录');
   const key = session.email || '';
   const displayName = document.getElementById('profile-name')?.value.trim() || '';
-  const avatarRaw = document.getElementById('profile-avatar')?.value.trim() || '';
-  const avatar = normalizeAvatarValue(avatarRaw);
+  const avatar = document.getElementById('profile-avatar')?.value.trim() || '';
   const map = readProfiles();
   map[key] = { ...(map[key] || {}), displayName, avatar };
   writeProfiles(map);
@@ -1307,9 +1308,14 @@ function renderHome() {
 
 function updateHomeCalendarDisplay() {
   const now = new Date();
+  const labelEl = document.getElementById('home-meta-label');
   const homeDateEl = document.getElementById('home-date');
   const lunarEl = document.getElementById('home-lunar-date');
   const tibetanEl = document.getElementById('home-tibetan-date');
+  const weekMap = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  if (labelEl) {
+    labelEl.textContent = `${now.getMonth() + 1}月${now.getDate()}日 · ${weekMap[now.getDay()]}`;
+  }
   if (homeDateEl) {
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -1341,6 +1347,20 @@ function updateHomeCalendarDisplay() {
       tibetanEl.textContent = `藏历 ${lunarEl?.textContent?.replace('农历 ', '') || '日期不可用'}`;
     }
   }
+}
+
+async function resetAllUserData() {
+  if (!confirm('确认清除本地用户信息并重新注册？')) return;
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+  localStorage.removeItem(USER_PROFILE_STORAGE_KEY);
+  localStorage.removeItem(SESSION_STORAGE_KEY);
+  try { await getSupabaseClient()?.auth.signOut(); } catch (_err) {}
+  App.userProfile = null;
+  App.practiceTasks = [];
+  renderAuthState();
+  closeAuthModal();
+  openAuthModal();
+  showToast('已清除本地用户信息，请重新注册');
 }
 
 function formatNum(n) {
@@ -2819,6 +2839,7 @@ Object.assign(window, {
   onProfileAvatarFileSelected,
   switchAuthTab,
   setUserAuthConfig,
+  resetAllUserData,
   loginUser,
   registerUser,
   continueAsGuest,
