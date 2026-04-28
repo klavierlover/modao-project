@@ -649,6 +649,7 @@ const DEFAULT_LLM_MODEL = 'Qwen/Qwen2.5-7B-Instruct';
 const SUPABASE_URL_KEY = 'modao-supabase-url';
 const SUPABASE_ANON_KEY = 'modao-supabase-anon';
 let registerAvatarSelection = '';
+const SetupState = { preferences: new Set() };
 
 const IMMERSIVE_HERO_CONFIG = {
   companion: {
@@ -821,8 +822,10 @@ function writeProfiles(map) {
 }
 function resetAllUserData() {
   if (!confirm('确认清空本地用户信息并重新注册？')) return;
+  try { getSupabaseClient()?.auth?.signOut(); } catch (_err) {}
   localStorage.removeItem(SESSION_STORAGE_KEY);
   localStorage.removeItem(USER_PROFILE_STORAGE_KEY);
+  localStorage.removeItem('modao-users');
   App.userProfile = null;
   App.practiceTasks = [];
   renderAuthState();
@@ -876,8 +879,9 @@ function ensureUserAuthConfig() {
   setUserAuthConfig({ url, anonKey });
   return { url, anonKey };
 }
-function openAuthModal() {
+function openAuthModal(forceRegister = false) {
   document.getElementById('auth-overlay')?.classList.add('open');
+  if (forceRegister) switchAuthTab('register');
 }
 function closeAuthModal() {
   document.getElementById('auth-overlay')?.classList.remove('open');
@@ -924,11 +928,15 @@ async function loginUser() {
   showToast(`欢迎回来，${email}`);
 }
 async function registerUser() {
+  const nickname = document.getElementById('auth-register-nickname')?.value.trim() || '';
   const email = document.getElementById('auth-register-email')?.value.trim();
   const avatarUrl = document.getElementById('auth-register-avatar')?.value.trim() || '';
   const password = document.getElementById('auth-register-password')?.value || '';
+  const avatarRaw = avatarUrl || registerAvatarSelection || '';
+  if (!nickname) return showToast('请先填写昵称');
   if (!email || !email.includes('@')) return showToast('请输入有效邮箱');
   if (password.length < 6) return showToast('密码至少 6 位');
+  if (!avatarRaw) return showToast('请先选择头像（emoji/上传/URL）');
   if (!ensureUserAuthConfig()) return showToast('请先配置 Supabase 用户登录参数');
   const client = getSupabaseClient();
   if (!client) return showToast('Supabase 初始化失败，请检查配置');
@@ -948,14 +956,16 @@ async function registerUser() {
   const profiles = readProfiles();
   profiles[email] = {
     ...(profiles[email] || {}),
-    displayName: profiles[email]?.displayName || email.split('@')[0],
-    avatar: avatarUrl || registerAvatarSelection || profiles[email]?.avatar || '',
+    displayName: nickname,
+    avatar: avatarRaw,
+    preferences: profiles[email]?.preferences || [],
   };
   writeProfiles(profiles);
   await syncUserProfile();
   renderAuthState();
   closeAuthModal();
-  showToast('注册成功，已自动登录');
+  openPracticeSetupModal();
+  showToast('注册成功，请继续完成修行档案配置');
 }
 function continueAsGuest() {
   writeSession({ mode: 'guest' });
@@ -1088,7 +1098,7 @@ function saveProfileChanges() {
   const key = session.email || '';
   const displayName = document.getElementById('profile-name')?.value.trim() || '';
   const avatarRaw = document.getElementById('profile-avatar')?.value.trim() || '';
-  const avatar = normalizeAvatarValue(avatarRaw);
+  const avatar = avatarRaw;
   const map = readProfiles();
   map[key] = { ...(map[key] || {}), displayName, avatar };
   writeProfiles(map);
@@ -1111,10 +1121,23 @@ function closePracticeSetupModal() {
   document.getElementById('practice-setup-overlay')?.classList.remove('open');
 }
 
+function toggleSetupPreference(name, el) {
+  if (!name) return;
+  if (SetupState.preferences.has(name)) {
+    SetupState.preferences.delete(name);
+    el?.classList.remove('active');
+  } else {
+    SetupState.preferences.add(name);
+    el?.classList.add('active');
+  }
+}
+
 async function submitPracticeSetup(skip = false) {
   try {
     const companionId = document.getElementById('setup-companion')?.value || 'hui-ming';
-    const content = document.getElementById('setup-practice-content')?.value.trim() || '';
+    const raw = document.getElementById('setup-practice-content')?.value.trim() || '';
+    const lines = raw.split('\n').map(x => x.trim()).filter(Boolean);
+    if (!skip && !lines.length) return showToast('请至少填写一条修行任务');
     await authedFetchJson('/api/user/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -1124,12 +1147,23 @@ async function submitPracticeSetup(skip = false) {
         onboarding_completed: true,
       }),
     });
-    if (!skip && content) {
-      await authedFetchJson('/api/user/practices', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
-      });
+    if (!skip && lines.length) {
+      for (const content of lines) {
+        await authedFetchJson('/api/user/practices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content }),
+        });
+      }
+      const session = readSession();
+      if (session?.email) {
+        const map = readProfiles();
+        map[session.email] = {
+          ...(map[session.email] || {}),
+          preferences: Array.from(SetupState.preferences),
+        };
+        writeProfiles(map);
+      }
     }
     await syncUserProfile();
     closePracticeSetupModal();
@@ -2739,7 +2773,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   // Auto show auth modal on first open without session
   if (!readSession()) {
-    setTimeout(openAuthModal, 280);
+    setTimeout(() => openAuthModal(true), 280);
   }
 
   // Escape closes modals
@@ -2833,6 +2867,7 @@ Object.assign(window, {
   selectProfileAvatarEmoji,
   selectProfileAvatarEmoji1,
   onProfileAvatarFileSelected,
+  toggleSetupPreference,
   switchAuthTab,
   setUserAuthConfig,
   resetAllUserData,

@@ -826,6 +826,7 @@ function resetAllUserData() {
   if (!confirm('确认清空本地用户信息并重新注册？')) return;
   localStorage.removeItem(SESSION_STORAGE_KEY);
   localStorage.removeItem(USER_PROFILE_STORAGE_KEY);
+  localStorage.removeItem('modao-users');
   renderAuthState();
   switchAuthTab('register');
   showToast('本地用户信息已清空，请重新注册');
@@ -837,8 +838,9 @@ function switchAuthTab(tab) {
   document.getElementById('auth-login-panel').style.display = tab === 'login' ? '' : 'none';
   document.getElementById('auth-register-panel').style.display = tab === 'register' ? '' : 'none';
 }
-function openAuthModal() {
+function openAuthModal(forceRegister = false) {
   document.getElementById('auth-overlay')?.classList.add('open');
+  if (forceRegister) switchAuthTab('register');
 }
 function closeAuthModal() {
   document.getElementById('auth-overlay')?.classList.remove('open');
@@ -2450,7 +2452,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   // Auto show auth modal on first open without session
   if (!readSession()) {
-    setTimeout(openAuthModal, 280);
+    setTimeout(() => openAuthModal(true), 280);
   }
 
   // Escape closes modals

@@ -809,8 +809,9 @@
 
     <div id="auth-register-panel" style="display:none">
       <h3>创建账号</h3>
+      <input id="auth-register-nickname" class="auth-input" placeholder="昵称（必填）">
       <input id="auth-register-email" class="auth-input" placeholder="邮箱">
-      <input id="auth-register-avatar" class="auth-input" placeholder="头像 URL（可选）">
+      <input id="auth-register-avatar" class="auth-input" placeholder="头像 URL（可选，建议选下方头像）">
       <div class="auth-avatar-picker" id="auth-avatar-emoji-row">
         <button type="button" class="auth-avatar-emoji" onclick="selectAvatarEmoji('🪷', this)">🪷</button>
         <button type="button" class="auth-avatar-emoji" onclick="selectAvatarEmoji('📿', this)">📿</button>
@@ -821,7 +822,7 @@
       </div>
       <input id="auth-register-avatar-file" class="auth-input" type="file" accept="image/*" onchange="onAvatarFileSelected(event)">
       <input id="auth-register-password" class="auth-input" type="password" placeholder="密码（至少6位）">
-      <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="registerUser()">注册并登录</button>
+      <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="registerUser()">注册并继续配置</button>
       <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="continueAsGuest()">先以访客模式浏览</button>
     </div>
   </div>
@@ -854,14 +855,22 @@
   <div class="modal auth-modal">
     <button class="modal-close" onclick="closePracticeSetupModal()">✕</button>
     <h3>初始化您的修行档案</h3>
+    <div style="font-size:12px;color:var(--ink-50);margin:2px 0 8px">选择偏好后将生成你的专属修行首页</div>
     <select id="setup-companion" class="auth-input">
       <option value="hui-ming">慧明（亲切温和）</option>
       <option value="zhi-yuan">智渊（禅意深邃）</option>
       <option value="jing-xin">静心（严谨持戒）</option>
     </select>
-    <textarea id="setup-practice-content" class="auth-input" rows="3" placeholder="填写您的首个功课内容，例如：每日念佛108遍"></textarea>
-    <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="submitPracticeSetup(false)">保存并开始</button>
-    <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="submitPracticeSetup(true)">先跳过</button>
+    <div class="auth-avatar-picker" id="setup-preference-row" style="grid-template-columns:repeat(3,1fr)">
+      <button type="button" class="auth-avatar-emoji" onclick="toggleSetupPreference('禅修', this)" style="font-size:13px">禅修</button>
+      <button type="button" class="auth-avatar-emoji" onclick="toggleSetupPreference('念诵', this)" style="font-size:13px">念诵</button>
+      <button type="button" class="auth-avatar-emoji" onclick="toggleSetupPreference('读经', this)" style="font-size:13px">读经</button>
+      <button type="button" class="auth-avatar-emoji" onclick="toggleSetupPreference('朝圣', this)" style="font-size:13px">朝圣</button>
+      <button type="button" class="auth-avatar-emoji" onclick="toggleSetupPreference('茹素', this)" style="font-size:13px">茹素</button>
+      <button type="button" class="auth-avatar-emoji" onclick="toggleSetupPreference('止语', this)" style="font-size:13px">止语</button>
+    </div>
+    <textarea id="setup-practice-content" class="auth-input" rows="4" placeholder="填写修行任务（每行一条）&#10;例如：&#10;每日念佛108遍&#10;晚课回向功德"></textarea>
+    <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="submitPracticeSetup(false)">完成配置并开始</button>
   </div>
 </div>
 
