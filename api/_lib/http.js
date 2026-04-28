@@ -4,10 +4,22 @@ function sendJson(res, statusCode, payload) {
   res.end(JSON.stringify(payload));
 }
 
-function cors(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+// 允许的源白名单：生产域名 + 本地开发
+const ALLOWED_ORIGINS = new Set([
+  'https://muodao.com',
+  'https://www.muodao.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://modao.test',
+]);
+
+function cors(req, res) {
+  const origin = req?.headers?.origin || '';
+  const allowed = ALLOWED_ORIGINS.has(origin) ? origin : 'https://muodao.com';
+  res.setHeader('Access-Control-Allow-Origin', allowed);
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Vary', 'Origin');
 }
 
 async function readJsonBody(req) {
@@ -17,7 +29,11 @@ async function readJsonBody(req) {
   }
   if (!chunks.length) return {};
   const raw = Buffer.concat(chunks).toString('utf-8');
-  return JSON.parse(raw || '{}');
+  try {
+    return JSON.parse(raw || '{}');
+  } catch (_e) {
+    throw new Error('Invalid JSON in request body');
+  }
 }
 
 function parseBearerToken(req) {

@@ -3,7 +3,7 @@ const { cors, sendJson, readJsonBody } = require('../_lib/http');
 const { requireRole } = require('../_lib/auth');
 
 module.exports = async function handler(req, res) {
-  cors(res);
+  cors(req, res);
   if (req.method === 'OPTIONS') return sendJson(res, 200, { ok: true });
 
   try {
@@ -28,7 +28,8 @@ module.exports = async function handler(req, res) {
         .select('*')
         .eq('module_key', moduleKey)
         .eq('status', 'draft')
-        .order('sort_order', { ascending: true });
+        .order('sort_order', { ascending: true })
+        .limit(200);
       if (articleErr) throw articleErr;
 
       return sendJson(res, 200, { ok: true, module: moduleKey, blocks: draft || [], articles: articles || [] });

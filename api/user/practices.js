@@ -3,7 +3,7 @@ const { cors, sendJson, readJsonBody } = require('../_lib/http');
 const { requireUser } = require('../_lib/auth');
 
 module.exports = async function handler(req, res) {
-  cors(res);
+  cors(req, res);
   if (req.method === 'OPTIONS') return sendJson(res, 200, { ok: true });
 
   try {
@@ -16,6 +16,7 @@ module.exports = async function handler(req, res) {
       const body = await readJsonBody(req);
       const content = String(body.content || '').trim();
       if (!content) return sendJson(res, 400, { ok: false, error: 'content is required' });
+      if (content.length > 500) return sendJson(res, 400, { ok: false, error: 'content must be ≤500 characters' });
       const row = {
         user_id: userId,
         content,
@@ -37,9 +38,20 @@ module.exports = async function handler(req, res) {
       const id = body.id;
       if (!id) return sendJson(res, 400, { ok: false, error: 'id is required' });
       const patch = { updated_at: new Date().toISOString() };
-      if (body.content !== undefined) patch.content = String(body.content || '').trim();
-      if (body.progress !== undefined) patch.progress = Math.max(0, Number(body.progress || 0));
-      if (body.status !== undefined) patch.status = String(body.status);
+      if (body.content !== undefined) {
+        const c = String(body.content || '').trim();
+        if (c.length > 500) return sendJson(res, 400, { ok: false, error: 'content must be ≤500 characters' });
+        patch.content = c;
+      }
+      if (body.progress !== undefined) {
+        patch.progress = Math.min(Math.max(0, Number(body.progress || 0)), 100000);
+      }
+      if (body.status !== undefined) {
+        if (!['active', 'archived'].includes(body.status)) {
+          return sendJson(res, 400, { ok: false, error: 'status must be active or archived' });
+        }
+        patch.status = body.status;
+      }
       const { data, error } = await supabase
         .from('user_practice_tasks')
         .update(patch)

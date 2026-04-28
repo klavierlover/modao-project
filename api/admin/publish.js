@@ -3,7 +3,7 @@ const { cors, sendJson, readJsonBody } = require('../_lib/http');
 const { requireRole } = require('../_lib/auth');
 
 module.exports = async function handler(req, res) {
-  cors(res);
+  cors(req, res);
   if (req.method === 'OPTIONS') return sendJson(res, 200, { ok: true });
   if (req.method !== 'POST') return sendJson(res, 405, { ok: false, error: 'Method not allowed' });
 

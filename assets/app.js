@@ -2800,7 +2800,22 @@ window.addEventListener('DOMContentLoaded', async () => {
       showToast(`用户数据同步失败：${err.message}`);
     }
   }
-  setInterval(loadPublishedContent, 10000);
+  // 优先使用 Supabase Realtime 订阅 publish_versions 变更，
+  // 若 Supabase SDK 未初始化则降频到 60 秒轮询作为兜底。
+  const _realtimeClient = getSupabaseClient();
+  if (_realtimeClient) {
+    _realtimeClient
+      .channel('modao-publish-watch')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'publish_versions' }, () => {
+        loadPublishedContent();
+      })
+      .subscribe();
+    // 兜底：每 5 分钟仍轮询一次，防止 Realtime 断线时内容长期不更新
+    setInterval(loadPublishedContent, 5 * 60 * 1000);
+  } else {
+    // 无 Realtime 时，降频至 60 秒轮询（原来是 10 秒，节省 6 倍请求）
+    setInterval(loadPublishedContent, 60 * 1000);
+  }
 });
 
 // Expose handlers used by inline HTML events.

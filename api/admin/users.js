@@ -3,7 +3,7 @@ const { cors, sendJson, readJsonBody } = require('../_lib/http');
 const { requireRole } = require('../_lib/auth');
 
 module.exports = async function handler(req, res) {
-  cors(res);
+  cors(req, res);
   if (req.method === 'OPTIONS') return sendJson(res, 200, { ok: true });
 
   try {
@@ -28,9 +28,24 @@ module.exports = async function handler(req, res) {
       const body = await readJsonBody(req);
       if (!body.id) return sendJson(res, 400, { ok: false, error: 'id is required' });
       const patch = {};
-      if (body.role) patch.role = body.role;
-      if (body.status) patch.status = body.status;
-      if (typeof body.display_name === 'string') patch.display_name = body.display_name;
+      if (body.role !== undefined) {
+        if (!['owner', 'editor', 'viewer'].includes(body.role)) {
+          return sendJson(res, 400, { ok: false, error: 'role must be owner, editor, or viewer' });
+        }
+        // 只有 owner 才能提升角色至 owner
+        if (body.role === 'owner' && auth.profile.role !== 'owner') {
+          return sendJson(res, 403, { ok: false, error: 'Only owner can assign owner role' });
+        }
+        patch.role = body.role;
+      }
+      if (body.status !== undefined) {
+        if (!['active', 'disabled'].includes(body.status)) {
+          return sendJson(res, 400, { ok: false, error: 'status must be active or disabled' });
+        }
+        patch.status = body.status;
+      }
+      if (typeof body.display_name === 'string') patch.display_name = body.display_name.slice(0, 100);
+      if (!Object.keys(patch).length) return sendJson(res, 400, { ok: false, error: 'No valid fields to update' });
       patch.updated_at = new Date().toISOString();
       const { error } = await supabase.from('app_users_profile').update(patch).eq('id', body.id);
       if (error) throw error;

@@ -3,7 +3,7 @@ const { cors, sendJson, readJsonBody } = require('../_lib/http');
 const { requireRole } = require('../_lib/auth');
 
 module.exports = async function handler(req, res) {
-  cors(res);
+  cors(req, res);
   if (req.method === 'OPTIONS') return sendJson(res, 200, { ok: true });
 
   try {
@@ -15,14 +15,17 @@ module.exports = async function handler(req, res) {
       const url = new URL(req.url, 'http://localhost');
       const moduleKey = url.searchParams.get('module');
       if (!moduleKey) return sendJson(res, 400, { ok: false, error: 'module is required' });
+      const limit = Math.min(Number(url.searchParams.get('limit') || 100), 200);
+      const offset = Math.max(Number(url.searchParams.get('offset') || 0), 0);
       const { data, error } = await supabase
         .from('articles')
         .select('*')
         .eq('module_key', moduleKey)
         .eq('status', 'draft')
-        .order('sort_order', { ascending: true });
+        .order('sort_order', { ascending: true })
+        .range(offset, offset + limit - 1);
       if (error) throw error;
-      return sendJson(res, 200, { ok: true, articles: data || [] });
+      return sendJson(res, 200, { ok: true, articles: data || [], limit, offset });
     }
 
     if (req.method === 'POST' || req.method === 'PUT') {
