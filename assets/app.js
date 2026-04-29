@@ -2617,21 +2617,24 @@ function applyPublishedSnapshot(moduleKey, snapshot) {
     }
   }
 
+  // 过滤 visible:false 的内容（后台下线控制）
+  const onlyVisible = arr => (arr || []).filter(item => item.visible !== false);
+
   if (moduleKey === 'pilgrimage' && Array.isArray(rootPayload.sites)) {
-    window.PILGRIMAGE_SITES = rootPayload.sites;
+    window.PILGRIMAGE_SITES = onlyVisible(rootPayload.sites);
   }
 
   if (moduleKey === 'library' && Array.isArray(rootPayload.sutras)) {
-    window.SUTRAS = rootPayload.sutras;
+    window.SUTRAS = onlyVisible(rootPayload.sutras);
   }
 
   if (moduleKey === 'vegan') {
-    if (Array.isArray(rootPayload.restaurants)) window.WUHAN_RESTAURANTS = rootPayload.restaurants;
-    if (Array.isArray(rootPayload.recipes)) window.VEGAN_RECIPES = rootPayload.recipes;
+    if (Array.isArray(rootPayload.restaurants)) window.WUHAN_RESTAURANTS = onlyVisible(rootPayload.restaurants);
+    if (Array.isArray(rootPayload.recipes))     window.VEGAN_RECIPES     = onlyVisible(rootPayload.recipes);
   }
 
   if (moduleKey === 'companion') {
-    if (Array.isArray(rootPayload.companions)) window.COMPANIONS = rootPayload.companions;
+    if (Array.isArray(rootPayload.companions)) window.COMPANIONS = onlyVisible(rootPayload.companions);
   }
 }
 

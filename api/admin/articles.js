@@ -14,16 +14,19 @@ module.exports = async function handler(req, res) {
     if (req.method === 'GET') {
       const url = new URL(req.url, 'http://localhost');
       const moduleKey = url.searchParams.get('module');
-      if (!moduleKey) return sendJson(res, 400, { ok: false, error: 'module is required' });
-      const limit = Math.min(Number(url.searchParams.get('limit') || 100), 200);
+      const all       = url.searchParams.get('all') === '1';
+      const limit  = Math.min(Number(url.searchParams.get('limit') || 200), 500);
       const offset = Math.max(Number(url.searchParams.get('offset') || 0), 0);
-      const { data, error } = await supabase
+      // all=1 时返回全部模块文章（后台 Hub 用）
+      if (!moduleKey && !all) return sendJson(res, 400, { ok: false, error: 'module or all=1 is required' });
+      let query = supabase
         .from('articles')
         .select('*')
-        .eq('module_key', moduleKey)
         .eq('status', 'draft')
         .order('sort_order', { ascending: true })
         .range(offset, offset + limit - 1);
+      if (moduleKey) query = query.eq('module_key', moduleKey);
+      const { data, error } = await query;
       if (error) throw error;
       return sendJson(res, 200, { ok: true, articles: data || [], limit, offset });
     }
