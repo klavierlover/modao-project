@@ -696,10 +696,27 @@ function showPage(page) {
   if (page === 'counter') renderCounter();
   if (page === 'pilgrimage') renderPilgrimage();
   if (page === 'vegan') renderVegan();
-  if (page === 'forum') renderForum();
+  if (page === 'forum') renderForum();  // async, fire-and-forget
+
+  // FAB 根据当前页面调整类型提示
+  _currentPage = page;
+  const fab = document.getElementById('global-fab');
+  const fabTypes = { forum: '✍️', vegan: '🥗', pilgrimage: '🕍', library: null };
+  if (fab) {
+    const show = page in fabTypes && fabTypes[page] !== null;
+    fab.style.display = show ? '' : 'none';
+    if (show) fab.textContent = fabTypes[page] || '✍️';
+  }
 
   resetImmersivePage(page);
   playPageMotion(page);
+  // 页面 fade-in 动效
+  const pageEl = document.getElementById('page-' + page);
+  if (pageEl) {
+    pageEl.classList.remove('page-entering');
+    void pageEl.offsetWidth; // reflow
+    pageEl.classList.add('page-entering');
+  }
   window.scrollTo(0, 0);
 }
 
@@ -2536,30 +2553,84 @@ function renderVegan(){
 }
 
 // ============= 论坛 =============
-function renderForum() {
-  const masonry = document.getElementById('forum-masonry');
-  if (!masonry) return;
-  masonry.innerHTML = FORUM_POSTS.map(p => {
-    const liked = App.likedPosts.has(p.id);
-    return `
-      <div class="forum-post" onclick="openForumPost(${p.id})">
-        <img class="forum-post-cover" src="${p.cover}" alt="${p.title}" loading="lazy" onerror="onImageError(this)" style="height:${p.coverHeight * 0.55}px;object-fit:cover">
-        <div class="forum-post-body">
-          <div class="forum-post-title">${p.title}</div>
-          <div class="forum-post-footer">
-            <div class="forum-post-author">
-              <img src="${p.avatar}" alt="" onerror="onImageError(this)">
-              <span class="forum-post-author-name">${p.author}</span>
-            </div>
-            <div class="forum-post-likes ${liked ? 'liked' : ''}"
-                 onclick="event.stopPropagation();toggleLike(${p.id}, this)">
-              ${liked ? '❤' : '♡'} ${formatNum(p.likes + (liked ? 1 : 0))}
-            </div>
+function forumSkeletonHtml(n = 6) {
+  const heights = [220, 280, 180, 300, 240, 200];
+  return Array.from({ length: n }, (_, i) => `
+    <div class="skeleton-card" style="break-inside:avoid;margin-bottom:14px">
+      <div class="skeleton-img" style="height:${heights[i % heights.length]}px"></div>
+      <div class="skeleton-line" style="margin-top:10px"></div>
+      <div class="skeleton-line short" style="margin-bottom:10px"></div>
+    </div>`).join('');
+}
+
+function buildForumCard(p) {
+  const liked  = App.likedPosts.has(p.id);
+  const isUgc  = Array.isArray(p.tags) && p.tags.includes('ugc');
+  const height = p.coverHeight ? Math.round(p.coverHeight * 0.55) : 220;
+  return `
+    <div class="forum-post" onclick="openForumPost(${p.id})">
+      ${p.cover
+        ? `<img class="forum-post-cover" src="${p.cover}" alt="${p.title}"
+               loading="lazy" onerror="onImageError(this)" style="height:${height}px;object-fit:cover">`
+        : `<div class="forum-post-cover" style="height:${height}px;background:var(--paper-warm);display:flex;align-items:center;justify-content:center;font-size:40px">📝</div>`}
+      <div class="forum-post-body">
+        <div class="forum-post-title">${p.title}${isUgc ? '<span class="ugc-badge">用户分享</span>' : ''}</div>
+        <div class="forum-post-footer">
+          <div class="forum-post-author">
+            ${p.avatar
+              ? `<img src="${p.avatar}" alt="" onerror="onImageError(this)">`
+              : `<div style="width:24px;height:24px;border-radius:50%;background:var(--tibet-yellow);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px">${(p.author||'同')[0]}</div>`}
+            <span class="forum-post-author-name">${p.author || '同修'}</span>
+          </div>
+          <div class="forum-post-likes ${liked ? 'liked' : ''}"
+               onclick="event.stopPropagation();toggleLike(${p.id}, this)">
+            ${liked ? '❤' : '♡'} ${formatNum((p.likes || 0) + (liked ? 1 : 0))}
           </div>
         </div>
       </div>
-    `;
-  }).join('');
+    </div>`;
+}
+
+async function renderForum() {
+  const masonry = document.getElementById('forum-masonry');
+  if (!masonry) return;
+
+  // 骨架屏
+  masonry.innerHTML = `<div class="forum-skeleton">${forumSkeletonHtml()}</div>`;
+  masonry.style.display = '';
+
+  // 尝试加载用户投稿（后台 API）
+  let ugcPosts = [];
+  try {
+    const resp = await fetch('/api/user/posts?module=forum&limit=20');
+    if (resp.ok) {
+      const data = await resp.json();
+      ugcPosts = (data.posts || []).map((a, idx) => ({
+        id:          `ugc-${a.slug}`,
+        author:      (a.tags || []).find(t => t !== 'ugc' && !['修法心得','经典讨论','朝圣分享','素食推荐','问道解惑','生活禅','同修分享'].includes(t)) || '同修',
+        avatar:      '',
+        time:        '最近发布',
+        section:     (a.tags || []).find(t => ['修法心得','经典讨论','朝圣分享','素食推荐','问道解惑','生活禅','同修分享'].includes(t)) || '同修分享',
+        title:       a.title,
+        cover:       a.cover_url || '',
+        coverHeight: 240,
+        excerpt:     a.summary || '',
+        articleUrl:  '',
+        likes:       0, comments: 0, collects: 0,
+        tags:        a.tags || [],
+      }));
+    }
+  } catch (_) { /* 网络失败时静默处理 */ }
+
+  // 合并硬编码 + 用户投稿
+  const allPosts = [...ugcPosts, ...(window.FORUM_POSTS || [])];
+
+  if (!allPosts.length) {
+    masonry.innerHTML = `<div style="text-align:center;padding:60px;color:var(--ink-40)">暂无帖子，来发第一篇吧 ✍️</div>`;
+    return;
+  }
+
+  masonry.innerHTML = allPosts.map(buildForumCard).join('');
 }
 
 function openForumPost(id) {
@@ -2712,13 +2783,38 @@ function switchChartType(type) {
   showToast(`图表模式：${type}`);
 }
 
-function openNewPost() {
+/* ═══════════════════════════════════════════════
+   创作中心 — 发布功能
+   ═══════════════════════════════════════════════ */
+let _postType     = 'forum';
+let _postCoverUrl = '';
+let _currentPage  = 'home';
+
+// FAB 根据当前页选默认发布类型
+function openFabPost() {
+  const typeMap = { forum: 'forum', vegan: 'recipe', pilgrimage: 'pilgrimage' };
+  openNewPost(typeMap[_currentPage] || 'forum');
+}
+
+function openNewPost(defaultType = 'forum') {
   const session = readSession();
   if (!session || session.mode === 'guest') {
-    showToast('访客模式不可发帖，请先登录');
+    showToast('请先登录后再发布内容');
     openAuthModal();
     return;
   }
+  // 重置表单
+  ['cp-title','cp-section','cp-content','cp-difficulty','cp-time','cp-calories',
+   'cp-ingredients','cp-steps','cp-recipe-tips','cp-location','cp-pilgrim-content',
+   'cp-rest-name','cp-rest-address','cp-rest-price','cp-rest-review'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const rating = document.getElementById('cp-rest-rating');
+  if (rating) rating.value = '';
+  cpSetCoverPreview('');
+  document.getElementById('cp-error-msg').textContent = '';
+  switchPostType(defaultType);
   document.getElementById('new-post-overlay')?.classList.add('open');
 }
 
@@ -2726,9 +2822,164 @@ function closeNewPost() {
   document.getElementById('new-post-overlay')?.classList.remove('open');
 }
 
-function submitPost() {
-  showToast('发布成功（演示）');
-  closeNewPost();
+function switchPostType(type, tabEl) {
+  _postType = type;
+  // 切换 tab 样式
+  document.querySelectorAll('.cp-tab').forEach(t => t.classList.toggle('active', t.dataset.type === type));
+  // 显示对应字段
+  ['forum','recipe','pilgrimage','restaurant'].forEach(t => {
+    const el = document.getElementById('cpf-' + t);
+    if (el) el.classList.toggle('hidden', t !== type);
+  });
+  // 更新 placeholder
+  const titleEl = document.getElementById('cp-title');
+  const placeholders = {
+    forum:      '帖子标题（必填）',
+    recipe:     '菜谱名称（必填）',
+    pilgrimage: '游记标题（必填）',
+    restaurant: '分享标题（必填）',
+  };
+  if (titleEl) titleEl.placeholder = placeholders[type] || '标题（必填）';
+}
+
+function cpPreviewUrl(url) {
+  cpSetCoverPreview(url);
+}
+
+function cpSetCoverPreview(url) {
+  _postCoverUrl = url || '';
+  const img  = document.getElementById('cp-cover-preview');
+  const ph   = document.getElementById('cp-cover-placeholder');
+  if (!img || !ph) return;
+  if (url) {
+    img.src = url;
+    img.classList.remove('hidden');
+    ph.classList.add('hidden');
+  } else {
+    img.classList.add('hidden');
+    ph.classList.remove('hidden');
+  }
+  const urlInput = document.getElementById('cp-cover-url');
+  if (urlInput && url !== urlInput.value) urlInput.value = url;
+}
+
+// 图片文件上传
+(function initCpUpload() {
+  document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('cp-file-input');
+    const drop      = document.getElementById('cp-cover-drop');
+    if (!fileInput || !drop) return;
+
+    fileInput.onchange = e => {
+      const f = e.target.files?.[0];
+      if (f) cpUploadFile(f);
+    };
+    drop.addEventListener('dragover',  e => { e.preventDefault(); drop.style.borderColor = 'var(--tibet-yellow)'; });
+    drop.addEventListener('dragleave', ()  => { drop.style.borderColor = ''; });
+    drop.addEventListener('drop',      e => {
+      e.preventDefault();
+      drop.style.borderColor = '';
+      const f = e.dataTransfer.files?.[0];
+      if (f && f.type.startsWith('image/')) cpUploadFile(f);
+    });
+  });
+})();
+
+async function cpUploadFile(file) {
+  const overlay = document.getElementById('cp-upload-overlay');
+  if (overlay) overlay.classList.remove('hidden');
+  try {
+    const base64Data = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = e => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const session = readSession();
+    const resp = await fetch('/api/user/upload', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.accessToken || ''}` },
+      body: JSON.stringify({ fileName: file.name, mimeType: file.type, base64Data }),
+    });
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error);
+    cpSetCoverPreview(data.publicUrl);
+  } catch (err) {
+    showToast('图片上传失败：' + err.message, 'error');
+  } finally {
+    if (overlay) overlay.classList.add('hidden');
+  }
+}
+
+async function submitPost() {
+  const title = document.getElementById('cp-title')?.value.trim();
+  const errEl = document.getElementById('cp-error-msg');
+  if (!title) { if (errEl) errEl.textContent = '请输入标题'; return; }
+  if (errEl) errEl.textContent = '';
+
+  // 收集各类型字段
+  let section = '', content = '';
+  const extra = {};
+  if (_postType === 'forum') {
+    section = document.getElementById('cp-section')?.value || '同修分享';
+    content = document.getElementById('cp-content')?.value?.trim() || '';
+  } else if (_postType === 'recipe') {
+    section = '素食菜谱';
+    const difficulty  = document.getElementById('cp-difficulty')?.value?.trim() || '';
+    const time        = document.getElementById('cp-time')?.value?.trim() || '';
+    const calories    = document.getElementById('cp-calories')?.value?.trim() || '';
+    const ingredients = (document.getElementById('cp-ingredients')?.value || '').split('\n').map(s=>s.trim()).filter(Boolean);
+    const steps       = (document.getElementById('cp-steps')?.value || '').split('\n').map(s=>s.trim()).filter(Boolean);
+    const tips        = document.getElementById('cp-recipe-tips')?.value?.trim() || '';
+    content = `难度：${difficulty}  时间：${time}  热量：${calories}\n\n**食材：**\n${ingredients.map(i=>'- '+i).join('\n')}\n\n**步骤：**\n${steps.map((s,i)=>`${i+1}. ${s}`).join('\n')}\n\n**贴士：** ${tips}`;
+    Object.assign(extra, { difficulty, time, calories });
+  } else if (_postType === 'pilgrimage') {
+    section = '朝圣游记';
+    const location = document.getElementById('cp-location')?.value?.trim() || '';
+    content        = document.getElementById('cp-pilgrim-content')?.value?.trim() || '';
+    if (location) content = `**朝圣地：** ${location}\n\n${content}`;
+  } else if (_postType === 'restaurant') {
+    section = '餐厅分享';
+    const restName  = document.getElementById('cp-rest-name')?.value?.trim() || '';
+    const address   = document.getElementById('cp-rest-address')?.value?.trim() || '';
+    const price     = document.getElementById('cp-rest-price')?.value?.trim() || '';
+    const rating    = document.getElementById('cp-rest-rating')?.value || '';
+    const review    = document.getElementById('cp-rest-review')?.value?.trim() || '';
+    const stars     = '⭐'.repeat(Number(rating) || 0);
+    content = `**餐厅：** ${restName}  ${address ? `📍 ${address}` : ''}\n**人均：** ¥${price}  **评分：** ${stars}\n\n${review}`;
+    Object.assign(extra, { restName, address, price, rating });
+  }
+
+  const btn = document.getElementById('cp-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '发布中…'; }
+
+  try {
+    const session = readSession();
+    const resp = await fetch('/api/user/posts', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.accessToken || ''}` },
+      body: JSON.stringify({
+        title,
+        section,
+        content,
+        cover_url:  _postCoverUrl,
+        post_type:  _postType,
+        extra,
+      }),
+    });
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error);
+
+    showToast('✅ 发布成功！感谢您的分享');
+    closeNewPost();
+
+    // 刷新对应板块
+    if (_postType === 'forum') renderForum();
+  } catch (err) {
+    if (errEl) errEl.textContent = '发布失败：' + err.message;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '发布 →'; }
+  }
 }
 
 function renderRecipesLegacy() {
@@ -2874,6 +3125,9 @@ Object.assign(window, {
   openNewPost,
   closeNewPost,
   submitPost,
+  switchPostType,
+  cpPreviewUrl,
+  openFabPost,
   showOnboard,
   onboardNext,
   selectOnboardStyle,

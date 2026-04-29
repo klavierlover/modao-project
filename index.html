@@ -665,7 +665,7 @@
       </div>
       <div style="display:flex;gap:10px">
         <button class="btn btn-outline" onclick="showToast('切换排序')">🔥 最热</button>
-        <button class="btn btn-primary" onclick="openNewPost()">✍️ 发帖</button>
+        <button class="btn btn-primary" onclick="openNewPost('forum')">✍️ 发帖</button>
       </div>
     </div>
 
@@ -685,47 +685,103 @@
 
   </div>
 
-  <!-- 发帖浮动按钮 -->
-  <div class="fab" onclick="openNewPost()" title="发帖">✍️</div>
+  <!-- 浮动发布按钮（根据当前页面自动选类型） -->
+  <div class="fab" id="global-fab" onclick="openFabPost()" title="发布内容">✍️</div>
 </div>
 
-<!-- ═══════════════════════ 发帖 Modal ═══════════════════════ -->
-<div class="modal-overlay" id="new-post-overlay" onclick="if(event.target===this)closeNewPost()">
-  <div class="modal" style="width:90%;max-width:560px;padding:36px 40px">
-    <button class="modal-close" onclick="closeNewPost()">✕</button>
-    <h2 style="font-family:var(--font-display);font-size:24px;margin-bottom:6px">发布心得</h2>
-    <p style="font-size:13px;color:var(--ink-40);margin-bottom:24px">分享您的修行体悟，与同修共结善缘</p>
-
-    <div style="margin-bottom:16px">
-      <input type="text" placeholder="标题（必填）"
-        style="width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:10px;font-size:14px;background:var(--paper);transition:.2s"
-        onfocus="this.style.borderColor='var(--tibet-yellow)'" onblur="this.style.borderColor='var(--border)'">
-    </div>
-
-    <div style="margin-bottom:16px">
-      <select style="width:100%;padding:11px 16px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:var(--paper);color:var(--ink-60)">
-        <option value="">选择板块</option>
-        <option>修法心得</option>
-        <option>经典讨论</option>
-        <option>朝圣分享</option>
-        <option>素食推荐</option>
-        <option>问道解惑</option>
-        <option>生活禅</option>
-      </select>
-    </div>
-
-    <div style="margin-bottom:20px">
-      <textarea placeholder="分享您的修行感悟…（支持 Markdown）" rows="6"
-        style="width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:10px;font-size:14px;background:var(--paper);resize:vertical;font-family:var(--font-serif);line-height:1.8;transition:.2s"
-        onfocus="this.style.borderColor='var(--tibet-yellow)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-    </div>
-
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-ghost btn-sm" onclick="showToast('图片上传即将上线')">🖼️ 添加图片</button>
-        <button class="btn btn-ghost btn-sm" onclick="showToast('话题功能即将上线')"># 话题</button>
+<!-- ═══════════════════════ 创作中心 Modal ═══════════════════════ -->
+<div class="modal-overlay create-post-overlay" id="new-post-overlay" onclick="if(event.target===this)closeNewPost()">
+  <div class="create-post-modal">
+    <div class="cp-header">
+      <div class="cp-type-tabs">
+        <button class="cp-tab active" data-type="forum"      onclick="switchPostType('forum',this)">🗣 论坛帖子</button>
+        <button class="cp-tab"        data-type="recipe"     onclick="switchPostType('recipe',this)">🥗 素食菜谱</button>
+        <button class="cp-tab"        data-type="pilgrimage" onclick="switchPostType('pilgrimage',this)">🕍 朝圣游记</button>
+        <button class="cp-tab"        data-type="restaurant" onclick="switchPostType('restaurant',this)">🍜 餐厅分享</button>
       </div>
-      <button class="btn btn-primary" onclick="submitPost()">发布 →</button>
+      <button class="cp-close" onclick="closeNewPost()">✕</button>
+    </div>
+
+    <div class="cp-body">
+      <!-- 左：封面上传 -->
+      <div class="cp-cover-col">
+        <div class="cp-cover-drop" id="cp-cover-drop" onclick="document.getElementById('cp-file-input').click()">
+          <img id="cp-cover-preview" class="hidden" alt="">
+          <div id="cp-cover-placeholder">
+            <div style="font-size:32px">🖼️</div>
+            <p>点击或拖入封面图片</p>
+            <p style="font-size:11px;color:var(--ink-40)">JPG / PNG · 最大 5MB</p>
+          </div>
+          <div class="cp-upload-overlay hidden" id="cp-upload-overlay">⏳ 上传中…</div>
+        </div>
+        <input type="file" id="cp-file-input" accept="image/*" class="hidden">
+        <input type="text" id="cp-cover-url" placeholder="或粘贴图片 URL…" class="cp-url-input"
+               oninput="cpPreviewUrl(this.value)">
+      </div>
+
+      <!-- 右：表单 -->
+      <div class="cp-form-col">
+        <input id="cp-title" type="text" placeholder="标题（必填）" class="cp-input cp-title-input">
+
+        <!-- 论坛帖子字段 -->
+        <div class="cp-fields" id="cpf-forum">
+          <select id="cp-section" class="cp-input">
+            <option value="">选择板块</option>
+            <option>修法心得</option>
+            <option>经典讨论</option>
+            <option>朝圣分享</option>
+            <option>素食推荐</option>
+            <option>问道解惑</option>
+            <option>生活禅</option>
+          </select>
+          <textarea id="cp-content" placeholder="分享您的体悟、见闻或疑问…" class="cp-input cp-textarea" rows="8"></textarea>
+        </div>
+
+        <!-- 素食菜谱字段 -->
+        <div class="cp-fields hidden" id="cpf-recipe">
+          <div class="cp-row-3">
+            <input id="cp-difficulty" placeholder="难度（简单/中等）" class="cp-input">
+            <input id="cp-time"       placeholder="时间（如 30分钟）"  class="cp-input">
+            <input id="cp-calories"   placeholder="热量（如 280卡）"   class="cp-input">
+          </div>
+          <textarea id="cp-ingredients" placeholder="食材清单（每行一项）" class="cp-input cp-textarea-sm" rows="3"></textarea>
+          <textarea id="cp-steps"       placeholder="烹饪步骤（每行一步）" class="cp-input cp-textarea-sm" rows="4"></textarea>
+          <textarea id="cp-recipe-tips" placeholder="小贴士…"            class="cp-input cp-textarea-sm" rows="2"></textarea>
+        </div>
+
+        <!-- 朝圣游记字段 -->
+        <div class="cp-fields hidden" id="cpf-pilgrimage">
+          <input id="cp-location" placeholder="朝圣地点（如：五台山）" class="cp-input">
+          <textarea id="cp-pilgrim-content" placeholder="分享您的朝圣旅程、心得感悟…" class="cp-input cp-textarea" rows="8"></textarea>
+        </div>
+
+        <!-- 餐厅分享字段 -->
+        <div class="cp-fields hidden" id="cpf-restaurant">
+          <div class="cp-row-2">
+            <input id="cp-rest-name"    placeholder="餐厅名称"   class="cp-input">
+            <input id="cp-rest-address" placeholder="地址/区域"  class="cp-input">
+          </div>
+          <div class="cp-row-2">
+            <input id="cp-rest-price"   placeholder="人均消费（元）" class="cp-input" type="number" min="0">
+            <select id="cp-rest-rating" class="cp-input">
+              <option value="">评分</option>
+              <option value="5">⭐⭐⭐⭐⭐ 强烈推荐</option>
+              <option value="4">⭐⭐⭐⭐  值得一去</option>
+              <option value="3">⭐⭐⭐   还行</option>
+              <option value="2">⭐⭐     一般</option>
+            </select>
+          </div>
+          <textarea id="cp-rest-review" placeholder="分享您的用餐体验、招牌菜推荐…" class="cp-input cp-textarea" rows="6"></textarea>
+        </div>
+
+        <div class="cp-footer">
+          <p class="cp-hint" id="cp-error-msg"></p>
+          <div class="cp-actions">
+            <button class="btn btn-ghost" onclick="closeNewPost()">取消</button>
+            <button class="btn btn-primary" id="cp-submit-btn" onclick="submitPost()">发布 →</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
