@@ -1551,9 +1551,12 @@ async function requestCompanionReply(userText) {
   ];
   // First priority: server-side proxy (works after deployment).
   try {
+    const _sess = readSession();
+    const _proxyHeaders = { 'Content-Type': 'application/json' };
+    if (_sess?.access_token) _proxyHeaders['Authorization'] = `Bearer ${_sess.access_token}`;
     const proxyResp = await fetch('/api/ai/companion', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: _proxyHeaders,
       body: JSON.stringify({ messages }),
     });
     const proxyData = await proxyResp.json().catch(() => ({}));
@@ -3122,6 +3125,7 @@ Object.assign(window, {
   veganOpenDetail,
   veganCloseDetail,
   searchRecipes,
+  filterRecipeCategory,
   openRecipeCategory,
   backToRecipeHome,
   backToRecipeResult,
