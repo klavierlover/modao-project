@@ -1054,6 +1054,7 @@ function bindEvents() {
   $('hub-new-btn').onclick = () => openPublisher(null, 'site');
   $('reload-btn').onclick  = loadAllContent;
   $('hub-search').oninput  = e => { state.hubSearch = e.target.value; renderHub(); };
+  $('seed-btn').onclick    = seedInitialData;
 
   // Filter pills
   $('filter-pills').querySelectorAll('.pill').forEach(p => {
@@ -1150,6 +1151,44 @@ function bindEvents() {
   // 用户搜索
   $('user-search').oninput = e => { state.userSearch = e.target.value; renderUsers(); };
   $('u-save-btn').onclick  = saveUser;
+}
+
+/* ═══════════════════════════════════════════════
+   导入初始数据（一键迁移硬编码内容）
+   ═══════════════════════════════════════════════ */
+async function seedInitialData() {
+  const role = state.profile?.role;
+  if (role !== 'owner') {
+    showToast('只有 owner 角色可以执行数据导入', true);
+    return;
+  }
+
+  const ok = await confirmDialog(
+    '将把前端现有的 8 个朝圣地点、12 家素食餐厅、4 个菜谱、8 条论坛帖子导入数据库。\n\n如后台已有数据，此操作将被拒绝（防止重复导入）。确认继续？',
+    '📥 导入初始数据',
+    '确认导入'
+  );
+  if (!ok) return;
+
+  const btn = $('seed-btn');
+  setLoading(btn, true);
+  try {
+    const data = await api('/api/admin/seed', {
+      method: 'POST',
+      headers: { ...authHdr(), 'Content-Type': 'application/json' },
+    });
+    showToast(data.message || '导入成功！');
+    // 刷新内容列表
+    await loadAllContent();
+  } catch (err) {
+    if (err.message?.includes('已存在')) {
+      showToast('后台已有数据，无需重复导入', true);
+    } else {
+      showToast(`导入失败：${err.message}`, true);
+    }
+  } finally {
+    setLoading(btn, false);
+  }
 }
 
 /* ═══════════════════════════════════════════════

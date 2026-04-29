@@ -1,0 +1,297 @@
+const { getSupabaseAdmin } = require('../_lib/supabase');
+const { cors, sendJson } = require('../_lib/http');
+const { requireRole } = require('../_lib/auth');
+
+/* ── 硬编码的初始数据 ── */
+const PILGRIMAGE_SITES = [
+  {
+    id: 1, name: '布达拉宫', region: '西藏 · 拉萨',
+    cover: 'https://images.unsplash.com/photo-1606310804520-6fb4e6fd0b3a?w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1606310804520-6fb4e6fd0b3a?w=800&q=80',
+      'https://images.unsplash.com/photo-1526772662000-3f88f10405ff?w=800&q=80',
+      'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=800&q=80',
+    ],
+    tags: ['世界遗产', '藏传佛教', '达赖喇嘛宫殿'],
+    altitude: '3700m', bestSeason: '4月-10月', rating: 4.9, reviews: 12856,
+    shortDesc: '世界海拔最高的宫殿式建筑群，藏传佛教最神圣的朝圣地之一。',
+    fullDesc: '布达拉宫坐落于拉萨玛布日山上，始建于公元7世纪松赞干布时期，17世纪由五世达赖喇嘛重建。依山而筑，巍峨耸立，是藏族古建筑艺术的精华。',
+    tips: ['每日限流，需提前1天在官方平台预约','全程禁止拍照，手机需关闭','穿着庄重，进入殿堂需脱帽','高原反应者建议提前3天到拉萨适应','游览时间约1小时，工作人员严格控时'],
+    transport: '拉萨贡嘎机场→市区约50分钟车程，宫殿距离市中心约1公里',
+    accommodation: '市区八廓街附近推荐：拉萨饭店、瑞吉酒店，可徒步至大昭寺',
+    coordinates: { x: 180, y: 210 }, visible: true, sort: 0,
+  },
+  {
+    id: 2, name: '五台山', region: '山西 · 忻州',
+    cover: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1528181304800-259b08848526?w=800&q=80',
+      'https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=800&q=80',
+      'https://images.unsplash.com/photo-1580137189272-c9379f8864fd?w=800&q=80',
+    ],
+    tags: ['文殊道场', '四大名山', '显通寺'],
+    altitude: '3061m', bestSeason: '5月-9月', rating: 4.8, reviews: 9432,
+    shortDesc: '文殊菩萨道场，中国四大佛教名山之首，汇聚显宗与密宗的精华。',
+    fullDesc: '五台山位于山西省忻州市五台县境内，由五座台顶平坦的山峰组成。主峰北台叶斗峰海拔3061米，为华北最高峰。现存寺庙47座。',
+    tips: ['五台山昼夜温差大，夏季也需备厚外套','东西南北中五台各有特色，建议包车或跟团2日游','大白塔为地标，来此必到塔院寺转塔','素斋可在寺院内预约，体验香积厨','参加早课建议清晨4:30到殊像寺'],
+    transport: '太原机场→五台山约3小时车程，或乘高铁至忻州转客车',
+    accommodation: '台怀镇：银海山庄、五台山金界山庄；山上寺院：殊像寺客堂',
+    coordinates: { x: 540, y: 180 }, visible: true, sort: 1,
+  },
+  {
+    id: 3, name: '峨眉山', region: '四川 · 乐山',
+    cover: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
+      'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80',
+    ],
+    tags: ['普贤道场', '世界双遗产', '金顶'],
+    altitude: '3099m', bestSeason: '4月-11月', rating: 4.9, reviews: 15238,
+    shortDesc: '普贤菩萨道场，以雄、秀、神、奇、灵闻名，是看日出、云海、佛光的圣地。',
+    fullDesc: '峨眉山位于四川盆地西南部，主峰万佛顶海拔3099米，山势雄伟，景色秀丽。金顶上的四面十方普贤金像高48米，是峨眉山最高处的地标。',
+    tips: ['金顶观日出，需前一晚住宿山上','金顶气温低于山下10-15度，备羽绒服','万年寺、报国寺、伏虎寺为必访','注意猴群，不要携带外露食物','雷洞坪至接引殿段可乘缆车'],
+    transport: '成都双流机场→峨眉山约2.5小时，高铁峨眉山站直达',
+    accommodation: '金顶金顶大酒店、雷洞坪山庄，山下报国寺附近民宿',
+    coordinates: { x: 330, y: 360 }, visible: true, sort: 2,
+  },
+  {
+    id: 4, name: '普陀山', region: '浙江 · 舟山',
+    cover: 'https://images.unsplash.com/photo-1580137189272-c9379f8864fd?w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1580137189272-c9379f8864fd?w=800&q=80',
+      'https://images.unsplash.com/photo-1598190648569-05c0c3ebd461?w=800&q=80',
+      'https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=80',
+    ],
+    tags: ['观音道场', '海天佛国', '南海观音'],
+    altitude: '286m', bestSeason: '全年', rating: 4.8, reviews: 11567,
+    shortDesc: '观世音菩萨道场，四面环海，以海天佛国、南海圣境驰名。',
+    fullDesc: '普陀山是舟山群岛中的一个小岛，与五台山、峨眉山、九华山并称中国佛教四大名山。南海观音像高33米，是岛上最显著的地标。',
+    tips: ['观音诞辰（农历2/19、6/19、9/19）最热闹','建议游览2天，宿山上能感受晨钟暮鼓','朝拜路线：普济寺→法雨寺→慧济寺→南海观音','船票需提前预订，旺季一票难求','海天佛国石刻不可错过'],
+    transport: '上海→沈家门半升洞码头，乘船15分钟抵达普陀山',
+    accommodation: '普陀山庄、中信普陀大酒店，寺院挂单需提前联系',
+    coordinates: { x: 620, y: 320 }, visible: true, sort: 3,
+  },
+  {
+    id: 5, name: '九华山', region: '安徽 · 池州',
+    cover: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=80',
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+    ],
+    tags: ['地藏道场', '肉身舍利', '九十九峰'],
+    altitude: '1342m', bestSeason: '3月-11月', rating: 4.7, reviews: 7823,
+    shortDesc: '地藏菩萨道场，以肉身舍利闻名，素有"东南第一山"之誉。',
+    fullDesc: '九华山位于安徽省池州市青阳县境内，是地藏菩萨的应化道场。共有寺庙78座，其中百岁宫、化城寺、肉身殿、天台寺最为著名。',
+    tips: ['地藏菩萨圣诞（农历7/30）香火最盛','夜游百岁宫别有风味','素斋在祗园寺品尝最佳','山路湿滑，备防滑鞋','凌晨上天台寺看日出'],
+    transport: '池州九华山机场→景区约40分钟；高铁池州站转大巴',
+    accommodation: '九华街佛缘山庄、聚龙大酒店',
+    coordinates: { x: 560, y: 320 }, visible: true, sort: 4,
+  },
+  {
+    id: 6, name: '少林寺', region: '河南 · 登封',
+    cover: 'https://images.unsplash.com/photo-1591779051696-1c3fa1469a79?w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1591779051696-1c3fa1469a79?w=800&q=80',
+      'https://images.unsplash.com/photo-1599707367072-cd6ada2bc375?w=800&q=80',
+    ],
+    tags: ['禅宗祖庭', '天下第一名刹', '达摩面壁'],
+    altitude: '1492m', bestSeason: '4月-10月', rating: 4.6, reviews: 8954,
+    shortDesc: '禅宗祖庭，达摩面壁九年之处，天下武功出少林的渊源之地。',
+    fullDesc: '少林寺位于河南省郑州市登封市嵩山五乳峰下，始建于北魏太和十九年（495年）。是禅宗的发源地，达摩祖师在此面壁九年。',
+    tips: ['必看武术表演，每日多场','塔林为历代高僧墓塔，肃穆庄严','达摩洞需步行1小时上山','可参加短期禅修体验营','7-8月避开高温'],
+    transport: '郑州高铁站→少林寺约1.5小时车程',
+    accommodation: '嵩山饭店、禅居精品酒店',
+    coordinates: { x: 500, y: 260 }, visible: true, sort: 5,
+  },
+  {
+    id: 7, name: '大昭寺', region: '西藏 · 拉萨',
+    cover: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=800&q=80',
+      'https://images.unsplash.com/photo-1526772662000-3f88f10405ff?w=800&q=80',
+    ],
+    tags: ['藏传佛教', '释迦牟尼12岁等身像', '八廓街'],
+    altitude: '3650m', bestSeason: '4月-10月', rating: 4.9, reviews: 9876,
+    shortDesc: '藏传佛教信徒心中的圣殿，供奉释迦牟尼12岁等身像。',
+    fullDesc: '大昭寺，始建于唐贞观二十一年（647年），融合唐朝、尼泊尔、印度建筑风格，是西藏现存最辉煌的吐蕃时期建筑。',
+    tips: ['清晨磕长头的信徒最震撼','围绕大昭寺转经是藏族传统','金顶观景台俯瞰八廓街','避开午后拥挤时段','八廓街可购买正宗藏饰'],
+    transport: '拉萨市中心，距布达拉宫步行20分钟',
+    accommodation: '八廓街客栈、瑞吉酒店',
+    coordinates: { x: 190, y: 225 }, visible: true, sort: 6,
+  },
+  {
+    id: 8, name: '塔尔寺', region: '青海 · 湟中',
+    cover: 'https://images.unsplash.com/photo-1526772662000-3f88f10405ff?w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1526772662000-3f88f10405ff?w=800&q=80',
+      'https://images.unsplash.com/photo-1606310804520-6fb4e6fd0b3a?w=800&q=80',
+    ],
+    tags: ['格鲁派六大寺', '酥油花', '宗喀巴大师'],
+    altitude: '2660m', bestSeason: '5月-10月', rating: 4.8, reviews: 6542,
+    shortDesc: '藏传佛教格鲁派六大寺院之一，宗喀巴大师诞生地。',
+    fullDesc: '塔尔寺位于青海省西宁市湟中县鲁沙尔镇，是格鲁派创始人宗喀巴大师的诞生地。酥油花、壁画、堆绣并称塔尔寺三绝。',
+    tips: ['正月十五酥油花灯会最盛大','大金瓦殿是核心，供奉宗喀巴大师','转经筒绕寺一圈约1小时','门票含主要殿堂','附近藏家乐体验酥油茶'],
+    transport: '西宁机场→塔尔寺约1小时，市区有直达巴士',
+    accommodation: '西宁市区酒店为主，湟中县城有经济住宿',
+    coordinates: { x: 300, y: 200 }, visible: true, sort: 7,
+  },
+];
+
+const WUHAN_RESTAURANTS = [
+  { id:1, name:'归元寺素斋（云集斋）', district:'hanyang', address:'汉阳区归元寺路20号归元禅寺内', district_label:'汉阳区', lat:30.544794, lng:114.260517, rating:4.9, ratingCount:2108, pricePerPerson:58, cuisine:'寺院素斋', hours:'08:00–17:00', phone:'027-8484-2673', emoji:'⛩️', isOpen:true, tags:['寺院正宗','历史悠久','素宴定制','禁葱蒜'], signature:['罗汉斋','素东坡','素狮子头','香积素面'], shortDesc:'坐落于武汉归元禅寺内，已有百余年历史。正宗寺院素斋，食材天然，禁用葱蒜。', cover:'https://images.unsplash.com/photo-1547496502-affa22d38842?w=800&q=80', mapsUrl:'https://maps.google.com/?cid=5546487058348669911', visible:true, sort:0 },
+  { id:2, name:'宝通寺素食馆', district:'wuchang', address:'武昌区武珞路549号宝通禅寺旁', district_label:'武昌区', lat:30.530699, lng:114.341173, rating:3.7, ratingCount:568, pricePerPerson:45, cuisine:'寺院素斋', hours:'10:00–20:00', phone:'027-8787-3015', emoji:'🏯', isOpen:true, tags:['宝通禅寺旁','仿荤名菜','实惠'], signature:['素鱼块','素叉烧','素卤味拼盘','砂锅素菜'], shortDesc:'毗邻宝通禅寺，以豆腐制品和面筋仿荤菜为特色。素鱼块形神兼备，纹理逼真。', cover:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80', mapsUrl:'https://maps.google.com/?cid=10129470827407937856', visible:true, sort:1 },
+  { id:3, name:'膳缘居天然素食馆', district:'wuchang', address:'武昌区武珞路627号（洪山街道口商圈）', district_label:'武昌区', lat:30.530650, lng:114.341498, rating:4.2, ratingCount:312, pricePerPerson:52, cuisine:'天然素食', hours:'10:00–22:00（全年无休）', phone:'027-8787-0432', emoji:'🌿', isOpen:true, tags:['全年无休','天然食材','养生'], signature:['石锅素豆花','野菜拼盘','素腊汁饭','时蔬饺子'], shortDesc:'强调天然无添加，食材以当季有机蔬菜为主，部分食材来自湖北农村直供基地。', cover:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80', mapsUrl:'https://maps.google.com/?cid=2590066800452238777', visible:true, sort:2 },
+  { id:4, name:'绿野仙踪素食文化主题餐厅', district:'jiangan', address:'江岸区香港路83号（六医院对面）', district_label:'江岸区', lat:30.599304, lng:114.289547, rating:4.1, ratingCount:445, pricePerPerson:68, cuisine:'创意素食', hours:'10:30–21:30', phone:'027-8351-7805', emoji:'🌲', isOpen:true, tags:['主题装修','创意料理','打卡地'], signature:['素食拼盘','菌菇汤锅','绿野素沙拉','素食点心'], shortDesc:'以森林为设计主题，绿植茂盛、氛围清新，是武汉江岸区颇具特色的创意素食餐厅。', cover:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80', mapsUrl:null, visible:true, sort:3 },
+  { id:5, name:'长春观素餐厅', district:'wuchang', address:'武昌区武珞路145号（长春观道观旁）', district_label:'武昌区', lat:30.539826, lng:114.320623, rating:4.0, ratingCount:198, pricePerPerson:40, cuisine:'道家素斋', hours:'09:00–17:00', phone:'027-8885-4229', emoji:'☯️', isOpen:false, tags:['道家素斋','实惠','古典氛围'], signature:['道家素卤','素腊肉','五谷饭','八宝粥'], shortDesc:'依托武汉著名道观长春观，提供道家特色素斋。口味清淡，以当季食材为主，价格亲民。', cover:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80', mapsUrl:null, visible:true, sort:4 },
+  { id:6, name:'素满香·全民素食自助（汉口店）', district:'jiangan', address:'江岸区后湖大道汉口城市广场内', district_label:'江岸区', lat:30.6240, lng:114.3100, rating:4.4, ratingCount:8410, pricePerPerson:28, cuisine:'素食自助', hours:'10:30–21:00', phone:null, emoji:'🍽️', isOpen:true, tags:['自助任吃','性价比之王'], signature:['素食自助20+道','素卤味','现炒时蔬','素甜品'], shortDesc:'后湖大道上的素食自助餐厅，以超高性价比著称。仅需28元可享受20余道素菜任意取用。', cover:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80', mapsUrl:null, visible:true, sort:5 },
+  { id:7, name:'聚善斋素食馆', district:'hanyang', address:'汉阳区翠微路70号（归元寺大门前）', district_label:'汉阳区', lat:30.5459, lng:114.26140, rating:4.6, ratingCount:1236, pricePerPerson:50, cuisine:'寺院素食', hours:'09:00–20:30', phone:null, emoji:'🙏', isOpen:true, tags:['归元寺门口','品种繁多','仿荤精品'], signature:['熏鱼（素）','糖醋素排','素红烧肉','素炸酱面'], shortDesc:'位于归元禅寺大门正前方，以仿荤菜见长。素熏鱼形神兼备，糖醋素排酸甜可口，品种丰富。', cover:'https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=800&q=80', mapsUrl:null, visible:true, sort:6 },
+  { id:8, name:'菜锦辉素食餐厅', district:'jianghan', address:'江汉区江汉路商圈', district_label:'江汉区', lat:30.584064, lng:114.287348, rating:4.3, ratingCount:389, pricePerPerson:72, cuisine:'精致素食', hours:'11:00–21:30', phone:'027-8284-0425', emoji:'🌺', isOpen:true, tags:['精致摆盘','商务聚餐'], signature:['水晶素蒸饺','文思豆腐','素佛跳墙','素食拼盘'], shortDesc:'位于江汉路步行街附近，主打商务素食。文思豆腐刀工精湛，素佛跳墙食材丰富，适合商务宴请。', cover:'https://images.unsplash.com/photo-1547496502-affa22d38842?w=800&q=80', mapsUrl:null, visible:true, sort:7 },
+  { id:9, name:'归元宝莲养生素食馆', district:'hanyang', address:'汉阳区翠微路20号（归元禅寺右侧）', district_label:'汉阳区', lat:30.544900, lng:114.262680, rating:4.5, ratingCount:756, pricePerPerson:65, cuisine:'养生素食', hours:'09:00–21:00', phone:null, emoji:'🪷', isOpen:true, tags:['养生药膳','归元寺旁'], signature:['药膳素汤','莲子八宝饭','素扣肉','健康沙拉'], shortDesc:'紧邻归元禅寺，主打养生药膳素食。结合中医食疗理念，加入枸杞、红枣、莲子等药材。', cover:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80', mapsUrl:null, visible:true, sort:8 },
+  { id:10, name:'凡言外素食茶舍', district:'wuchang', address:'洪山区东湖东路8号（东湖之畔）', district_label:'洪山区', lat:30.532350, lng:114.386490, rating:4.7, ratingCount:892, pricePerPerson:88, cuisine:'禅茶素食', hours:'10:00–22:00', phone:'027-8877-3768', emoji:'🍵', isOpen:true, tags:['东湖旁','禅茶文化'], signature:['禅茶套餐','素食御膳','东湖景观素宴','手工茶食'], shortDesc:'坐落于东湖之畔，将禅茶文化与精致素食完美融合。依湖而建，是武汉最具意境的素食体验地。', cover:'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&q=80', mapsUrl:null, visible:true, sort:9 },
+  { id:11, name:'天一素食馆', district:'wuchang', address:'洪山区珞狮路116号（武大附近）', district_label:'洪山区', lat:30.524765, lng:114.351867, rating:3.8, ratingCount:234, pricePerPerson:35, cuisine:'家常素食', hours:'09:00–21:00', phone:null, emoji:'🍃', isOpen:true, tags:['学生友好','家常味道'], signature:['家常豆腐','素炒时蔬','酸辣粉（素）','素包子'], shortDesc:'临近武汉大学，以家常素食为主，价格亲民，深受周边学生和教职工喜爱。', cover:'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=800&q=80', mapsUrl:null, visible:true, sort:10 },
+  { id:12, name:'527生活菜坊', district:'jianghan', address:'江汉区（武汉新天地附近）', district_label:'江汉区', lat:30.592602, lng:114.260465, rating:4.5, ratingCount:567, pricePerPerson:62, cuisine:'创意素食', hours:'11:00–22:00', phone:null, emoji:'🥬', isOpen:true, tags:['新天地附近','年轻素食'], signature:['创意素食定食','季节时蔬拼','有机藜麦碗','素食汉堡'], shortDesc:'武汉新天地附近颇有人气的创意素食餐厅，将时尚轻食理念与中国素食传统结合，深受年轻素食者追捧。', cover:'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80', mapsUrl:null, visible:true, sort:11 },
+];
+
+const VEGAN_RECIPES = [
+  { id:1, name:'罗汉斋', cover:'https://images.unsplash.com/photo-1547496502-affa22d38842?w=600&q=80', difficulty:'简单', time:'30分钟', calories:'280卡', tags:['寺院素','经典'], shortDesc:'传统寺院素菜，汇聚多种蔬菜菌菇，清淡养胃。', visible:true, sort:0 },
+  { id:2, name:'素东坡肉', cover:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80', difficulty:'中等', time:'45分钟', calories:'320卡', tags:['仿荤','下饭'], shortDesc:'用冬瓜或豆腐模仿五花肉，口感惊艳，素食界的扛把子。', visible:true, sort:1 },
+  { id:3, name:'素食三杯菇', cover:'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&q=80', difficulty:'简单', time:'20分钟', calories:'220卡', tags:['快手','台式'], shortDesc:'经典台式三杯做法，用杏鲍菇代替鸡肉，鲜香无比。', visible:true, sort:2 },
+  { id:4, name:'素食春卷', cover:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80', difficulty:'中等', time:'40分钟', calories:'180卡', tags:['开胃','宴客'], shortDesc:'金黄酥脆的素食春卷，内馅丰富，外皮酥脆。', visible:true, sort:3 },
+];
+
+const FORUM_POSTS = [
+  { id:1, title:'禅坐三个月的体悟——从散乱到初定', cover:'https://images.unsplash.com/photo-1545389336-cf090694435e?w=500&q=80', excerpt:'今天想分享我这三个月禅坐的真实体会。刚开始打坐20分钟都觉得腿麻心烦，杂念如野马奔腾。直到某天清晨...', section:'修法心得', author:'法喜充满', likes:1256, comments:234, collects:456, slug:'chan-zuo-san-yue', sort:0 },
+  { id:2, title:'《心经》"观自在菩萨"的深意', cover:'https://images.unsplash.com/photo-1564769625392-651b2c1f9e29?w=500&q=80', excerpt:'"观自在"并非"观世音"的简称。以般若观照一切，得自在无碍，这是修行的终极境界...', section:'经典讨论', author:'莲心居士', likes:2563, comments:567, collects:892, slug:'xin-jing-guan-zi-zai', sort:1 },
+  { id:3, title:'朝礼五台山七日记——奇遇与感动', cover:'https://images.unsplash.com/photo-1528181304800-259b08848526?w=500&q=80', excerpt:'原计划三天，却因缘际会停留七日。从台怀镇到各台顶，每一步都是与文殊菩萨的对话...', section:'朝圣分享', author:'行脚僧', likes:3892, comments:923, collects:1567, slug:'wu-tai-shan-qi-ri', sort:2 },
+  { id:4, title:'成都素食大搜罗｜10家必去', cover:'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=500&q=80', excerpt:'走访成都各大寺院附近的素食馆，踩坑无数，总结十家性价比之选...', section:'素食推荐', author:'素心居', likes:2014, comments:445, collects:1223, slug:'chengdu-sushi-10', sort:3 },
+  { id:5, title:'净土法门与禅宗修行可否融合？', cover:'https://images.unsplash.com/photo-1548013146-72479768bada?w=500&q=80', excerpt:'末学修习净土念佛多年，近来接触禅宗文字，深感两者相通。请教各位善知识...', section:'问道解惑', author:'念佛行者', likes:1670, comments:892, collects:534, slug:'jingtu-chan-rong-he', sort:4 },
+  { id:6, title:'西藏转山15日完整路线', cover:'https://images.unsplash.com/photo-1606310804520-6fb4e6fd0b3a?w=500&q=80', excerpt:'冈仁波齐转山三圈的功德无量，本篇分享从拉萨到阿里的完整路线，含攻略、装备、注意事项...', section:'朝圣分享', author:'雪域行者', likes:4523, comments:1234, collects:2345, slug:'tibet-zhuan-shan-15', sort:5 },
+  { id:7, title:'每日早课21天，身心变化', cover:'https://images.unsplash.com/photo-1591779051696-1c3fa1469a79?w=500&q=80', excerpt:'坚持21天每天早课，睡眠、情绪、专注力都有明显变化。分享我的具体课表和心得...', section:'修法心得', author:'清凉月', likes:1892, comments:356, collects:678, slug:'zao-ke-21-tian', sort:6 },
+  { id:8, title:'在日常中修行｜每件事都是道场', cover:'https://images.unsplash.com/photo-1517638851339-a711cfcf3279?w=500&q=80', excerpt:'洗碗、扫地、做饭，都可以是修行。分享如何把生活每个瞬间转为正念练习...', section:'生活禅', author:'禅茶一味', likes:2345, comments:434, collects:890, slug:'ri-chang-xiu-xing', sort:7 },
+];
+
+/* ── 辅助：按 publish.js 一样的格式创建快照并写入 publish_versions ── */
+async function publishModule(supabase, moduleKey, userId, notes) {
+  const [{ data: blocks }, { data: articles }] = await Promise.all([
+    supabase.from('content_blocks').select('*').eq('module_key', moduleKey).eq('status', 'draft'),
+    supabase.from('articles').select('*').eq('module_key', moduleKey).eq('status', 'draft').order('sort_order', { ascending: true }),
+  ]);
+
+  const snapshot = {
+    moduleKey,
+    blocks: blocks || [],
+    articles: articles || [],
+    publishedAt: new Date().toISOString(),
+  };
+
+  const { data: inserted, error } = await supabase
+    .from('publish_versions')
+    .insert({ module_key: moduleKey, status: 'published', notes, snapshot, published_by: userId })
+    .select('id')
+    .single();
+  if (error) throw new Error(`publish_versions[${moduleKey}] 失败: ${error.message}`);
+
+  const version = inserted.id;
+  await Promise.all([
+    supabase.from('content_blocks').update({ published_version: version, updated_at: new Date().toISOString() }).eq('module_key', moduleKey).eq('status', 'draft'),
+    supabase.from('articles').update({ published_version: version, updated_at: new Date().toISOString() }).eq('module_key', moduleKey).eq('status', 'draft'),
+  ]);
+  return version;
+}
+
+module.exports = async function handler(req, res) {
+  cors(req, res);
+  if (req.method === 'OPTIONS') return sendJson(res, 200, { ok: true });
+  if (req.method !== 'POST') return sendJson(res, 405, { ok: false, error: 'Method not allowed' });
+
+  try {
+    const auth = await requireRole(req, ['owner']);
+    if (!auth.ok) return sendJson(res, auth.status, { ok: false, error: auth.message });
+    const supabase = getSupabaseAdmin();
+
+    /* ── 防重复：检查 pilgrimage 是否已有数据 ── */
+    const { data: existing } = await supabase
+      .from('content_blocks')
+      .select('id')
+      .eq('module_key', 'pilgrimage')
+      .eq('block_key', 'module_root')
+      .eq('status', 'draft')
+      .maybeSingle();
+
+    if (existing) {
+      return sendJson(res, 409, {
+        ok: false,
+        error: '后台已存在朝圣数据，无需重复导入。若需强制重置，请直接在 Supabase 控制台操作。'
+      });
+    }
+
+    const now = new Date().toISOString();
+    const userId = auth.user.id;
+    const notes = '初始数据导入（从前端硬编码迁移）';
+
+    /* ── 1. 朝圣地点 → content_blocks[pilgrimage] ── */
+    const { error: pilgErr } = await supabase
+      .from('content_blocks')
+      .upsert({
+        module_key: 'pilgrimage',
+        block_key: 'module_root',
+        payload: { sites: PILGRIMAGE_SITES },
+        status: 'draft',
+        updated_by: userId,
+        updated_at: now,
+      }, { onConflict: 'module_key,block_key,status' });
+    if (pilgErr) throw new Error('朝圣数据写入失败: ' + pilgErr.message);
+
+    /* ── 2. 素食 → content_blocks[vegan] ── */
+    const { error: veganErr } = await supabase
+      .from('content_blocks')
+      .upsert({
+        module_key: 'vegan',
+        block_key: 'module_root',
+        payload: { restaurants: WUHAN_RESTAURANTS, recipes: VEGAN_RECIPES },
+        status: 'draft',
+        updated_by: userId,
+        updated_at: now,
+      }, { onConflict: 'module_key,block_key,status' });
+    if (veganErr) throw new Error('素食数据写入失败: ' + veganErr.message);
+
+    /* ── 3. 论坛帖子 → articles[forum] ── */
+    const forumArticles = FORUM_POSTS.map(post => ({
+      module_key: 'forum',
+      slug: post.slug,
+      title: post.title,
+      summary: post.excerpt,
+      cover_url: post.cover,
+      tags: [post.section],
+      sort_order: post.sort,
+      status: 'draft',
+      updated_by: userId,
+      updated_at: now,
+      content_md: `# ${post.title}\n\n**作者：** ${post.author}  \n**版块：** ${post.section}\n\n${post.excerpt}`,
+    }));
+    const { error: forumErr } = await supabase
+      .from('articles')
+      .upsert(forumArticles, { onConflict: 'module_key,slug,status' });
+    if (forumErr) throw new Error('论坛帖子写入失败: ' + forumErr.message);
+
+    /* ── 4. 发布三个模块（与 publish.js 相同逻辑） ── */
+    await publishModule(supabase, 'pilgrimage', userId, notes);
+    await publishModule(supabase, 'vegan', userId, notes);
+    await publishModule(supabase, 'forum', userId, notes);
+
+    return sendJson(res, 200, {
+      ok: true,
+      message: `成功导入并发布：${PILGRIMAGE_SITES.length} 个朝圣地点、${WUHAN_RESTAURANTS.length} 家素食餐厅、${VEGAN_RECIPES.length} 个菜谱、${FORUM_POSTS.length} 条论坛帖子`,
+      counts: {
+        sites: PILGRIMAGE_SITES.length,
+        restaurants: WUHAN_RESTAURANTS.length,
+        recipes: VEGAN_RECIPES.length,
+        forum: FORUM_POSTS.length,
+      }
+    });
+  } catch (err) {
+    console.error('[seed] error:', err);
+    return sendJson(res, 500, { ok: false, error: err.message || 'Unexpected error' });
+  }
+};
