@@ -146,14 +146,14 @@ function showApp() {
 
 async function refreshProfile() {
   try {
-    const data = await api('/api/admin/profile');
+    const data = await api('/api/admin/profile', { headers: authHdr() });
     state.profile = data.profile;
     $('user-avatar').textContent = (data.user?.email || 'A')[0].toUpperCase();
     $('user-name').textContent   = state.profile?.display_name || data.user?.email || '管理员';
     const rb = $('user-role-badge');
     rb.textContent = state.profile?.role || '';
     rb.className   = `badge badge-${state.profile?.role || 'viewer'}`;
-  } catch { state.profile = null; }
+  } catch (e) { console.error('[refreshProfile]', e); state.profile = null; }
 }
 
 /* ═══════════════════════════════════════════════
@@ -180,7 +180,9 @@ function saveSettings() {
 function authHdr() { return state.token ? { Authorization: `Bearer ${state.token}` } : {}; }
 
 async function api(url, opts = {}) {
-  const resp = await fetch(url, opts);
+  // 自动合并 Authorization header，确保每次调用都带 token
+  const headers = { ...authHdr(), ...(opts.headers || {}) };
+  const resp = await fetch(url, { ...opts, headers });
   const data = await resp.json().catch(() => ({}));
   if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
   return data;
