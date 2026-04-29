@@ -2385,79 +2385,84 @@ function getRecipeCategories() {
 }
 
 function renderRecipeHome() {
+  // 渲染分类筛选 pills（直接过滤，不跳转子页面）
   const catsWrap = document.getElementById('recipe-categories');
   if (catsWrap) {
-    catsWrap.innerHTML = getRecipeCategories().map(c => `<button class="${c===VeganState.currentRecipeCategory?'active':''}" onclick="openRecipeCategory('${c}')">${c}</button>`).join('');
+    catsWrap.innerHTML = getRecipeCategories().map(c =>
+      `<button class="${c===VeganState.currentRecipeCategory?'active':''}" onclick="filterRecipeCategory('${c}')">${c}</button>`
+    ).join('');
   }
   const list = document.getElementById('recipe-list');
   if (!list) return;
   let data = window.VEGAN_RECIPES || [];
   if (VeganState.currentRecipeCategory !== '全部') data = data.filter(r => r.category === VeganState.currentRecipeCategory);
-  if (VeganState.recipeQuery) data = data.filter(r => r.name.includes(VeganState.recipeQuery) || r.desc.includes(VeganState.recipeQuery));
-  list.innerHTML = data.map(r => `
+  if (VeganState.recipeQuery) data = data.filter(r => (r.name||'').includes(VeganState.recipeQuery) || (r.desc||r.shortDesc||'').includes(VeganState.recipeQuery));
+
+  if (!data.length) {
+    list.innerHTML = `<div class="recipe-empty">🍃 暂无匹配菜谱</div>`;
+    return;
+  }
+
+  list.innerHTML = data.map(r => {
+    const desc = r.desc || r.shortDesc || '';
+    const diffIcon = { '简单':'🟢', '中等':'🟡', '复杂':'🔴' }[r.difficulty] || '';
+    return `
     <div class="recipe-tile" onclick="openRecipeDetailById(${r.id})">
-      <img src="${r.cover}" alt="${r.name}" loading="lazy">
+      <img src="${r.cover}" alt="${r.name}" loading="lazy" onerror="this.style.display='none'">
       <div class="recipe-tile-body">
         <div class="recipe-tile-title">${r.name}</div>
-        <div class="recipe-tile-desc">${r.desc}</div>
+        <div class="recipe-tile-meta">
+          ${r.time ? `<span>⏱ ${r.time}</span>` : ''}
+          ${r.difficulty ? `<span>${diffIcon} ${r.difficulty}</span>` : ''}
+          ${r.calories ? `<span>🔥 ${r.calories}</span>` : ''}
+        </div>
+        ${desc ? `<div class="recipe-tile-desc">${desc}</div>` : ''}
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
-function openRecipeCategory(cat) {
+// 分类筛选：原地过滤，不跳转子页面
+function filterRecipeCategory(cat) {
   VeganState.currentRecipeCategory = cat;
-  VeganState.currentRecipeResult = (window.VEGAN_RECIPES || []).filter(r => cat === '全部' || r.category === cat);
-  document.getElementById('recipe-home').style.display = 'none';
-  document.getElementById('recipe-detail').style.display = 'none';
-  document.getElementById('recipe-result').style.display = '';
-  document.getElementById('recipe-result-title').textContent = `${cat} 菜谱`;
-  const wrap = document.getElementById('recipe-result-list');
-  wrap.innerHTML = VeganState.currentRecipeResult.map(r => `
-    <div class="recipe-tile" onclick="openRecipeDetailById(${r.id})">
-      <img src="${r.cover}" alt="${r.name}" loading="lazy">
-      <div class="recipe-tile-body">
-        <div class="recipe-tile-title">${r.name}</div>
-        <div class="recipe-tile-desc">${r.desc}</div>
-      </div>
-    </div>
-  `).join('');
   renderRecipeHome();
 }
+
+// 保留兼容旧名称
+function openRecipeCategory(cat) { filterRecipeCategory(cat); }
 
 function openRecipeDetailById(id) {
   const recipe = (window.VEGAN_RECIPES || []).find(r => r.id === id);
   if (!recipe) return;
   VeganState.currentRecipe = recipe;
-  document.getElementById('recipe-result').style.display = 'none';
   document.getElementById('recipe-home').style.display = 'none';
   document.getElementById('recipe-detail').style.display = '';
   document.getElementById('recipe-detail-title').textContent = recipe.name;
+  const desc = recipe.desc || recipe.shortDesc || '';
   document.getElementById('recipe-detail-body').innerHTML = `
-    <img src="${recipe.cover}" alt="${recipe.name}">
+    <img src="${recipe.cover}" alt="${recipe.name}" style="width:100%;border-radius:12px;margin-bottom:16px;object-fit:cover;max-height:280px">
+    <div class="recipe-detail-meta-row">
+      ${recipe.time       ? `<span>⏱ ${recipe.time}</span>`       : ''}
+      ${recipe.difficulty ? `<span>📊 ${recipe.difficulty}</span>` : ''}
+      ${recipe.calories   ? `<span>🔥 ${recipe.calories}</span>`   : ''}
+    </div>
     <div class="recipe-detail-content">
-      <p style="font-size:13px;color:var(--ink-60);line-height:1.8">${recipe.desc}</p>
-      <h4>准备食材</h4>
-      <ul>${recipe.ingredients.map(i=>`<li>${i}</li>`).join('')}</ul>
-      <h4>烹饪步骤</h4>
-      <ol>${recipe.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
-      <h4>小贴士</h4>
-      <p style="font-size:13px;color:var(--ink-60);line-height:1.8">${recipe.tips}</p>
+      ${desc ? `<p style="font-size:13px;color:var(--ink-60);line-height:1.8;margin-bottom:16px">${desc}</p>` : ''}
+      ${recipe.ingredients?.length ? `<h4>准备食材</h4><ul>${recipe.ingredients.map(i=>`<li>${i}</li>`).join('')}</ul>` : ''}
+      ${recipe.steps?.length ? `<h4>烹饪步骤</h4><ol>${recipe.steps.map(s=>`<li>${s}</li>`).join('')}</ol>` : ''}
+      ${recipe.tips ? `<h4>小贴士</h4><p style="font-size:13px;color:var(--ink-60);line-height:1.8">${recipe.tips}</p>` : ''}
     </div>
   `;
 }
 
 function backToRecipeHome() {
-  document.getElementById('recipe-result').style.display = 'none';
   document.getElementById('recipe-detail').style.display = 'none';
   document.getElementById('recipe-home').style.display = '';
   renderRecipeHome();
 }
 
-function backToRecipeResult() {
-  document.getElementById('recipe-detail').style.display = 'none';
-  document.getElementById('recipe-result').style.display = '';
-}
+// 兼容旧调用
+function backToRecipeResult() { backToRecipeHome(); }
 
 function searchRecipes() {
   VeganState.recipeQuery = document.getElementById('recipe-search-input')?.value.trim() || '';

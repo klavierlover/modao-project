@@ -632,24 +632,19 @@
     </div>
 
     <div class="vegan-modern-content recipe-view" id="vegan-recipe-view" style="display:none">
+      <!-- 菜谱主列表（分类筛选直接在此过滤，不跳子页面） -->
       <div class="recipe-home" id="recipe-home">
         <div class="recipe-search-row">
-          <input id="recipe-search-input" type="text" placeholder="搜索食材、菜名、做法">
-          <button onclick="searchRecipes()">搜索</button>
+          <input id="recipe-search-input" type="text" placeholder="搜索食材、菜名、做法…"
+                 oninput="searchRecipes()" onkeydown="if(event.key==='Enter')searchRecipes()">
         </div>
         <div class="recipe-categories" id="recipe-categories"></div>
         <div class="recipe-list" id="recipe-list"></div>
       </div>
-      <div class="recipe-result" id="recipe-result" style="display:none">
-        <div class="recipe-result-head">
-          <button onclick="backToRecipeHome()">← 返回</button>
-          <h3 id="recipe-result-title"></h3>
-        </div>
-        <div class="recipe-result-list" id="recipe-result-list"></div>
-      </div>
+      <!-- 菜谱详情（点击卡片进入） -->
       <div class="recipe-detail" id="recipe-detail" style="display:none">
         <div class="recipe-result-head">
-          <button onclick="backToRecipeResult()">← 返回</button>
+          <button class="recipe-back-btn" onclick="backToRecipeHome()">← 返回</button>
           <h3 id="recipe-detail-title"></h3>
         </div>
         <div class="recipe-detail-body" id="recipe-detail-body"></div>
