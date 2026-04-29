@@ -711,11 +711,13 @@ function showPage(page) {
   resetImmersivePage(page);
   playPageMotion(page);
   // 页面 fade-in 动效
-  const pageEl = document.getElementById('page-' + page);
-  if (pageEl) {
-    pageEl.classList.remove('page-entering');
-    void pageEl.offsetWidth; // reflow
-    pageEl.classList.add('page-entering');
+  {
+    const enterEl = document.getElementById('page-' + page);
+    if (enterEl) {
+      enterEl.classList.remove('page-entering');
+      void enterEl.offsetWidth; // reflow
+      enterEl.classList.add('page-entering');
+    }
   }
   window.scrollTo(0, 0);
 }
