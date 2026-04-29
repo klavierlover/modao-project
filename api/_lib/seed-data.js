@@ -1,8 +1,5 @@
-const { getSupabaseAdmin } = require('../_lib/supabase');
-const { cors, sendJson } = require('../_lib/http');
-const { requireRole } = require('../_lib/auth');
+/* 初始硬编码数据 — 供 admin/seed 路由使用 */
 
-/* ── 硬编码的初始数据 ── */
 const PILGRIMAGE_SITES = [
   {
     id: 1, name: '布达拉宫', region: '西藏 · 拉萨',
@@ -140,17 +137,17 @@ const PILGRIMAGE_SITES = [
 
 const WUHAN_RESTAURANTS = [
   { id:1, name:'归元寺素斋（云集斋）', district:'hanyang', address:'汉阳区归元寺路20号归元禅寺内', district_label:'汉阳区', lat:30.544794, lng:114.260517, rating:4.9, ratingCount:2108, pricePerPerson:58, cuisine:'寺院素斋', hours:'08:00–17:00', phone:'027-8484-2673', emoji:'⛩️', isOpen:true, tags:['寺院正宗','历史悠久','素宴定制','禁葱蒜'], signature:['罗汉斋','素东坡','素狮子头','香积素面'], shortDesc:'坐落于武汉归元禅寺内，已有百余年历史。正宗寺院素斋，食材天然，禁用葱蒜。', cover:'https://images.unsplash.com/photo-1547496502-affa22d38842?w=800&q=80', mapsUrl:'https://maps.google.com/?cid=5546487058348669911', visible:true, sort:0 },
-  { id:2, name:'宝通寺素食馆', district:'wuchang', address:'武昌区武珞路549号宝通禅寺旁', district_label:'武昌区', lat:30.530699, lng:114.341173, rating:3.7, ratingCount:568, pricePerPerson:45, cuisine:'寺院素斋', hours:'10:00–20:00', phone:'027-8787-3015', emoji:'🏯', isOpen:true, tags:['宝通禅寺旁','仿荤名菜','实惠'], signature:['素鱼块','素叉烧','素卤味拼盘','砂锅素菜'], shortDesc:'毗邻宝通禅寺，以豆腐制品和面筋仿荤菜为特色。素鱼块形神兼备，纹理逼真。', cover:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80', mapsUrl:'https://maps.google.com/?cid=10129470827407937856', visible:true, sort:1 },
-  { id:3, name:'膳缘居天然素食馆', district:'wuchang', address:'武昌区武珞路627号（洪山街道口商圈）', district_label:'武昌区', lat:30.530650, lng:114.341498, rating:4.2, ratingCount:312, pricePerPerson:52, cuisine:'天然素食', hours:'10:00–22:00（全年无休）', phone:'027-8787-0432', emoji:'🌿', isOpen:true, tags:['全年无休','天然食材','养生'], signature:['石锅素豆花','野菜拼盘','素腊汁饭','时蔬饺子'], shortDesc:'强调天然无添加，食材以当季有机蔬菜为主，部分食材来自湖北农村直供基地。', cover:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80', mapsUrl:'https://maps.google.com/?cid=2590066800452238777', visible:true, sort:2 },
-  { id:4, name:'绿野仙踪素食文化主题餐厅', district:'jiangan', address:'江岸区香港路83号（六医院对面）', district_label:'江岸区', lat:30.599304, lng:114.289547, rating:4.1, ratingCount:445, pricePerPerson:68, cuisine:'创意素食', hours:'10:30–21:30', phone:'027-8351-7805', emoji:'🌲', isOpen:true, tags:['主题装修','创意料理','打卡地'], signature:['素食拼盘','菌菇汤锅','绿野素沙拉','素食点心'], shortDesc:'以森林为设计主题，绿植茂盛、氛围清新，是武汉江岸区颇具特色的创意素食餐厅。', cover:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80', mapsUrl:null, visible:true, sort:3 },
-  { id:5, name:'长春观素餐厅', district:'wuchang', address:'武昌区武珞路145号（长春观道观旁）', district_label:'武昌区', lat:30.539826, lng:114.320623, rating:4.0, ratingCount:198, pricePerPerson:40, cuisine:'道家素斋', hours:'09:00–17:00', phone:'027-8885-4229', emoji:'☯️', isOpen:false, tags:['道家素斋','实惠','古典氛围'], signature:['道家素卤','素腊肉','五谷饭','八宝粥'], shortDesc:'依托武汉著名道观长春观，提供道家特色素斋。口味清淡，以当季食材为主，价格亲民。', cover:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80', mapsUrl:null, visible:true, sort:4 },
-  { id:6, name:'素满香·全民素食自助（汉口店）', district:'jiangan', address:'江岸区后湖大道汉口城市广场内', district_label:'江岸区', lat:30.6240, lng:114.3100, rating:4.4, ratingCount:8410, pricePerPerson:28, cuisine:'素食自助', hours:'10:30–21:00', phone:null, emoji:'🍽️', isOpen:true, tags:['自助任吃','性价比之王'], signature:['素食自助20+道','素卤味','现炒时蔬','素甜品'], shortDesc:'后湖大道上的素食自助餐厅，以超高性价比著称。仅需28元可享受20余道素菜任意取用。', cover:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80', mapsUrl:null, visible:true, sort:5 },
-  { id:7, name:'聚善斋素食馆', district:'hanyang', address:'汉阳区翠微路70号（归元寺大门前）', district_label:'汉阳区', lat:30.5459, lng:114.26140, rating:4.6, ratingCount:1236, pricePerPerson:50, cuisine:'寺院素食', hours:'09:00–20:30', phone:null, emoji:'🙏', isOpen:true, tags:['归元寺门口','品种繁多','仿荤精品'], signature:['熏鱼（素）','糖醋素排','素红烧肉','素炸酱面'], shortDesc:'位于归元禅寺大门正前方，以仿荤菜见长。素熏鱼形神兼备，糖醋素排酸甜可口，品种丰富。', cover:'https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=800&q=80', mapsUrl:null, visible:true, sort:6 },
-  { id:8, name:'菜锦辉素食餐厅', district:'jianghan', address:'江汉区江汉路商圈', district_label:'江汉区', lat:30.584064, lng:114.287348, rating:4.3, ratingCount:389, pricePerPerson:72, cuisine:'精致素食', hours:'11:00–21:30', phone:'027-8284-0425', emoji:'🌺', isOpen:true, tags:['精致摆盘','商务聚餐'], signature:['水晶素蒸饺','文思豆腐','素佛跳墙','素食拼盘'], shortDesc:'位于江汉路步行街附近，主打商务素食。文思豆腐刀工精湛，素佛跳墙食材丰富，适合商务宴请。', cover:'https://images.unsplash.com/photo-1547496502-affa22d38842?w=800&q=80', mapsUrl:null, visible:true, sort:7 },
-  { id:9, name:'归元宝莲养生素食馆', district:'hanyang', address:'汉阳区翠微路20号（归元禅寺右侧）', district_label:'汉阳区', lat:30.544900, lng:114.262680, rating:4.5, ratingCount:756, pricePerPerson:65, cuisine:'养生素食', hours:'09:00–21:00', phone:null, emoji:'🪷', isOpen:true, tags:['养生药膳','归元寺旁'], signature:['药膳素汤','莲子八宝饭','素扣肉','健康沙拉'], shortDesc:'紧邻归元禅寺，主打养生药膳素食。结合中医食疗理念，加入枸杞、红枣、莲子等药材。', cover:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80', mapsUrl:null, visible:true, sort:8 },
-  { id:10, name:'凡言外素食茶舍', district:'wuchang', address:'洪山区东湖东路8号（东湖之畔）', district_label:'洪山区', lat:30.532350, lng:114.386490, rating:4.7, ratingCount:892, pricePerPerson:88, cuisine:'禅茶素食', hours:'10:00–22:00', phone:'027-8877-3768', emoji:'🍵', isOpen:true, tags:['东湖旁','禅茶文化'], signature:['禅茶套餐','素食御膳','东湖景观素宴','手工茶食'], shortDesc:'坐落于东湖之畔，将禅茶文化与精致素食完美融合。依湖而建，是武汉最具意境的素食体验地。', cover:'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&q=80', mapsUrl:null, visible:true, sort:9 },
-  { id:11, name:'天一素食馆', district:'wuchang', address:'洪山区珞狮路116号（武大附近）', district_label:'洪山区', lat:30.524765, lng:114.351867, rating:3.8, ratingCount:234, pricePerPerson:35, cuisine:'家常素食', hours:'09:00–21:00', phone:null, emoji:'🍃', isOpen:true, tags:['学生友好','家常味道'], signature:['家常豆腐','素炒时蔬','酸辣粉（素）','素包子'], shortDesc:'临近武汉大学，以家常素食为主，价格亲民，深受周边学生和教职工喜爱。', cover:'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=800&q=80', mapsUrl:null, visible:true, sort:10 },
-  { id:12, name:'527生活菜坊', district:'jianghan', address:'江汉区（武汉新天地附近）', district_label:'江汉区', lat:30.592602, lng:114.260465, rating:4.5, ratingCount:567, pricePerPerson:62, cuisine:'创意素食', hours:'11:00–22:00', phone:null, emoji:'🥬', isOpen:true, tags:['新天地附近','年轻素食'], signature:['创意素食定食','季节时蔬拼','有机藜麦碗','素食汉堡'], shortDesc:'武汉新天地附近颇有人气的创意素食餐厅，将时尚轻食理念与中国素食传统结合，深受年轻素食者追捧。', cover:'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80', mapsUrl:null, visible:true, sort:11 },
+  { id:2, name:'宝通寺素食馆', district:'wuchang', address:'武昌区武珞路549号宝通禅寺旁', district_label:'武昌区', lat:30.530699, lng:114.341173, rating:3.7, ratingCount:568, pricePerPerson:45, cuisine:'寺院素斋', hours:'10:00–20:00', phone:'027-8787-3015', emoji:'🏯', isOpen:true, tags:['宝通禅寺旁','仿荤名菜','实惠'], signature:['素鱼块','素叉烧','素卤味拼盘','砂锅素菜'], shortDesc:'毗邻宝通禅寺，以豆腐制品和面筋仿荤菜为特色。', cover:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80', mapsUrl:'https://maps.google.com/?cid=10129470827407937856', visible:true, sort:1 },
+  { id:3, name:'膳缘居天然素食馆', district:'wuchang', address:'武昌区武珞路627号', district_label:'武昌区', lat:30.530650, lng:114.341498, rating:4.2, ratingCount:312, pricePerPerson:52, cuisine:'天然素食', hours:'10:00–22:00（全年无休）', phone:'027-8787-0432', emoji:'🌿', isOpen:true, tags:['全年无休','天然食材','养生'], signature:['石锅素豆花','野菜拼盘','素腊汁饭','时蔬饺子'], shortDesc:'强调天然无添加，食材以当季有机蔬菜为主。', cover:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80', mapsUrl:'https://maps.google.com/?cid=2590066800452238777', visible:true, sort:2 },
+  { id:4, name:'绿野仙踪素食文化主题餐厅', district:'jiangan', address:'江岸区香港路83号', district_label:'江岸区', lat:30.599304, lng:114.289547, rating:4.1, ratingCount:445, pricePerPerson:68, cuisine:'创意素食', hours:'10:30–21:30', phone:'027-8351-7805', emoji:'🌲', isOpen:true, tags:['主题装修','创意料理','打卡地'], signature:['素食拼盘','菌菇汤锅','绿野素沙拉','素食点心'], shortDesc:'以森林为设计主题，绿植茂盛、氛围清新。', cover:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80', mapsUrl:null, visible:true, sort:3 },
+  { id:5, name:'长春观素餐厅', district:'wuchang', address:'武昌区武珞路145号', district_label:'武昌区', lat:30.539826, lng:114.320623, rating:4.0, ratingCount:198, pricePerPerson:40, cuisine:'道家素斋', hours:'09:00–17:00', phone:'027-8885-4229', emoji:'☯️', isOpen:false, tags:['道家素斋','实惠','古典氛围'], signature:['道家素卤','素腊肉','五谷饭','八宝粥'], shortDesc:'依托武汉著名道观长春观，提供道家特色素斋。', cover:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80', mapsUrl:null, visible:true, sort:4 },
+  { id:6, name:'素满香·全民素食自助（汉口店）', district:'jiangan', address:'江岸区后湖大道汉口城市广场内', district_label:'江岸区', lat:30.6240, lng:114.3100, rating:4.4, ratingCount:8410, pricePerPerson:28, cuisine:'素食自助', hours:'10:30–21:00', phone:null, emoji:'🍽️', isOpen:true, tags:['自助任吃','性价比之王'], signature:['素食自助20+道','素卤味','现炒时蔬','素甜品'], shortDesc:'以超高性价比著称，仅需28元可享受20余道素菜。', cover:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80', mapsUrl:null, visible:true, sort:5 },
+  { id:7, name:'聚善斋素食馆', district:'hanyang', address:'汉阳区翠微路70号（归元寺大门前）', district_label:'汉阳区', lat:30.5459, lng:114.26140, rating:4.6, ratingCount:1236, pricePerPerson:50, cuisine:'寺院素食', hours:'09:00–20:30', phone:null, emoji:'🙏', isOpen:true, tags:['归元寺门口','品种繁多','仿荤精品'], signature:['熏鱼（素）','糖醋素排','素红烧肉','素炸酱面'], shortDesc:'位于归元禅寺大门正前方，以仿荤菜见长。', cover:'https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=800&q=80', mapsUrl:null, visible:true, sort:6 },
+  { id:8, name:'菜锦辉素食餐厅', district:'jianghan', address:'江汉区江汉路商圈', district_label:'江汉区', lat:30.584064, lng:114.287348, rating:4.3, ratingCount:389, pricePerPerson:72, cuisine:'精致素食', hours:'11:00–21:30', phone:'027-8284-0425', emoji:'🌺', isOpen:true, tags:['精致摆盘','商务聚餐'], signature:['水晶素蒸饺','文思豆腐','素佛跳墙','素食拼盘'], shortDesc:'主打商务素食，文思豆腐刀工精湛，适合商务宴请。', cover:'https://images.unsplash.com/photo-1547496502-affa22d38842?w=800&q=80', mapsUrl:null, visible:true, sort:7 },
+  { id:9, name:'归元宝莲养生素食馆', district:'hanyang', address:'汉阳区翠微路20号', district_label:'汉阳区', lat:30.544900, lng:114.262680, rating:4.5, ratingCount:756, pricePerPerson:65, cuisine:'养生素食', hours:'09:00–21:00', phone:null, emoji:'🪷', isOpen:true, tags:['养生药膳','归元寺旁'], signature:['药膳素汤','莲子八宝饭','素扣肉','健康沙拉'], shortDesc:'紧邻归元禅寺，主打养生药膳素食。', cover:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80', mapsUrl:null, visible:true, sort:8 },
+  { id:10, name:'凡言外素食茶舍', district:'wuchang', address:'洪山区东湖东路8号', district_label:'洪山区', lat:30.532350, lng:114.386490, rating:4.7, ratingCount:892, pricePerPerson:88, cuisine:'禅茶素食', hours:'10:00–22:00', phone:'027-8877-3768', emoji:'🍵', isOpen:true, tags:['东湖旁','禅茶文化'], signature:['禅茶套餐','素食御膳','东湖景观素宴','手工茶食'], shortDesc:'坐落于东湖之畔，将禅茶文化与精致素食完美融合。', cover:'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&q=80', mapsUrl:null, visible:true, sort:9 },
+  { id:11, name:'天一素食馆', district:'wuchang', address:'洪山区珞狮路116号', district_label:'洪山区', lat:30.524765, lng:114.351867, rating:3.8, ratingCount:234, pricePerPerson:35, cuisine:'家常素食', hours:'09:00–21:00', phone:null, emoji:'🍃', isOpen:true, tags:['学生友好','家常味道'], signature:['家常豆腐','素炒时蔬','酸辣粉（素）','素包子'], shortDesc:'临近武汉大学，以家常素食为主，价格亲民。', cover:'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=800&q=80', mapsUrl:null, visible:true, sort:10 },
+  { id:12, name:'527生活菜坊', district:'jianghan', address:'江汉区（武汉新天地附近）', district_label:'江汉区', lat:30.592602, lng:114.260465, rating:4.5, ratingCount:567, pricePerPerson:62, cuisine:'创意素食', hours:'11:00–22:00', phone:null, emoji:'🥬', isOpen:true, tags:['新天地附近','年轻素食'], signature:['创意素食定食','季节时蔬拼','有机藜麦碗','素食汉堡'], shortDesc:'将时尚轻食理念与中国素食传统结合，深受年轻素食者追捧。', cover:'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80', mapsUrl:null, visible:true, sort:11 },
 ];
 
 const VEGAN_RECIPES = [
@@ -171,127 +168,4 @@ const FORUM_POSTS = [
   { id:8, title:'在日常中修行｜每件事都是道场', cover:'https://images.unsplash.com/photo-1517638851339-a711cfcf3279?w=500&q=80', excerpt:'洗碗、扫地、做饭，都可以是修行。分享如何把生活每个瞬间转为正念练习...', section:'生活禅', author:'禅茶一味', likes:2345, comments:434, collects:890, slug:'ri-chang-xiu-xing', sort:7 },
 ];
 
-/* ── 辅助：按 publish.js 一样的格式创建快照并写入 publish_versions ── */
-async function publishModule(supabase, moduleKey, userId, notes) {
-  const [{ data: blocks }, { data: articles }] = await Promise.all([
-    supabase.from('content_blocks').select('*').eq('module_key', moduleKey).eq('status', 'draft'),
-    supabase.from('articles').select('*').eq('module_key', moduleKey).eq('status', 'draft').order('sort_order', { ascending: true }),
-  ]);
-
-  const snapshot = {
-    moduleKey,
-    blocks: blocks || [],
-    articles: articles || [],
-    publishedAt: new Date().toISOString(),
-  };
-
-  const { data: inserted, error } = await supabase
-    .from('publish_versions')
-    .insert({ module_key: moduleKey, status: 'published', notes, snapshot, published_by: userId })
-    .select('id')
-    .single();
-  if (error) throw new Error(`publish_versions[${moduleKey}] 失败: ${error.message}`);
-
-  const version = inserted.id;
-  await Promise.all([
-    supabase.from('content_blocks').update({ published_version: version, updated_at: new Date().toISOString() }).eq('module_key', moduleKey).eq('status', 'draft'),
-    supabase.from('articles').update({ published_version: version, updated_at: new Date().toISOString() }).eq('module_key', moduleKey).eq('status', 'draft'),
-  ]);
-  return version;
-}
-
-module.exports = async function handler(req, res) {
-  cors(req, res);
-  if (req.method === 'OPTIONS') return sendJson(res, 200, { ok: true });
-  if (req.method !== 'POST') return sendJson(res, 405, { ok: false, error: 'Method not allowed' });
-
-  try {
-    const auth = await requireRole(req, ['owner']);
-    if (!auth.ok) return sendJson(res, auth.status, { ok: false, error: auth.message });
-    const supabase = getSupabaseAdmin();
-
-    /* ── 防重复：检查 pilgrimage 是否已有数据 ── */
-    const { data: existing } = await supabase
-      .from('content_blocks')
-      .select('id')
-      .eq('module_key', 'pilgrimage')
-      .eq('block_key', 'module_root')
-      .eq('status', 'draft')
-      .maybeSingle();
-
-    if (existing) {
-      return sendJson(res, 409, {
-        ok: false,
-        error: '后台已存在朝圣数据，无需重复导入。若需强制重置，请直接在 Supabase 控制台操作。'
-      });
-    }
-
-    const now = new Date().toISOString();
-    const userId = auth.user.id;
-    const notes = '初始数据导入（从前端硬编码迁移）';
-
-    /* ── 1. 朝圣地点 → content_blocks[pilgrimage] ── */
-    const { error: pilgErr } = await supabase
-      .from('content_blocks')
-      .upsert({
-        module_key: 'pilgrimage',
-        block_key: 'module_root',
-        payload: { sites: PILGRIMAGE_SITES },
-        status: 'draft',
-        updated_by: userId,
-        updated_at: now,
-      }, { onConflict: 'module_key,block_key,status' });
-    if (pilgErr) throw new Error('朝圣数据写入失败: ' + pilgErr.message);
-
-    /* ── 2. 素食 → content_blocks[vegan] ── */
-    const { error: veganErr } = await supabase
-      .from('content_blocks')
-      .upsert({
-        module_key: 'vegan',
-        block_key: 'module_root',
-        payload: { restaurants: WUHAN_RESTAURANTS, recipes: VEGAN_RECIPES },
-        status: 'draft',
-        updated_by: userId,
-        updated_at: now,
-      }, { onConflict: 'module_key,block_key,status' });
-    if (veganErr) throw new Error('素食数据写入失败: ' + veganErr.message);
-
-    /* ── 3. 论坛帖子 → articles[forum] ── */
-    const forumArticles = FORUM_POSTS.map(post => ({
-      module_key: 'forum',
-      slug: post.slug,
-      title: post.title,
-      summary: post.excerpt,
-      cover_url: post.cover,
-      tags: [post.section],
-      sort_order: post.sort,
-      status: 'draft',
-      updated_by: userId,
-      updated_at: now,
-      content_md: `# ${post.title}\n\n**作者：** ${post.author}  \n**版块：** ${post.section}\n\n${post.excerpt}`,
-    }));
-    const { error: forumErr } = await supabase
-      .from('articles')
-      .upsert(forumArticles, { onConflict: 'module_key,slug,status' });
-    if (forumErr) throw new Error('论坛帖子写入失败: ' + forumErr.message);
-
-    /* ── 4. 发布三个模块（与 publish.js 相同逻辑） ── */
-    await publishModule(supabase, 'pilgrimage', userId, notes);
-    await publishModule(supabase, 'vegan', userId, notes);
-    await publishModule(supabase, 'forum', userId, notes);
-
-    return sendJson(res, 200, {
-      ok: true,
-      message: `成功导入并发布：${PILGRIMAGE_SITES.length} 个朝圣地点、${WUHAN_RESTAURANTS.length} 家素食餐厅、${VEGAN_RECIPES.length} 个菜谱、${FORUM_POSTS.length} 条论坛帖子`,
-      counts: {
-        sites: PILGRIMAGE_SITES.length,
-        restaurants: WUHAN_RESTAURANTS.length,
-        recipes: VEGAN_RECIPES.length,
-        forum: FORUM_POSTS.length,
-      }
-    });
-  } catch (err) {
-    console.error('[seed] error:', err);
-    return sendJson(res, 500, { ok: false, error: err.message || 'Unexpected error' });
-  }
-};
+module.exports = { PILGRIMAGE_SITES, WUHAN_RESTAURANTS, VEGAN_RECIPES, FORUM_POSTS };
