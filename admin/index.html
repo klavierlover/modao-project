@@ -4,115 +4,476 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>莫道后台管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div id="app">
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <h1>莫道后台</h1>
-        <button id="toggle-sidebar-btn" class="ghost icon-btn" title="折叠侧栏">≡</button>
-      </div>
-      <p class="hint">内容先保存为草稿，点击“上线当前模块”后前台生效。</p>
-      <div class="auth-box">
-        <input id="email" placeholder="管理员邮箱">
-        <input id="password" placeholder="密码" type="password">
-        <button id="login-btn">登录</button>
-        <button id="logout-btn" class="ghost">退出</button>
-      </div>
-      <p id="auth-status">未登录</p>
-      <hr>
-      <nav id="module-nav"></nav>
-      <button id="publish-btn" class="publish-btn">上线当前模块</button>
-    </aside>
-    <main class="main">
-      <section class="topbar">
-        <div>
-          <h2 id="active-module-title">当前模块：首页</h2>
-          <p id="active-module-desc">可编辑模块 JSON、文章列表、图片与用户配置。</p>
-        </div>
-        <div class="actions">
-          <button id="reload-all-btn" class="ghost">刷新当前模块</button>
-        </div>
-      </section>
-      <section class="visual-grid">
-        <article class="panel stat-card">
-          <p class="stat-label">当前模块草稿文章</p>
-          <p class="stat-value" id="stat-articles">0</p>
-        </article>
-        <article class="panel stat-card">
-          <p class="stat-label">系统用户数</p>
-          <p class="stat-value" id="stat-users">0</p>
-        </article>
-        <article class="panel stat-card">
-          <p class="stat-label">登录角色</p>
-          <p class="stat-value" id="stat-role">未登录</p>
-        </article>
-      </section>
-      <section class="panel">
-        <h2>模块总览（点击卡片可切换）</h2>
-        <div id="module-gallery" class="module-gallery"></div>
-      </section>
-      <section class="panel">
-        <h2>模块草稿内容</h2>
-        <textarea id="module-json" rows="14"></textarea>
-        <div class="row">
-          <button id="save-module-btn">保存模块草稿</button>
-        </div>
-      </section>
-      <section class="panel">
-        <h2>文章管理</h2>
-        <input id="article-search" placeholder="搜索文章标题或 slug">
-        <div class="row">
-          <input id="article-slug" placeholder="slug">
-          <input id="article-title" placeholder="标题">
-        </div>
-        <div class="row">
-          <input id="article-url" placeholder="文章链接（可选）">
-          <input id="article-cover" placeholder="封面 URL（可选）">
-        </div>
-        <textarea id="article-summary" rows="3" placeholder="摘要"></textarea>
-        <textarea id="article-md" rows="8" placeholder="正文 Markdown（可选）"></textarea>
-        <div class="row">
-          <button id="upsert-article-btn">新增/更新文章</button>
-          <button id="clear-article-btn" class="ghost">清空表单</button>
-        </div>
-        <div class="row">
-          <button id="delete-article-btn" class="danger">删除当前 slug 文章</button>
-        </div>
-        <div id="article-list" class="list"></div>
-      </section>
-      <section class="panel">
-        <h2>图片上传（替换图片）</h2>
-        <input id="file-input" type="file" accept="image/*">
-        <div class="upload-preview-wrap">
-          <img id="upload-preview" class="upload-preview" alt="图片预览">
-        </div>
-        <div class="row">
-          <button id="upload-btn">上传到媒体库</button>
-        </div>
-        <input id="upload-result" readonly placeholder="上传后 URL 将显示在这里">
-      </section>
-      <section class="panel">
-        <h2>用户管理</h2>
-        <input id="user-search" placeholder="搜索用户（邮箱/显示名/角色）">
-        <div class="row">
-          <input id="user-id" placeholder="用户ID">
-          <input id="user-display-name" placeholder="显示名">
-        </div>
-        <div class="row">
-          <input id="user-role" placeholder="角色 owner/editor/viewer">
-          <input id="user-status" placeholder="状态 active/disabled">
-        </div>
-        <div class="row">
-          <button id="update-user-btn">更新用户</button>
-          <button id="reload-users-btn" class="ghost">刷新用户列表</button>
-        </div>
-        <div id="user-list" class="list"></div>
-      </section>
-    </main>
+
+<!-- ── 登录界面 ── -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <img src="/assets/images/logo-lotus.svg" alt="莫道" class="login-logo" onerror="this.style.display='none'">
+      <span class="login-title">莫道后台</span>
+    </div>
+    <h2 class="login-heading">欢迎登录</h2>
+    <p class="login-sub">内容管理 · 发布上线</p>
+    <div class="form-group">
+      <label>管理员邮箱</label>
+      <input id="email" type="email" placeholder="admin@example.com" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button id="login-btn" class="btn-primary btn-full">登录</button>
+    <button id="settings-btn-login" class="btn-ghost btn-full mt-8">⚙ 配置 Supabase 连接</button>
+    <p id="login-error" class="error-msg hidden"></p>
   </div>
-  <div id="toast" class="toast"></div>
-  <script type="module" src="./admin.js"></script>
+</div>
+
+<!-- ── 主应用 ── -->
+<div id="app-shell" class="app-shell hidden">
+
+  <!-- 侧栏 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-brand">
+        <img src="/assets/images/logo-lotus.svg" alt="" class="sidebar-logo" onerror="this.style.display='none'">
+        <span class="sidebar-title-text">莫道后台</span>
+        <button id="toggle-sidebar-btn" class="icon-btn sidebar-collapse-btn" title="折叠">‹</button>
+      </div>
+      <div class="user-pill">
+        <span class="user-avatar" id="user-avatar">A</span>
+        <div class="user-info collapsed-hide">
+          <p class="user-name" id="user-name">管理员</p>
+          <span class="badge badge-role" id="user-role-badge">owner</span>
+        </div>
+        <button id="logout-btn" class="icon-btn logout-btn collapsed-hide" title="退出">⏻</button>
+      </div>
+    </div>
+    <p class="sidebar-hint collapsed-hide">先保存草稿，点击上线后前台生效。</p>
+    <nav class="module-nav" id="module-nav"></nav>
+    <div class="sidebar-bottom">
+      <button id="publish-btn" class="publish-btn">
+        <span class="publish-icon">🚀</span>
+        <span class="publish-text collapsed-hide">上线当前模块</span>
+      </button>
+      <button id="settings-btn" class="icon-btn settings-icon-btn collapsed-hide" title="设置">⚙</button>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 id="active-module-title">首页</h1>
+        <p id="active-module-desc" class="topbar-desc">首页视觉与推荐内容配置</p>
+      </div>
+      <div class="topbar-right">
+        <span class="dirty-dot hidden" id="dirty-dot" title="有未保存的更改">●</span>
+        <span class="status-badge" id="publish-status"></span>
+        <span class="stat-chip" id="chip-articles">文章 0 篇</span>
+        <span class="stat-chip" id="chip-users">用户 0 人</span>
+        <button id="reload-all-btn" class="btn-ghost btn-sm">↻ 刷新</button>
+      </div>
+    </header>
+
+    <!-- Tab 导航 -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="content">📝 内容</button>
+      <button class="tab-btn" data-tab="articles">📄 文章</button>
+      <button class="tab-btn" data-tab="media">🖼 媒体</button>
+      <button class="tab-btn" data-tab="users">👥 用户</button>
+    </div>
+
+    <!-- ── Tab: 内容 ── -->
+    <div class="tab-pane" id="tab-content" data-tab="content">
+      <!-- 模块切换卡片 -->
+      <div class="module-gallery" id="module-gallery"></div>
+
+      <!-- 可视化编辑器区域（JS动态渲染） -->
+      <div id="visual-editor-root"></div>
+
+      <!-- 高级 JSON 编辑器（默认折叠） -->
+      <details class="panel advanced-panel" id="json-panel">
+        <summary class="advanced-toggle">⚙ 高级：原始 JSON 编辑（不懂编程可忽略）</summary>
+        <div class="advanced-body">
+          <p class="panel-sub" style="margin-bottom:10px">直接编辑模块的原始 JSON 数据，修改后点击保存草稿生效。</p>
+          <textarea id="module-json" rows="16" class="code-editor" placeholder="{}"></textarea>
+          <div class="panel-actions" style="margin-top:10px">
+            <button id="save-module-btn" class="btn-primary btn-sm">保存草稿</button>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <!-- ── Tab: 文章 ── -->
+    <div class="tab-pane hidden" id="tab-articles" data-tab="articles">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>文章管理</h2>
+          <div class="header-actions">
+            <input id="article-search" class="search-input" placeholder="🔍 搜索文章标题或 slug…">
+            <button id="new-article-btn" class="btn-primary btn-sm">＋ 新建文章</button>
+          </div>
+        </div>
+        <div id="article-list" class="article-grid"></div>
+      </div>
+    </div>
+
+    <!-- ── Tab: 媒体 ── -->
+    <div class="tab-pane hidden" id="tab-media" data-tab="media">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>图片上传</h2>
+            <p class="panel-sub">支持 JPG、PNG、WebP、GIF · 最大 5 MB · 支持拖放和粘贴</p>
+          </div>
+        </div>
+        <div id="drop-zone" class="drop-zone">
+          <input id="file-input" type="file" accept="image/*" class="file-input-hidden">
+          <div class="drop-zone-idle" id="drop-zone-idle">
+            <div class="drop-icon">🖼</div>
+            <p>拖放图片到这里，或</p>
+            <button class="btn-ghost" type="button" onclick="document.getElementById('file-input').click()">选择文件</button>
+          </div>
+          <img id="upload-preview" class="upload-preview hidden" alt="预览">
+        </div>
+        <div class="upload-result-row hidden" id="upload-result-row">
+          <input id="upload-result" readonly placeholder="上传后 URL 显示在这里">
+          <button id="copy-url-btn" class="btn-ghost btn-sm">📋 复制</button>
+          <button id="clear-upload-btn" class="btn-ghost btn-sm">清除</button>
+        </div>
+        <div class="panel-actions">
+          <button id="upload-btn" class="btn-primary" disabled>上传到媒体库</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab: 用户 ── -->
+    <div class="tab-pane hidden" id="tab-users" data-tab="users">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>用户管理</h2>
+          <input id="user-search" class="search-input" placeholder="🔍 搜索邮箱 / 显示名 / 角色…">
+        </div>
+        <div id="user-list" class="user-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div id="toast" class="toast"></div>
+
+<!-- ════════════════════════════════════════
+     Modals
+     ════════════════════════════════════════ -->
+
+<!-- Supabase 设置 -->
+<div id="settings-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>⚙ Supabase 连接配置</h3>
+      <button class="icon-btn" onclick="closeModal('settings-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc">配置后保存在浏览器本地，不会上传到服务器。</p>
+      <div class="form-group">
+        <label>SUPABASE_URL</label>
+        <input id="settings-url" type="url" placeholder="https://xxx.supabase.co">
+      </div>
+      <div class="form-group">
+        <label>SUPABASE_ANON_KEY</label>
+        <input id="settings-anon-key" type="password" placeholder="eyJ…（Anon/Public Key）">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('settings-modal')">取消</button>
+      <button id="save-settings-btn" class="btn-primary">保存配置</button>
+    </div>
+  </div>
+</div>
+
+<!-- 朝圣地点 / 茹素菜谱 编辑 -->
+<div id="site-modal" class="modal-overlay hidden">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3 id="site-modal-title">添加地点</h3>
+      <button class="icon-btn" onclick="closeModal('site-modal')">✕</button>
+    </div>
+    <div class="modal-body site-editor-body">
+      <!-- 左列：基础信息 -->
+      <div class="site-col">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>名称 <span class="required">*</span></label>
+            <input id="site-name" placeholder="例：布达拉宫">
+          </div>
+          <div class="form-group" id="site-region-wrap">
+            <label>地区</label>
+            <input id="site-region" placeholder="例：西藏 · 拉萨">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>封面图片 URL</label>
+          <div class="input-with-preview">
+            <input id="site-cover" placeholder="https://images.unsplash.com/…">
+            <img id="site-cover-thumb" class="input-thumb hidden" alt="">
+          </div>
+        </div>
+        <div class="form-group" id="site-gallery-wrap">
+          <label>图集 URL（每行一个）</label>
+          <textarea id="site-gallery" rows="3" placeholder="https://…&#10;https://…"></textarea>
+        </div>
+        <div class="form-group">
+          <label>标签（逗号分隔）</label>
+          <input id="site-tags" placeholder="世界遗产, 藏传佛教">
+        </div>
+        <div class="form-row-3" id="site-stats-wrap">
+          <div class="form-group">
+            <label>海拔</label>
+            <input id="site-altitude" placeholder="3700m">
+          </div>
+          <div class="form-group">
+            <label>最佳时节</label>
+            <input id="site-season" placeholder="4月-10月">
+          </div>
+          <div class="form-group">
+            <label>评分 (0-5)</label>
+            <input id="site-rating" type="number" step="0.1" min="0" max="5" placeholder="4.9">
+          </div>
+        </div>
+        <!-- 菜谱专属字段 -->
+        <div class="form-row-3 hidden" id="recipe-stats-wrap">
+          <div class="form-group">
+            <label>难度</label>
+            <select id="recipe-difficulty">
+              <option>简单</option><option>中等</option><option>较难</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>时间</label>
+            <input id="recipe-time" placeholder="30分钟">
+          </div>
+          <div class="form-group">
+            <label>卡路里</label>
+            <input id="recipe-calories" placeholder="280卡">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>简介</label>
+          <textarea id="site-short-desc" rows="2" placeholder="一句话描述"></textarea>
+        </div>
+        <div class="form-group" id="site-full-desc-wrap">
+          <label>详细介绍</label>
+          <textarea id="site-full-desc" rows="4" placeholder="完整描述文字"></textarea>
+        </div>
+        <div class="form-group" id="site-tips-wrap">
+          <label>注意事项（每行一条）</label>
+          <textarea id="site-tips" rows="4" placeholder="每日限流，需提前预约&#10;穿着庄重…"></textarea>
+        </div>
+        <div class="form-group" id="site-transport-wrap">
+          <label>交通</label>
+          <textarea id="site-transport" rows="2" placeholder="机场 → 景区路线"></textarea>
+        </div>
+        <div class="form-group" id="site-accommodation-wrap">
+          <label>住宿推荐</label>
+          <textarea id="site-accommodation" rows="2" placeholder="推荐酒店/民宿"></textarea>
+        </div>
+      </div>
+      <!-- 右列：封面预览 + 地图坐标 -->
+      <div class="site-col site-col-right">
+        <p class="preview-label">封面预览</p>
+        <div class="cover-preview-box" id="site-cover-preview-box">
+          <img id="site-cover-preview" class="cover-preview hidden" alt="">
+          <div id="site-cover-placeholder" class="cover-placeholder">填写封面 URL 后自动预览</div>
+        </div>
+        <div class="form-group mt-16">
+          <label>📍 地图坐标选取</label>
+          <p class="field-hint">点击下方地图选取位置，或手动填写坐标</p>
+          <div class="coord-picker" id="coord-picker">
+            <div class="coord-label coord-nw">西北</div>
+            <div class="coord-label coord-ne">东北</div>
+            <div class="coord-label coord-sw">西南</div>
+            <div class="coord-label coord-se">东南</div>
+            <div class="coord-label coord-center">中部</div>
+            <div class="coord-dot" id="coord-dot" style="display:none"></div>
+            <!-- 现有地点作为参考点，由JS渲染 -->
+            <div id="coord-ref-dots"></div>
+          </div>
+          <div class="form-row-2 mt-8">
+            <div class="form-group">
+              <label>X 坐标（西←→东）</label>
+              <input id="site-coord-x" type="number" min="0" max="700" placeholder="0–700">
+            </div>
+            <div class="form-group">
+              <label>Y 坐标（北↑↓南）</label>
+              <input id="site-coord-y" type="number" min="0" max="480" placeholder="0–480">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="delete-site-btn" class="btn-danger hidden">删除</button>
+      <div class="flex-1"></div>
+      <button class="btn-ghost" onclick="closeModal('site-modal')">取消</button>
+      <button id="save-site-btn" class="btn-primary">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 文章编辑器 -->
+<div id="article-modal" class="modal-overlay hidden">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3 id="article-modal-title">新建文章</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="md-preview-toggle" class="btn-ghost btn-sm">👁 预览</button>
+        <button class="icon-btn" onclick="closeModal('article-modal')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body article-editor-body">
+      <div class="editor-left">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>标题 <span class="required">*</span></label>
+            <input id="article-title" placeholder="文章标题">
+          </div>
+          <div class="form-group">
+            <label>Slug <span class="required">*</span></label>
+            <input id="article-slug" placeholder="url-friendly-slug">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>摘要</label>
+          <textarea id="article-summary" rows="2" placeholder="简短描述，显示在卡片上"></textarea>
+        </div>
+        <div class="form-group">
+          <label>封面图片 URL</label>
+          <input id="article-cover" placeholder="https://images.unsplash.com/…">
+        </div>
+        <div class="form-group">
+          <label>文章外链</label>
+          <input id="article-url" placeholder="https://…（点击卡片跳转，可选）">
+        </div>
+        <div class="form-group" style="flex:1;display:flex;flex-direction:column">
+          <label>正文 Markdown</label>
+          <div class="md-editor-wrap">
+            <textarea id="article-md" class="code-editor md-source" placeholder="# 标题&#10;&#10;正文内容…"></textarea>
+            <div id="article-md-preview" class="md-preview hidden"></div>
+          </div>
+        </div>
+      </div>
+      <div class="editor-right">
+        <p class="preview-label">封面预览</p>
+        <div class="cover-preview-box">
+          <img id="article-cover-preview" class="cover-preview hidden" alt="">
+          <div id="cover-placeholder" class="cover-placeholder">填写封面 URL 后自动预览</div>
+        </div>
+        <div class="form-group mt-16">
+          <label>排序权重（越小越靠前）</label>
+          <input id="article-sort" type="number" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>标签（逗号分隔）</label>
+          <input id="article-tags" placeholder="文殊道场, 四大名山">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="delete-article-btn" class="btn-danger">删除文章</button>
+      <div class="flex-1"></div>
+      <button class="btn-ghost" onclick="closeModal('article-modal')">取消</button>
+      <button id="upsert-article-btn" class="btn-primary">保存文章</button>
+    </div>
+  </div>
+</div>
+
+<!-- 用户编辑 -->
+<div id="user-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>编辑用户</h3>
+      <button class="icon-btn" onclick="closeModal('user-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>用户 ID</label>
+        <input id="user-id" readonly class="input-readonly">
+      </div>
+      <div class="form-group">
+        <label>邮箱</label>
+        <input id="user-email-display" readonly class="input-readonly">
+      </div>
+      <div class="form-group">
+        <label>显示名称</label>
+        <input id="user-display-name" placeholder="用户显示名">
+      </div>
+      <div class="form-group">
+        <label>角色</label>
+        <select id="user-role">
+          <option value="viewer">viewer — 只读查看</option>
+          <option value="editor">editor — 可编辑内容</option>
+          <option value="owner">owner — 超级管理员</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>状态</label>
+        <select id="user-status">
+          <option value="active">active — 正常使用</option>
+          <option value="disabled">disabled — 已禁用</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('user-modal')">取消</button>
+      <button id="update-user-btn" class="btn-primary">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 发布确认 -->
+<div id="publish-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>🚀 确认上线</h3>
+      <button class="icon-btn" onclick="closeModal('publish-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>即将将 <strong id="publish-module-name" class="gold-text"></strong> 模块的草稿内容发布到前台，用户将立即看到更新。</p>
+      <div class="form-group mt-16">
+        <label>发布备注（可选）</label>
+        <input id="publish-notes" placeholder="例如：新增峨眉山攻略">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('publish-modal')">取消</button>
+      <button id="confirm-publish-btn" class="btn-success">确认上线</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通用确认 -->
+<div id="confirm-modal" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 id="confirm-title">确认操作</h3>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-message"></p>
+    </div>
+    <div class="modal-footer">
+      <button id="confirm-cancel-btn" class="btn-ghost">取消</button>
+      <button id="confirm-ok-btn" class="btn-danger">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./admin.js"></script>
 </body>
 </html>

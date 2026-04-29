@@ -5,6 +5,32 @@ const { requireRole } = require('../_lib/auth');
 module.exports = async function handler(req, res) {
   cors(req, res);
   if (req.method === 'OPTIONS') return sendJson(res, 200, { ok: true });
+
+  // GET: 返回最新发布版本信息
+  if (req.method === 'GET') {
+    try {
+      const auth = await requireRole(req, ['owner', 'editor']);
+      if (!auth.ok) return sendJson(res, auth.status, { ok: false, error: auth.message });
+      const url = new URL(req.url, 'http://localhost');
+      const moduleKey = url.searchParams.get('module');
+      if (!moduleKey) return sendJson(res, 400, { ok: false, error: 'module param required' });
+      const supabase = getSupabaseAdmin();
+      const { data, error } = await supabase
+        .from('publish_versions')
+        .select('id, published_at: created_at, notes')
+        .eq('module_key', moduleKey)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return sendJson(res, 200, { ok: true, version: null });
+      return sendJson(res, 200, { ok: true, version: data.id, published_at: data.published_at, notes: data.notes });
+    } catch (err) {
+      return sendJson(res, 500, { ok: false, error: err.message });
+    }
+  }
+
   if (req.method !== 'POST') return sendJson(res, 405, { ok: false, error: 'Method not allowed' });
 
   try {
