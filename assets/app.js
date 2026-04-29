@@ -2548,7 +2548,13 @@ function renderVegan(){
   ensureVeganMap();
   ensureRecipeDataShape();
   initVeganLandingInteractions();
-  enterVeganLanding();
+  const wasCollapsed = VeganState.heroCollapsed;
+  enterVeganLanding();          // 先重置为 landing 状态
+  if (wasCollapsed) {
+    // 用户之前已离开 landing（选过 tab），直接 collapse，跳过动画等待
+    VeganState.heroCollapsed = false; // enterVeganLanding 已置 false，允许 expand 执行
+    expandVeganFromHero();
+  }
   veganRenderList();
   renderRecipeHome();
   switchVeganTab(VeganState.tab, null, true);
