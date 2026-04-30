@@ -527,7 +527,8 @@ nav {
 .splash-bg {
   position: absolute;
   inset: 0;
-  background: url('/assets/images/splash-bg.jpg') center/cover no-repeat;
+  background: url('/assets/images/splash-bg.jpg') center/cover no-repeat,
+              url('/assets/images/home-hero-larunggar.jpg') center/cover no-repeat;
   filter: blur(8px) brightness(.55) saturate(.7);
   transform: scale(1.08);
 }
@@ -2388,11 +2389,14 @@ nav {
   box-shadow: -4px 0 20px rgba(0,0,0,0.08);
   transform: translateX(100%);
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   z-index: 20;
 }
 .site-detail-panel.open { transform: translateX(0); }
 
+/* 关闭键：固定在面板左上角，不随内容滚动 */
 .sdp-close {
   position: absolute;
   top: 16px; left: 16px;
@@ -2403,12 +2407,20 @@ nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 30;
   cursor: pointer;
   transition: transform 0.2s;
   box-shadow: var(--shadow-md);
+  flex-shrink: 0;
 }
 .sdp-close:hover { transform: scale(1.1); }
+
+/* 可滚动内容区 */
+.sdp-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
 .sdp-cover {
   height: 280px;
@@ -3804,3 +3816,171 @@ nav {
   .cp-cover-drop { aspect-ratio: 16/7; }
   .cp-row-3 { grid-template-columns: 1fr; }
 }
+
+/* ================================================================
+   计数器进度环 & 目标标签
+   ================================================================ */
+.counter-circle-wrap {
+  position: relative;
+}
+
+.counter-ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.counter-goal-pct {
+  text-align: center;
+  font-size: 12px;
+  color: #c9a227;
+  font-weight: 500;
+  letter-spacing: 1px;
+  margin-top: 10px;
+}
+
+/* ================================================================
+   目标设置弹窗
+   ================================================================ */
+.goal-modal-inner {
+  max-width: 320px;
+}
+.goal-modal-inner .auth-panel {
+  padding: 16px 20px 20px;
+}
+
+/* ================================================================
+   修行档案初始化弹窗（重设计）
+   ================================================================ */
+.setup-modal {
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.setup-modal-body {
+  padding: 18px 22px 24px;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setup-modal-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--ink);
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.setup-modal-sub {
+  font-size: 12px;
+  color: var(--ink-50);
+  text-align: center;
+  margin-top: -4px;
+  margin-bottom: 4px;
+}
+
+.setup-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-60);
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* 伴侣选择卡网格 */
+.setup-companion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.setup-companion-opt input[type="radio"] { display: none; }
+
+.setup-companion-card {
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .18s;
+  background: var(--surface);
+}
+
+.setup-companion-opt input:checked + .setup-companion-card {
+  border-color: #c9a227;
+  background: linear-gradient(135deg,rgba(201,162,39,.06),rgba(201,162,39,.01));
+  box-shadow: 0 0 0 2px rgba(201,162,39,.18);
+}
+
+.setup-companion-avatar {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+.setup-companion-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.setup-companion-desc {
+  font-size: 11px;
+  color: var(--ink-50);
+  margin-top: 2px;
+}
+
+/* 修行偏好网格 */
+.setup-pref-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.setup-pref-btn {
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 9px 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s;
+  color: var(--ink-70);
+}
+
+.setup-pref-btn:hover {
+  border-color: #c9a227;
+  color: var(--ink);
+}
+
+.setup-pref-btn.active {
+  border-color: #c9a227;
+  background: linear-gradient(135deg,rgba(201,162,39,.1),rgba(201,162,39,.02));
+  color: var(--ink);
+  box-shadow: 0 0 0 2px rgba(201,162,39,.15);
+}
+
+/* 功课文本域 */
+.setup-textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--ink);
+  resize: none;
+  min-height: 96px;
+  line-height: 1.6;
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
+}
+.setup-textarea:focus {
+  outline: none;
+  border-color: #c9a227;
+  box-shadow: 0 0 0 3px rgba(201,162,39,.1);
+}
+.setup-textarea::placeholder { color: var(--ink-40); }

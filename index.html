@@ -208,14 +208,7 @@
       <div class="side-section">
         <div class="side-section-title">我的成就</div>
         <div class="achievements-grid" id="achievements-display">
-          <div class="achievement earned"  title="连续修行7天"><div class="achievement-icon">🌱</div><div class="achievement-name">初心不忘</div></div>
-          <div class="achievement earned"  title="累计禅坐10小时"><div class="achievement-icon">🧘</div><div class="achievement-name">禅心初定</div></div>
-          <div class="achievement earned"  title="累计念佛1000次"><div class="achievement-icon">📿</div><div class="achievement-name">千声梵音</div></div>
-          <div class="achievement earned"  title="读完1部佛经"><div class="achievement-icon">📖</div><div class="achievement-name">法海初探</div></div>
-          <div class="achievement locked"  title="连续修行30天 (未达成)"><div class="achievement-icon">⭐</div><div class="achievement-name">精进月</div></div>
-          <div class="achievement locked"  title="参访5座圣地 (未达成)"><div class="achievement-icon">🗺️</div><div class="achievement-name">朝圣行者</div></div>
-          <div class="achievement locked"  title="完成10次辩经 (未达成)"><div class="achievement-icon">💭</div><div class="achievement-name">辩经高手</div></div>
-          <div class="achievement locked"  title="发布10篇心得 (未达成)"><div class="achievement-icon">🙏</div><div class="achievement-name">法布施</div></div>
+          <!-- 动态由 renderAchievements() 填充 -->
         </div>
       </div>
 
@@ -419,8 +412,8 @@
         <div class="page-subtitle">EVERY COUNT · MATTERS</div>
       </div>
       <div style="display:flex;gap:10px">
-        <button class="btn btn-outline" onclick="showToast('目标设置即将上线')">🎯 设定目标</button>
-        <button class="btn btn-primary" onclick="showToast('历史记录')">📊 历史</button>
+        <button class="btn btn-outline" onclick="openGoalModal()">🎯 设定目标</button>
+        <button class="btn btn-primary" onclick="saveCounter()">💾 保存今日</button>
       </div>
     </div>
 
@@ -431,16 +424,24 @@
     <div class="counter-center">
       <div class="counter-circle-wrap">
         <div class="counter-halo"></div>
+        <!-- 目标进度环 SVG（默认隐藏，有目标时显示） -->
+        <svg class="counter-ring-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(201,162,39,0.15)" stroke-width="6"/>
+          <circle id="counter-progress-ring" cx="100" cy="100" r="90" fill="none"
+            stroke="#c9a227" stroke-width="6" stroke-linecap="round"
+            transform="rotate(-90 100 100)" style="display:none;transition:stroke-dashoffset 0.4s ease"/>
+        </svg>
         <div class="counter-circle" onclick="tapCounter(event)" id="counter-circle">
-          <div class="counter-num"      id="counter-num">108</div>
+          <div class="counter-num"      id="counter-num">0</div>
           <div class="counter-cur-type" id="counter-cur-type">念佛</div>
           <div class="counter-hint">轻触计数</div>
         </div>
       </div>
+      <!-- 目标进度百分比 -->
+      <div id="counter-goal-pct" class="counter-goal-pct" style="display:none"></div>
       <div class="counter-ctrls">
         <button class="btn btn-outline" onclick="resetCounter()">清零</button>
-        <button class="btn btn-primary" onclick="saveCounter()">💾 保存今日</button>
-        <button class="btn btn-ghost"   onclick="showToast('语音计数即将上线')">🎤 语音</button>
+        <button class="btn btn-ghost"   onclick="openGoalModal()">🎯 目标</button>
       </div>
     </div>
 
@@ -522,6 +523,7 @@
         <div class="site-detail-panel" id="site-detail-panel">
           <button class="sdp-close" onclick="closeSiteDetail()">✕</button>
 
+          <div class="sdp-scroll">
           <div class="sdp-cover" id="sdp-cover">
             <div class="sdp-gallery" id="sdp-gallery"></div>
           </div>
@@ -571,6 +573,8 @@
               <button class="sdp-audio-btn" id="sdp-nav-btn" style="margin-top:8px" onclick="openPilgrimNavigation()">🧭 高德导航</button>
             </div>
           </div>
+        </div>
+          </div><!-- /sdp-scroll -->
         </div>
 
       </div>
@@ -950,26 +954,98 @@
   </div>
 </div>
 
+<!-- ═══════ 修行档案初始化弹窗（重设计） ═══════ -->
 <div class="modal-overlay" id="practice-setup-overlay" onclick="if(event.target===this)closePracticeSetupModal()">
-  <div class="modal auth-modal">
-    <button class="modal-close" onclick="closePracticeSetupModal()">✕</button>
-    <h3>初始化您的修行档案</h3>
-    <div style="font-size:12px;color:var(--ink-50);margin:2px 0 8px">选择偏好后将生成你的专属修行首页</div>
-    <select id="setup-companion" class="auth-input">
-      <option value="hui-ming">慧明（亲切温和）</option>
-      <option value="zhi-yuan">智渊（禅意深邃）</option>
-      <option value="jing-xin">静心（严谨持戒）</option>
-    </select>
-    <div class="auth-avatar-picker" id="setup-preference-row" style="grid-template-columns:repeat(3,1fr)">
-      <button type="button" class="auth-avatar-emoji" onclick="toggleSetupPreference('禅修', this)" style="font-size:13px">禅修</button>
-      <button type="button" class="auth-avatar-emoji" onclick="toggleSetupPreference('念诵', this)" style="font-size:13px">念诵</button>
-      <button type="button" class="auth-avatar-emoji" onclick="toggleSetupPreference('读经', this)" style="font-size:13px">读经</button>
-      <button type="button" class="auth-avatar-emoji" onclick="toggleSetupPreference('朝圣', this)" style="font-size:13px">朝圣</button>
-      <button type="button" class="auth-avatar-emoji" onclick="toggleSetupPreference('茹素', this)" style="font-size:13px">茹素</button>
-      <button type="button" class="auth-avatar-emoji" onclick="toggleSetupPreference('止语', this)" style="font-size:13px">止语</button>
+  <div class="modal auth-modal setup-modal">
+
+    <!-- 金色渐变头部 -->
+    <div class="auth-hero">
+      <div class="auth-hero-lotus">🪷</div>
+      <button class="auth-close-btn" onclick="closePracticeSetupModal()">✕</button>
     </div>
-    <textarea id="setup-practice-content" class="auth-input" rows="4" placeholder="填写修行任务（每行一条）&#10;例如：&#10;每日念佛108遍&#10;晚课回向功德"></textarea>
-    <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="submitPracticeSetup(false)">完成配置并开始</button>
+
+    <div class="setup-modal-body">
+      <div class="setup-modal-title">初始化修行档案</div>
+      <div class="setup-modal-sub">为您量身定制专属修行之路</div>
+
+      <!-- 伴侣选择 -->
+      <div class="setup-section-label">🧘 选择您的修法伴侣</div>
+      <div class="setup-companion-grid">
+        <label class="setup-companion-opt">
+          <input type="radio" name="setup-comp" value="hui-ming" checked>
+          <div class="setup-companion-card">
+            <div class="setup-companion-avatar">☸️</div>
+            <div class="setup-companion-name">慧明</div>
+            <div class="setup-companion-desc">亲切温和</div>
+          </div>
+        </label>
+        <label class="setup-companion-opt">
+          <input type="radio" name="setup-comp" value="zhi-yuan">
+          <div class="setup-companion-card">
+            <div class="setup-companion-avatar">🌀</div>
+            <div class="setup-companion-name">智渊</div>
+            <div class="setup-companion-desc">禅意深邃</div>
+          </div>
+        </label>
+        <label class="setup-companion-opt">
+          <input type="radio" name="setup-comp" value="jing-xin">
+          <div class="setup-companion-card">
+            <div class="setup-companion-avatar">🕯️</div>
+            <div class="setup-companion-name">静心</div>
+            <div class="setup-companion-desc">严谨持戒</div>
+          </div>
+        </label>
+      </div>
+      <!-- hidden select for backward-compat with submitPracticeSetup -->
+      <select id="setup-companion" style="display:none">
+        <option value="hui-ming">慧明</option>
+        <option value="zhi-yuan">智渊</option>
+        <option value="jing-xin">静心</option>
+      </select>
+
+      <!-- 修行偏好 -->
+      <div class="setup-section-label">✨ 选择修行偏好（可多选）</div>
+      <div class="setup-pref-grid" id="setup-preference-row">
+        <button type="button" class="setup-pref-btn" onclick="toggleSetupPreference('禅修', this)">🧘 禅修</button>
+        <button type="button" class="setup-pref-btn" onclick="toggleSetupPreference('念诵', this)">📿 念诵</button>
+        <button type="button" class="setup-pref-btn" onclick="toggleSetupPreference('读经', this)">📖 读经</button>
+        <button type="button" class="setup-pref-btn" onclick="toggleSetupPreference('朝圣', this)">🗺️ 朝圣</button>
+        <button type="button" class="setup-pref-btn" onclick="toggleSetupPreference('茹素', this)">🌿 茹素</button>
+        <button type="button" class="setup-pref-btn" onclick="toggleSetupPreference('止语', this)">🤫 止语</button>
+      </div>
+
+      <!-- 功课内容 -->
+      <div class="setup-section-label">📋 设定日常功课（每行一条）</div>
+      <textarea id="setup-practice-content" class="setup-textarea"
+        placeholder="例如：&#10;每日念佛108遍&#10;晚课回向功德&#10;禅坐20分钟"></textarea>
+
+      <!-- 按钮 -->
+      <button class="auth-btn-primary" style="margin-top:4px" onclick="submitPracticeSetupSynced()">🪷 完成配置，开启修行</button>
+      <button class="auth-btn-ghost"   onclick="submitPracticeSetup(true)">稍后再设置</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════ 目标设置弹窗 ═══════ -->
+<div class="modal-overlay" id="goal-modal" onclick="if(event.target===this)closeGoalModal()">
+  <div class="modal auth-modal goal-modal-inner">
+    <div class="auth-hero" style="height:70px">
+      <div class="auth-hero-lotus" style="font-size:28px">🎯</div>
+      <button class="auth-close-btn" onclick="closeGoalModal()">✕</button>
+    </div>
+    <div class="auth-panel" style="gap:14px">
+      <div class="auth-welcome">为「<span id="goal-modal-type">念佛</span>」设定今日目标</div>
+      <div class="auth-field">
+        <span class="auth-field-icon">🔢</span>
+        <input id="goal-modal-input" type="number" min="0" placeholder="输入目标次数（0 = 不设定）">
+      </div>
+      <div style="font-size:12px;color:var(--ink-40);line-height:1.6">
+        设定目标后，计数圆圈外会显示金色进度环，达成时自动庆祝 🎉
+      </div>
+      <button class="auth-btn-primary" onclick="saveGoal()">确认目标</button>
+      <button class="auth-btn-ghost"   onclick="closeGoalModal()">取消</button>
+    </div>
   </div>
 </div>
 

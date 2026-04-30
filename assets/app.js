@@ -613,22 +613,84 @@ window.COMPANIONS = [
 ];
 
 // 修行日记与成就
-window.ACHIEVEMENTS = [
-  { id: 'week1', name: '初心不忘', icon: '🌱', desc: '连续修行7天', earned: true },
-  { id: 'meditation', name: '禅心初定', icon: '🧘', desc: '累计禅坐10小时', earned: true },
-  { id: 'chanting1k', name: '千声梵音', icon: '📿', desc: '累计念佛1000次', earned: true },
-  { id: 'reading', name: '法海初探', icon: '📖', desc: '读完1部佛经', earned: true },
-  { id: 'streak30', name: '精进月', icon: '⭐', desc: '连续修行30天', earned: false },
-  { id: 'pilgrim', name: '朝圣行者', icon: '🗺️', desc: '参访5座圣地', earned: false },
-  { id: 'debate', name: '辩经高手', icon: '💭', desc: '完成10次辩经', earned: false },
-  { id: 'share', name: '法布施', icon: '🙏', desc: '发布10篇心得', earned: false },
+// 徽章定义：condition 函数动态判断是否已达成（null = 手动授予）
+window.ACHIEVEMENT_DEFS = [
+  { id: 'first_step',   name: '初心不忘', icon: '🌱', desc: '完成账号注册，开启修行之路',    condition: null },
+  { id: 'chant108',    name: '一百零八声', icon: '📿', desc: '单次念佛达到108声',             condition: s => (s.chant108 >= 1) },
+  { id: 'chant1k',     name: '千声梵音', icon: '🔔', desc: '累计念佛突破1000次',            condition: s => (s.totalChant >= 1000) },
+  { id: 'chant10k',    name: '万念归一', icon: '🪬', desc: '累计念佛突破10000次',           condition: s => (s.totalChant >= 10000) },
+  { id: 'streak7',     name: '七日精进', icon: '🕯️', desc: '连续打卡7天',                   condition: s => (s.streak >= 7) },
+  { id: 'streak30',    name: '精进月',   icon: '⭐', desc: '连续打卡30天',                   condition: s => (s.streak >= 30) },
+  { id: 'streak100',   name: '百日功德', icon: '🏆', desc: '连续打卡100天',                  condition: s => (s.streak >= 100) },
+  { id: 'meditation1h',name: '禅心初定', icon: '🧘', desc: '累计禅坐超过60分钟',            condition: s => (s.totalMeditation >= 60) },
+  { id: 'meditation10h',name:'定慧等持', icon: '🌀', desc: '累计禅坐超过600分钟',           condition: s => (s.totalMeditation >= 600) },
+  { id: 'sutra1',      name: '法海初探', icon: '📖', desc: '读经累计超过10章',               condition: s => (s.totalReading >= 10) },
+  { id: 'sutra100',    name: '博览经藏', icon: '🏛️', desc: '读经累计超过100章',              condition: s => (s.totalReading >= 100) },
+  { id: 'bow108',      name: '三拜十方', icon: '🙏', desc: '累计拜佛达到108次',              condition: s => (s.totalBow >= 108) },
+  { id: 'post1',       name: '法布施',   icon: '✍️', desc: '发布第一篇心得',                condition: s => (s.posts >= 1) },
+  { id: 'post10',      name: '同修摄受', icon: '🕊️', desc: '发布10篇心得',                  condition: s => (s.posts >= 10) },
+  { id: 'save7',       name: '七日宝藏', icon: '💾', desc: '连续7天保存修行数据',            condition: s => (s.saveDays >= 7) },
 ];
+
+// 成就统计状态（localStorage 持久化）
+const ACHIEVEMENT_STATS_KEY = 'modao-achievement-stats';
+const EARNED_KEY = 'modao-earned-achievements';
+
+function loadAchievementStats() {
+  try { return JSON.parse(localStorage.getItem(ACHIEVEMENT_STATS_KEY) || '{}'); } catch { return {}; }
+}
+function saveAchievementStats(stats) {
+  localStorage.setItem(ACHIEVEMENT_STATS_KEY, JSON.stringify(stats));
+}
+function loadEarnedSet() {
+  try { return new Set(JSON.parse(localStorage.getItem(EARNED_KEY) || '[]')); } catch { return new Set(); }
+}
+function saveEarnedSet(set) {
+  localStorage.setItem(EARNED_KEY, JSON.stringify([...set]));
+}
+
+// 检查并解锁成就，有新徽章弹 toast
+function checkAchievements(statsOverride) {
+  const stats = statsOverride || loadAchievementStats();
+  const earned = loadEarnedSet();
+  const newlyEarned = [];
+  for (const def of window.ACHIEVEMENT_DEFS) {
+    if (earned.has(def.id)) continue;
+    if (def.condition && def.condition(stats)) {
+      earned.add(def.id);
+      newlyEarned.push(def);
+    }
+  }
+  if (newlyEarned.length) {
+    saveEarnedSet(earned);
+    newlyEarned.forEach((def, i) => {
+      setTimeout(() => showToast(`🏅 解锁成就：${def.icon} ${def.name} — ${def.desc}`), i * 2200);
+    });
+  }
+  return earned;
+}
+
+// 手动授予（注册时授予初心不忘）
+function grantAchievement(id) {
+  const earned = loadEarnedSet();
+  if (!earned.has(id)) {
+    earned.add(id);
+    saveEarnedSet(earned);
+    const def = window.ACHIEVEMENT_DEFS.find(d => d.id === id);
+    if (def) showToast(`🏅 解锁成就：${def.icon} ${def.name}`);
+  }
+}
+
+// 供 home 页渲染成就列表
+window.ACHIEVEMENTS = window.ACHIEVEMENT_DEFS; // 保持旧引用
 // ============= 应用状态 =============
 const App = {
   currentPage: 'home',
+  pageHistory: [],
   currentCompanion: 'hui-ming',
   companionHistory: [],
-  counterCounts: { '念佛': 108, '拜佛': 0, '禅坐': 23, '读经': 3 },
+  counterCounts: { '念佛': 0, '拜佛': 0, '禅坐': 0, '读经': 0 },
+  counterGoals:  { '念佛': 0, '拜佛': 0, '禅坐': 0, '读经': 0 },
   currentCounterType: '念佛',
   weeklyData: [45, 78, 32, 91, 56, 108, 65],
   likedPosts: new Set(),
@@ -680,13 +742,19 @@ const IMMERSIVE_HERO_CONFIG = {
 };
 
 // ============= 导航 =============
-function showPage(page) {
+function showPage(page, { pushHistory = true } = {}) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   const pageEl = document.getElementById('page-' + page);
   const tabEl = document.getElementById('tab-' + page);
   if (pageEl) pageEl.classList.add('active');
   if (tabEl) tabEl.classList.add('active');
+
+  // 维护页面历史栈（避免连续相同页面重复入栈）
+  if (pushHistory && App.currentPage !== page) {
+    App.pageHistory.push(App.currentPage);
+    window.history.pushState({ page }, '', '#' + page);
+  }
   App.currentPage = page;
 
   // Page-specific init
@@ -720,6 +788,30 @@ function showPage(page) {
     }
   }
   window.scrollTo(0, 0);
+}
+
+// 全局返回：优先关闭浮层，然后回退页面历史
+function goBack() {
+  // 1. 优先关闭已打开的详情面板/弹窗
+  const sitePanel = document.getElementById('site-detail-panel');
+  if (sitePanel?.classList.contains('open')) { closeSiteDetail(); return; }
+
+  const readerEl = document.getElementById('reader-overlay');
+  if (readerEl?.classList.contains('open')) { closeReader(); return; }
+
+  const vdp = document.getElementById('vegan-detail-panel');
+  if (vdp?.style.display === 'flex' || vdp?.classList.contains('open')) { veganCloseDetail(); return; }
+
+  // 2. 回退页面历史
+  if (App.pageHistory.length > 0) {
+    const prev = App.pageHistory.pop();
+    // 同步浏览器 history（不再 pushState）
+    window.history.back();
+    showPage(prev, { pushHistory: false });
+  } else {
+    // 已到首页，无处可返
+    showPage('home', { pushHistory: false });
+  }
 }
 
 function playPageMotion(page) {
@@ -985,6 +1077,11 @@ async function registerUser() {
     preferences: profiles[email]?.preferences || [],
   };
   writeProfiles(profiles);
+  // 重置计数（新用户从零开始）
+  App.counterCounts = { '念佛': 0, '拜佛': 0, '禅坐': 0, '读经': 0 };
+  App.counterGoals  = { '念佛': 0, '拜佛': 0, '禅坐': 0, '读经': 0 };
+  // 授予「初心不忘」成就
+  setTimeout(() => grantAchievement('first_step'), 1800);
   await syncUserProfile();
   renderAuthState();
   closeAuthModal();
@@ -1129,6 +1226,16 @@ function saveProfileChanges() {
   renderAuthState();
   closeProfileModal();
   showToast('资料已保存');
+}
+
+// 同步修行档案弹窗的单选卡到隐藏 select，再提交
+function submitPracticeSetupSynced() {
+  const checked = document.querySelector('input[name="setup-comp"]:checked');
+  if (checked) {
+    const sel = document.getElementById('setup-companion');
+    if (sel) sel.value = checked.value;
+  }
+  submitPracticeSetup(false);
 }
 
 function openPracticeSetupModal() {
@@ -1343,16 +1450,42 @@ async function dailyPracticeCheckin() {
       showToast(`今天已打卡，连续 ${data.streak} 天`);
     } else {
       showToast(`打卡成功，连续 ${data.streak} 天`);
+      // 更新连续打卡成就统计
+      const stats = loadAchievementStats();
+      stats.streak = data.streak || 0;
+      saveAchievementStats(stats);
+      checkAchievements(stats);
     }
     await syncUserProfile();
+    renderAchievements();
   } catch (err) {
     showToast(`打卡失败：${err.message}`);
   }
 }
 
+// ============= 成就渲染 =============
+function renderAchievements() {
+  const grid = document.getElementById('achievements-display');
+  if (!grid) return;
+  const earned = loadEarnedSet();
+  // 显示：已解锁的 + 最多5个未解锁的（作为努力目标）
+  const earnedList  = window.ACHIEVEMENT_DEFS.filter(d => earned.has(d.id));
+  const lockedList  = window.ACHIEVEMENT_DEFS.filter(d => !earned.has(d.id)).slice(0, 5);
+  const display = [...earnedList, ...lockedList];
+  grid.innerHTML = display.map(def => {
+    const isEarned = earned.has(def.id);
+    return `
+      <div class="achievement ${isEarned ? 'earned' : 'locked'}" title="${def.desc}${isEarned ? '' : ' (未达成)'}">
+        <div class="achievement-icon">${isEarned ? def.icon : '🔒'}</div>
+        <div class="achievement-name">${def.name}</div>
+      </div>`;
+  }).join('');
+}
+
 // ============= 首页 =============
 function renderHome() {
   updateHomeCalendarDisplay();
+  renderAchievements();
   // 瀑布流推荐内容
   const masonry = document.getElementById('home-masonry');
   if (!masonry) return;
@@ -1801,6 +1934,9 @@ function renderCounter() {
   document.getElementById('counter-num').textContent = App.counterCounts[App.currentCounterType];
   document.getElementById('counter-cur-type').textContent = App.currentCounterType;
 
+  // 目标进度环
+  updateCounterProgress();
+
   // Chart
   renderWeeklyChart();
 }
@@ -1825,10 +1961,58 @@ function renderWeeklyChart() {
   `).join('');
 }
 
+// ---- 目标设置 ----
+function openGoalModal() {
+  const cur = App.currentCounterType;
+  const goal = App.counterGoals[cur] || 0;
+  document.getElementById('goal-modal-type').textContent = cur;
+  const inp = document.getElementById('goal-modal-input');
+  if (inp) inp.value = goal > 0 ? goal : '';
+  document.getElementById('goal-modal')?.classList.add('open');
+}
+function closeGoalModal() {
+  document.getElementById('goal-modal')?.classList.remove('open');
+}
+function saveGoal() {
+  const val = parseInt(document.getElementById('goal-modal-input')?.value || '0', 10);
+  if (isNaN(val) || val < 0) return showToast('请输入有效的目标数');
+  App.counterGoals[App.currentCounterType] = val;
+  closeGoalModal();
+  renderCounter();
+  showToast(val > 0 ? `🎯 已设置目标：${val} 次` : '已清除目标');
+}
+
+// 更新计数圆进度环
+function updateCounterProgress() {
+  const cur = App.currentCounterType;
+  const count = App.counterCounts[cur] || 0;
+  const goal  = App.counterGoals[cur]  || 0;
+  const ring = document.getElementById('counter-progress-ring');
+  const pctEl = document.getElementById('counter-goal-pct');
+  if (!ring) return;
+  if (goal <= 0) {
+    ring.style.display = 'none';
+    if (pctEl) pctEl.style.display = 'none';
+    return;
+  }
+  const pct = Math.min(1, count / goal);
+  const r = 90; // radius, matches SVG
+  const circ = 2 * Math.PI * r;
+  ring.style.display = '';
+  ring.style.strokeDasharray  = circ;
+  ring.style.strokeDashoffset = circ * (1 - pct);
+  if (pctEl) {
+    pctEl.style.display = '';
+    pctEl.textContent = `${Math.round(pct * 100)}% / 目标 ${goal}`;
+  }
+}
+
 function tapCounter(event) {
   App.counterCounts[App.currentCounterType]++;
-  document.getElementById('counter-num').textContent = App.counterCounts[App.currentCounterType];
-  document.querySelector('.counter-type-card.active .cnt-type-count').textContent = App.counterCounts[App.currentCounterType];
+  const c = App.counterCounts[App.currentCounterType];
+  document.getElementById('counter-num').textContent = c;
+  document.querySelector('.counter-type-card.active .cnt-type-count').textContent = c;
+  updateCounterProgress();
 
   // Ripple
   const circle = event.currentTarget;
@@ -1842,10 +2026,24 @@ function tapCounter(event) {
   circle.appendChild(ripple);
   setTimeout(() => ripple.remove(), 600);
 
-  // Achievement
-  const c = App.counterCounts[App.currentCounterType];
-  if (c === 108 && App.currentCounterType === '念佛') showToast('🏅 一百零八声梵音已成！');
-  if (c === 1000) showToast('🎉 千次圆满，功德无量！');
+  // 成就检测
+  const stats = loadAchievementStats();
+  if (App.currentCounterType === '念佛') {
+    stats.totalChant = (stats.totalChant || 0) + 1;
+    if (c === 108) stats.chant108 = (stats.chant108 || 0) + 1;
+  } else if (App.currentCounterType === '禅坐') {
+    stats.totalMeditation = (stats.totalMeditation || 0) + 1;
+  } else if (App.currentCounterType === '读经') {
+    stats.totalReading = (stats.totalReading || 0) + 1;
+  } else if (App.currentCounterType === '拜佛') {
+    stats.totalBow = (stats.totalBow || 0) + 1;
+  }
+  saveAchievementStats(stats);
+  checkAchievements(stats);
+
+  // 达成目标时庆祝
+  const goal = App.counterGoals[App.currentCounterType] || 0;
+  if (goal > 0 && c === goal) showToast(`🎉 恭喜！${App.currentCounterType}目标 ${goal} 次已达成！`);
 }
 
 function resetCounter() {
@@ -1855,7 +2053,18 @@ function resetCounter() {
   showToast('已清零');
 }
 
-function saveCounter() { showToast('✅ 今日修行数据已保存'); }
+function saveCounter() {
+  // 记录保存天数（用于成就）
+  const today = new Date().toDateString();
+  const stats = loadAchievementStats();
+  if (stats.lastSaveDate !== today) {
+    stats.lastSaveDate = today;
+    stats.saveDays = (stats.saveDays || 0) + 1;
+    saveAchievementStats(stats);
+    checkAchievements(stats);
+  }
+  showToast('✅ 今日修行数据已保存');
+}
 
 // ============= 朝圣地图（高德） =============
 const DEFAULT_AMAP_WEB_KEY = '29d20ffdf151b2856b4204063b55b9c0';
@@ -2989,6 +3198,13 @@ async function submitPost() {
     showToast('✅ 发布成功！感谢您的分享');
     closeNewPost();
 
+    // 成就：帖子数
+    const stats = loadAchievementStats();
+    stats.posts = (stats.posts || 0) + 1;
+    saveAchievementStats(stats);
+    checkAchievements(stats);
+    renderAchievements();
+
     // 刷新对应板块
     if (_postType === 'forum') renderForum();
   } catch (err) {
@@ -3050,6 +3266,22 @@ window.addEventListener('DOMContentLoaded', async () => {
   renderHome();
   initReaderSelection();
   playPageMotion('home');
+
+  // 初始化浏览器 history，让首页可被 popstate 捕获
+  window.history.replaceState({ page: 'home' }, '', '#home');
+
+  // 浏览器/手机返回键监听
+  window.addEventListener('popstate', (e) => {
+    const page = e.state?.page;
+    if (page) {
+      // 从内部历史栈中移掉这一步（已被浏览器 back 消耗）
+      const idx = App.pageHistory.lastIndexOf(page);
+      if (idx !== -1) App.pageHistory.splice(idx, 1);
+      showPage(page, { pushHistory: false });
+    } else {
+      goBack();
+    }
+  });
 
   // Auto-size chat input
   const chatInput = document.getElementById('chat-input');
@@ -3120,6 +3352,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 // Expose handlers used by inline HTML events.
 Object.assign(window, {
   showPage,
+  goBack,
   showToast,
   changeCompanionStyle,
   quickReply,
@@ -3135,6 +3368,9 @@ Object.assign(window, {
   tapCounter,
   resetCounter,
   saveCounter,
+  openGoalModal,
+  closeGoalModal,
+  saveGoal,
   switchChartType,
   setChip,
   filterSites,
@@ -3197,6 +3433,9 @@ Object.assign(window, {
   openPracticeSetupModal,
   closePracticeSetupModal,
   submitPracticeSetup,
+  submitPracticeSetupSynced,
+  grantAchievement,
+  checkAchievements,
   addPracticePrompt,
   dailyPracticeCheckin,
   updatePracticeProgress,
