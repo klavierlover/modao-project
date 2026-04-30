@@ -907,7 +907,12 @@ function closeAuthModal() {
 }
 function selectAvatarEmoji(emoji, el) {
   registerAvatarSelection = emoji || '';
-  document.querySelectorAll('#auth-avatar-emoji-row .auth-avatar-emoji')
+  // 更新新版预览框
+  const preview = document.getElementById('auth-avatar-preview-box');
+  if (preview) preview.textContent = emoji;
+  // 高亮选中按钮（兼容新旧两种 class）
+  const row = document.getElementById('auth-avatar-emoji-row');
+  if (row) row.querySelectorAll('button, .auth-avatar-emoji')
     .forEach(btn => btn.classList.toggle('active', btn === el));
 }
 function onAvatarFileSelected(event) {
@@ -3013,8 +3018,32 @@ function renderRecipesLegacy() {
   `).join('');
 }
 
+// ============= 开场动画 =============
+function initSplashScreen() {
+  const splash = document.getElementById('splash-screen');
+  if (!splash) return;
+
+  // 如果上次访问不超过 1 小时就跳过动画（避免每次刷新都出现）
+  const lastSeen = Number(localStorage.getItem('modao-splash-ts') || 0);
+  if (Date.now() - lastSeen < 60 * 60 * 1000) {
+    splash.classList.add('hidden');
+    return;
+  }
+
+  function dismiss() {
+    splash.classList.add('hiding');
+    localStorage.setItem('modao-splash-ts', String(Date.now()));
+    setTimeout(() => splash.classList.add('hidden'), 850);
+  }
+
+  splash.addEventListener('click', dismiss);
+  // 2.8 秒后自动消失
+  setTimeout(dismiss, 2800);
+}
+
 // ============= 初始化 =============
 window.addEventListener('DOMContentLoaded', async () => {
+  initSplashScreen();
   updateHomeCalendarDisplay();
   loadPublishedContent();
   initImmersivePages();

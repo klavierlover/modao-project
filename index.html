@@ -841,41 +841,89 @@
 </div>
 
 <!-- ═══════════════════════ AUTH ═══════════════════════ -->
+<!-- ══════ 开场动画 ══════ -->
+<div id="splash-screen">
+  <div class="splash-bg"></div>
+  <div class="splash-veil"></div>
+  <div class="splash-content">
+    <div class="splash-lotus">🪷</div>
+    <div class="splash-title">莫舍己道</div>
+    <div class="splash-subtitle">勿扰他心</div>
+    <div class="splash-brand">莫 道</div>
+  </div>
+  <div class="splash-hint">轻触继续</div>
+</div>
+
+<!-- ══════ 登录 / 注册弹窗 ══════ -->
 <div class="modal-overlay" id="auth-overlay" onclick="if(event.target===this)closeAuthModal()">
   <div class="modal auth-modal">
-    <button class="modal-close" onclick="closeAuthModal()">✕</button>
-    <div class="auth-head">
-      <button id="auth-tab-login" class="auth-tab active" onclick="switchAuthTab('login')">登录</button>
-      <button id="auth-tab-register" class="auth-tab" onclick="switchAuthTab('register')">注册</button>
+
+    <!-- 弹窗顶部装饰图 -->
+    <div class="auth-hero">
+      <div class="auth-hero-lotus">🪷</div>
+      <button class="auth-close-btn" onclick="closeAuthModal()">✕</button>
     </div>
 
-    <div id="auth-login-panel">
-      <h3>欢迎回来</h3>
-      <input id="auth-login-email" class="auth-input" placeholder="邮箱">
-      <input id="auth-login-password" class="auth-input" type="password" placeholder="密码">
-      <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="loginUser()">登录</button>
-      <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="continueAsGuest()">以访客模式进入</button>
-      <button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="resetAllUserData()">清空本地用户信息并重新注册</button>
+    <!-- 标签切换 -->
+    <div class="auth-tabs">
+      <button id="auth-tab-login"    class="auth-tab active" onclick="switchAuthTab('login')">登录</button>
+      <button id="auth-tab-register" class="auth-tab"        onclick="switchAuthTab('register')">注册</button>
     </div>
 
-    <div id="auth-register-panel" style="display:none">
-      <h3>创建账号</h3>
-      <input id="auth-register-nickname" class="auth-input" placeholder="昵称（必填）">
-      <input id="auth-register-email" class="auth-input" placeholder="邮箱">
-      <input id="auth-register-avatar" class="auth-input" placeholder="头像 URL（可选，建议选下方头像）">
-      <div class="auth-avatar-picker" id="auth-avatar-emoji-row">
-        <button type="button" class="auth-avatar-emoji" onclick="selectAvatarEmoji('🪷', this)">🪷</button>
-        <button type="button" class="auth-avatar-emoji" onclick="selectAvatarEmoji('📿', this)">📿</button>
-        <button type="button" class="auth-avatar-emoji" onclick="selectAvatarEmoji('🙏', this)">🙏</button>
-        <button type="button" class="auth-avatar-emoji" onclick="selectAvatarEmoji('🕉️', this)">🕉️</button>
-        <button type="button" class="auth-avatar-emoji" onclick="selectAvatarEmoji('☸️', this)">☸️</button>
-        <button type="button" class="auth-avatar-emoji" onclick="selectAvatarEmoji('🧘', this)">🧘</button>
+    <!-- 登录面板 -->
+    <div id="auth-login-panel" class="auth-panel">
+      <p class="auth-welcome">欢迎回来，同修 🙏</p>
+      <div class="auth-field">
+        <span class="auth-field-icon">✉</span>
+        <input id="auth-login-email" type="email" placeholder="邮箱地址">
       </div>
-      <input id="auth-register-avatar-file" class="auth-input" type="file" accept="image/*" onchange="onAvatarFileSelected(event)">
-      <input id="auth-register-password" class="auth-input" type="password" placeholder="密码（至少6位）">
-      <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="registerUser()">注册并继续配置</button>
-      <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="continueAsGuest()">先以访客模式浏览</button>
+      <div class="auth-field">
+        <span class="auth-field-icon">🔒</span>
+        <input id="auth-login-password" type="password" placeholder="密码">
+      </div>
+      <button class="auth-btn-primary" onclick="loginUser()">登录</button>
+      <button class="auth-btn-ghost" onclick="continueAsGuest()">以访客模式进入</button>
+      <button class="auth-link-btn" onclick="resetAllUserData()">清空本地数据并重新注册</button>
     </div>
+
+    <!-- 注册面板 -->
+    <div id="auth-register-panel" class="auth-panel" style="display:none">
+      <p class="auth-welcome">与我们同行修道 🌿</p>
+
+      <!-- 头像选择 -->
+      <div class="auth-avatar-section">
+        <div class="auth-avatar-preview" id="auth-avatar-preview-box">🪷</div>
+        <div class="auth-avatar-grid" id="auth-avatar-emoji-row">
+          <button type="button" onclick="selectAvatarEmoji('🪷', this)">🪷</button>
+          <button type="button" onclick="selectAvatarEmoji('📿', this)">📿</button>
+          <button type="button" onclick="selectAvatarEmoji('🙏', this)">🙏</button>
+          <button type="button" onclick="selectAvatarEmoji('🕉️', this)">🕉️</button>
+          <button type="button" onclick="selectAvatarEmoji('☸️', this)">☸️</button>
+          <button type="button" onclick="selectAvatarEmoji('🧘', this)">🧘</button>
+        </div>
+      </div>
+
+      <div class="auth-field">
+        <span class="auth-field-icon">👤</span>
+        <input id="auth-register-nickname" placeholder="昵称（必填）">
+      </div>
+      <div class="auth-field">
+        <span class="auth-field-icon">✉</span>
+        <input id="auth-register-email" type="email" placeholder="邮箱地址">
+      </div>
+      <div class="auth-field">
+        <span class="auth-field-icon">🔒</span>
+        <input id="auth-register-password" type="password" placeholder="密码（至少6位）">
+      </div>
+
+      <!-- 隐藏的 avatar URL + 文件 input（供 JS 读取） -->
+      <input id="auth-register-avatar" type="hidden">
+      <input id="auth-register-avatar-file" type="file" accept="image/*" style="display:none" onchange="onAvatarFileSelected(event)">
+
+      <button class="auth-btn-primary" onclick="registerUser()">注册并继续配置</button>
+      <button class="auth-btn-ghost"   onclick="continueAsGuest()">先以访客模式浏览</button>
+    </div>
+
   </div>
 </div>
 

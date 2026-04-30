@@ -508,38 +508,260 @@ nav {
   cursor: pointer;
 }
 .modal-close:hover { background: rgba(0,0,0,0.1); transform: scale(1.05); }
+/* ══════════════════════════════
+   开场动画 Splash Screen
+══════════════════════════════ */
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity .8s ease;
+}
+#splash-screen.hiding { opacity: 0; pointer-events: none; }
+#splash-screen.hidden { display: none; }
+.splash-bg {
+  position: absolute;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1526772662000-3f88f10405ff?w=1600&q=90') center/cover no-repeat;
+  filter: blur(8px) brightness(.55) saturate(.7);
+  transform: scale(1.08);
+}
+.splash-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,rgba(10,5,2,.2) 0%,rgba(20,10,5,.5) 50%,rgba(10,5,2,.85) 100%);
+}
+.splash-content {
+  position: relative;
+  text-align: center;
+  animation: splashFadeUp .9s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes splashFadeUp {
+  from { opacity:0; transform:translateY(28px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.splash-lotus {
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: 24px;
+  filter: drop-shadow(0 4px 20px rgba(200,155,60,.5));
+}
+.splash-title, .splash-subtitle {
+  font-family: 'Ma Shan Zheng','Noto Serif SC',serif;
+  font-size: clamp(40px,10vw,70px);
+  color: #f5e6c8;
+  letter-spacing: .28em;
+  text-shadow: 0 2px 24px rgba(0,0,0,.65),0 0 60px rgba(200,155,60,.25);
+  line-height: 1.15;
+}
+.splash-subtitle { margin-bottom: 32px; }
+.splash-brand {
+  font-family: 'Noto Serif SC',serif;
+  font-size: 13px;
+  color: rgba(245,230,200,.45);
+  letter-spacing: .45em;
+}
+.splash-hint {
+  position: absolute;
+  bottom: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(245,230,200,.4);
+  letter-spacing: .2em;
+  animation: splashPulse 2.4s ease-in-out infinite;
+}
+@keyframes splashPulse { 0%,100%{opacity:.25;} 50%{opacity:.65;} }
+
+/* ══════════════════════════════
+   Auth Modal — 重设计
+══════════════════════════════ */
 .auth-modal {
   width: 92%;
-  max-width: 360px;
-  padding: 20px 20px 16px;
+  max-width: 380px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 20px;
+}
+.auth-hero {
   position: relative;
-}
-.auth-head {
+  height: 90px;
+  background: linear-gradient(135deg,#1a0f05 0%,#3d2208 60%,#c9a227 100%);
   display: flex;
-  gap: 6px;
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 3px;
-  margin-bottom: 14px;
-  margin-right: 44px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
-.auth-modal .modal-close {
+.auth-hero::before {
+  content: '';
   position: absolute;
-  top: 10px;
-  right: 10px;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1526772662000-3f88f10405ff?w=800&q=60') center/cover;
+  opacity: .2;
+}
+.auth-hero-lotus {
+  position: relative;
+  font-size: 38px;
+  filter: drop-shadow(0 2px 14px rgba(200,155,60,.65));
+}
+.auth-close-btn {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  color: rgba(255,255,255,.85);
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background .2s;
+}
+.auth-close-btn:hover { background: rgba(255,255,255,.28); }
+
+/* 标签栏 */
+.auth-tabs {
+  display: flex;
+  background: var(--paper);
+  border-bottom: 1px solid var(--border);
 }
 .auth-tab {
   flex: 1;
-  border-radius: 8px;
-  padding: 7px 10px;
-  font-size: 13px;
-  color: var(--ink-60);
+  padding: 13px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-50);
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
 }
 .auth-tab.active {
-  background: var(--ink);
-  color: var(--paper);
+  color: var(--ink);
+  border-bottom-color: #c9a227;
+  background: none;
 }
+
+/* 面板 */
+.auth-panel {
+  padding: 18px 22px 22px;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.auth-welcome {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+/* 输入行 */
+.auth-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: var(--surface);
+  transition: border-color .2s, box-shadow .2s;
+}
+.auth-field:focus-within {
+  border-color: #c9a227;
+  box-shadow: 0 0 0 3px rgba(201,162,39,.1);
+}
+.auth-field-icon { font-size: 14px; flex-shrink: 0; opacity: .55; }
+.auth-field input {
+  flex: 1;
+  padding: 12px 0;
+  font-size: 14px;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--ink);
+}
+.auth-field input::placeholder { color: var(--ink-40); }
+
+/* 头像选择区 */
+.auth-avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 0;
+}
+.auth-avatar-section .auth-avatar-preview {
+  width: 50px; height: 50px;
+  border-radius: 14px;
+  background: linear-gradient(135deg,#f5e9d0,#ede0c4);
+  font-size: 26px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+.auth-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(6,1fr);
+  gap: 6px;
+  flex: 1;
+}
+.auth-avatar-grid button {
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 6px 0;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.auth-avatar-grid button:hover  { border-color: #c9a227; transform: scale(1.08); }
+.auth-avatar-grid button.active {
+  border-color: #c9a227;
+  box-shadow: 0 0 0 2px rgba(201,162,39,.2);
+}
+
+/* CTA 按钮 */
+.auth-btn-primary {
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  background: linear-gradient(135deg,#c9a227,#a07c1a);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: opacity .2s, transform .15s;
+  margin-top: 2px;
+}
+.auth-btn-primary:hover  { opacity: .88; }
+.auth-btn-primary:active { transform: scale(.98); }
+.auth-btn-ghost {
+  width: 100%;
+  padding: 11px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-70);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.auth-btn-ghost:hover { background: var(--border); }
+.auth-link-btn {
+  font-size: 11px;
+  color: var(--ink-35);
+  text-align: center;
+  cursor: pointer;
+  text-decoration: underline;
+  background: none;
+  margin-top: -4px;
+}
+
+/* ── 兼容旧弹窗（profile / practice 等） ── */
 .auth-input {
   width: 100%;
   border: 1px solid var(--border);
@@ -551,7 +773,7 @@ nav {
 }
 .auth-avatar-picker {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(6,1fr);
   gap: 8px;
   margin-top: 8px;
 }
