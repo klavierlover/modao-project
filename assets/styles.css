@@ -527,7 +527,7 @@ nav {
 .splash-bg {
   position: absolute;
   inset: 0;
-  background: url('https://images.unsplash.com/photo-1526772662000-3f88f10405ff?w=1600&q=90') center/cover no-repeat;
+  background: url('/assets/images/splash-bg.jpg') center/cover no-repeat;
   filter: blur(8px) brightness(.55) saturate(.7);
   transform: scale(1.08);
 }

@@ -3038,7 +3038,7 @@ function initSplashScreen() {
 
   splash.addEventListener('click', dismiss);
   // 2.8 秒后自动消失
-  setTimeout(dismiss, 2800);
+  setTimeout(dismiss, 5000);
 }
 
 // ============= 初始化 =============
