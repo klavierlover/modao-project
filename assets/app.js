@@ -1110,19 +1110,16 @@ async function logoutUser() {
 function toggleUserMenu() {
   document.getElementById('user-menu')?.classList.toggle('open');
 }
-function avatarFromEmoji(emoji) {
-  const txt = String(emoji || '🪷');
-  return `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(txt)}`;
-}
 function isLikelyEmojiAvatar(value) {
   const v = String(value || '').trim();
   if (!v) return false;
-  return !/^https?:|^data:|^\//i.test(v) && v.length <= 4;
+  return !/^https?:|^data:|^\//i.test(v) && v.length <= 8;
 }
 function normalizeAvatarValue(value) {
   const v = String(value || '').trim();
   if (!v) return '';
-  return isLikelyEmojiAvatar(v) ? avatarFromEmoji(v) : v;
+  // emoji 头像直接返回原始字符，不再转成 DiceBear URL
+  return v;
 }
 function renderProfileAvatarPreview(value) {
   const preview = document.getElementById('profile-avatar-preview');
@@ -1167,10 +1164,29 @@ function renderAuthState() {
   const profiles = readProfiles();
   const p = profiles[session.email || ''] || {};
   avatarBtn.title = p.displayName || session.email || '我的';
-  if (p.avatar) {
-    avatarImg.src = normalizeAvatarValue(p.avatar);
+
+  // 移除旧的 emoji 覆盖层（如果有）
+  avatarBtn.querySelectorAll('.avatar-emoji-text').forEach(el => el.remove());
+
+  const avatarVal = p.avatar ? String(p.avatar).trim() : '';
+  if (avatarVal && isLikelyEmojiAvatar(avatarVal)) {
+    // emoji 头像：直接在按钮上叠加文字，隐藏 img
+    avatarImg.style.display = 'none';
+    const span = document.createElement('span');
+    span.className = 'avatar-emoji-text';
+    span.textContent = avatarVal;
+    avatarBtn.appendChild(span);
+  } else if (avatarVal) {
+    // URL / data URL 头像
+    avatarImg.style.display = '';
+    avatarImg.src = avatarVal;
   } else if (session.email) {
-    avatarImg.src = `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(session.email)}`;
+    // 无头像时用邮箱首字母
+    avatarImg.style.display = 'none';
+    const span = document.createElement('span');
+    span.className = 'avatar-emoji-text';
+    span.textContent = (session.email[0] || '我').toUpperCase();
+    avatarBtn.appendChild(span);
   }
 }
 
@@ -1263,12 +1279,21 @@ function toggleSetupPreference(name, el) {
   }
 }
 
+let _setupSubmitting = false;  // 防止重复提交
 async function submitPracticeSetup(skip = false) {
+  if (_setupSubmitting) return;
+  _setupSubmitting = true;
+  // 禁用提交按钮视觉反馈
+  const submitBtn = document.querySelector('#practice-setup-overlay .auth-btn-primary');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '保存中…'; }
   try {
     const companionId = document.getElementById('setup-companion')?.value || 'hui-ming';
     const raw = document.getElementById('setup-practice-content')?.value.trim() || '';
     const lines = raw.split('\n').map(x => x.trim()).filter(Boolean);
-    if (!skip && !lines.length) return showToast('请至少填写一条修行任务');
+    if (!skip && !lines.length) {
+      showToast('请至少填写一条修行任务');
+      return;
+    }
     await authedFetchJson('/api/user/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -1296,11 +1321,16 @@ async function submitPracticeSetup(skip = false) {
         writeProfiles(map);
       }
     }
-    await syncUserProfile();
+    // 先关闭弹窗，再同步数据，防止 syncUserProfile 因 onboarding_completed 状态
+    // 尚未刷新而再次弹出初始化弹窗导致用户重复提交
     closePracticeSetupModal();
-    showToast(skip ? '已跳过初始化，可随时补充功课' : '已完成初始化');
+    showToast(skip ? '已跳过初始化，可随时补充功课' : '✅ 修行档案已配置完成');
+    await syncUserProfile();
   } catch (err) {
     showToast(`初始化失败：${err.message}`);
+  } finally {
+    _setupSubmitting = false;
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '🪷 完成配置，开启修行'; }
   }
 }
 
