@@ -1,9 +1,0 @@
-{
-  "name": "modao-project",
-  "version": "1.0.0",
-  "private": true,
-  "description": "莫道静态前端项目",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.104.1"
-  }
-}

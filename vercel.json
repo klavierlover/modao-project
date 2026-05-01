@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "installCommand": "npm install --omit=dev",
   "rewrites": [
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/api/admin/:path*", "destination": "/api/admin" },
