@@ -964,12 +964,38 @@ function getSupabaseClient() {
   return sdk.createClient(cfg.url, cfg.anonKey);
 }
 
-async function authedFetchJson(url, options = {}) {
+async function refreshAccessToken() {
   const session = readSession();
-  const token = session?.accessToken || '';
-  const headers = { ...(options.headers || {}) };
+  if (!session?.refreshToken) return null;
+  const client = getSupabaseClient();
+  if (!client) return null;
+  try {
+    const { data, error } = await client.auth.refreshSession({ refresh_token: session.refreshToken });
+    if (error || !data?.session?.access_token) return null;
+    const newSession = {
+      ...session,
+      accessToken: data.session.access_token,
+      refreshToken: data.session.refresh_token || session.refreshToken,
+    };
+    writeSession(newSession);
+    return data.session.access_token;
+  } catch (_e) { return null; }
+}
+
+async function authedFetchJson(url, options = {}) {
+  let session = readSession();
+  let token = session?.accessToken || '';
+  let headers = { ...(options.headers || {}) };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const resp = await fetch(url, { ...options, headers });
+  let resp = await fetch(url, { ...options, headers });
+  // 如果 401，尝试用 refresh_token 刷新后重试一次
+  if (resp.status === 401 && session?.refreshToken) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      headers = { ...(options.headers || {}), Authorization: `Bearer ${newToken}` };
+      resp = await fetch(url, { ...options, headers });
+    }
+  }
   const data = await resp.json().catch(() => ({}));
   if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
   return data;
@@ -1037,6 +1063,7 @@ async function loginUser() {
     email,
     userId: data.user.id,
     accessToken: data.session.access_token,
+    refreshToken: data.session.refresh_token || '',
   });
   await syncUserProfile();
   renderAuthState();
@@ -1068,6 +1095,7 @@ async function registerUser() {
     email,
     userId: data.user.id,
     accessToken: data.session.access_token,
+    refreshToken: data.session.refresh_token || '',
   });
   const profiles = readProfiles();
   profiles[email] = {
