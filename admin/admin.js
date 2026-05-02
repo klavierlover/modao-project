@@ -7,6 +7,7 @@ const TYPES = {
   site:       { label: '朝圣地点', icon: '🕍', module: 'pilgrimage', arrayKey: 'sites' },
   restaurant: { label: '素食餐厅', icon: '🍜', module: 'vegan',      arrayKey: 'restaurants' },
   recipe:     { label: '素食菜谱', icon: '🥗', module: 'vegan',      arrayKey: 'recipes' },
+  sutra:      { label: '佛学书库', icon: '📚', module: 'library',    arrayKey: 'sutras' },
   article:    { label: '文章攻略', icon: '📖', module: null,          arrayKey: null },
   forum:      { label: '论坛帖子', icon: '🗣',  module: 'forum',      arrayKey: null },
 };
@@ -195,10 +196,11 @@ async function loadAllContent() {
   const btn = $('reload-btn');
   setLoading(btn, true);
   try {
-    // 并行加载三个模块 + 全部文章 + 用户
-    const [pilgrimageData, veganData, articlesData, usersData] = await Promise.allSettled([
+    // 并行加载四个模块 + 全部文章 + 用户
+    const [pilgrimageData, veganData, libraryData, articlesData, usersData] = await Promise.allSettled([
       api(`/api/admin/content?module=pilgrimage`, { headers: authHdr() }),
       api(`/api/admin/content?module=vegan`,      { headers: authHdr() }),
+      api(`/api/admin/content?module=library`,    { headers: authHdr() }),
       api(`/api/admin/articles?all=1`,            { headers: authHdr() }),
       api(`/api/admin/users`,                     { headers: authHdr() }),
     ]);
@@ -212,6 +214,10 @@ async function loadAllContent() {
       const root = (veganData.value.blocks || []).find(b => b.block_key === 'module_root');
       state.payloads.vegan = root?.payload || {};
     }
+    if (libraryData.status === 'fulfilled') {
+      const root = (libraryData.value.blocks || []).find(b => b.block_key === 'module_root');
+      state.payloads.library = root?.payload || {};
+    }
 
     // 用户
     if (usersData.status === 'fulfilled') {
@@ -223,6 +229,10 @@ async function loadAllContent() {
     const sites       = (state.payloads.pilgrimage?.sites       || []).map((s,i) => ({ ...s, _type:'site',       _id: String(s.id||s.name||i), _sort: s.sort??i }));
     const restaurants = (state.payloads.vegan?.restaurants       || []).map((s,i) => ({ ...s, _type:'restaurant', _id: String(s.id||s.name||i), _sort: s.sort??i }));
     const recipes     = (state.payloads.vegan?.recipes           || []).map((s,i) => ({ ...s, _type:'recipe',     _id: String(s.id||s.name||i), _sort: s.sort??i }));
+    const sutras      = (state.payloads.library?.sutras          || []).map((s,i) => ({
+      ...s, _type:'sutra', _id: String(s.id||s.title||i),
+      name: s.title, shortDesc: s.desc, _sort: s.sort??i,
+    }));
     const articles    = articlesData.status === 'fulfilled'
       ? (articlesData.value.articles || []).map(a => ({
           ...a, _type: a.module_key === 'forum' ? 'forum' : 'article',
@@ -231,7 +241,7 @@ async function loadAllContent() {
         }))
       : [];
 
-    state.allContent = [...sites, ...restaurants, ...recipes, ...articles];
+    state.allContent = [...sites, ...restaurants, ...recipes, ...sutras, ...articles];
     renderHub();
   } catch (err) {
     showToast(`加载失败：${err.message}`, true);
@@ -626,6 +636,69 @@ function renderTypeFields(type, item) {
       </div>`;
   }
 
+  else if (type === 'sutra') {
+    const categoryOptions = [
+      { value: 'prajna',   label: '般若部' },
+      { value: 'pure',     label: '净土部' },
+      { value: 'chan',     label: '禅宗' },
+      { value: 'mahayana', label: '大乘部' },
+      { value: 'vinaya',   label: '律典' },
+      { value: 'tantra',   label: '密宗' },
+      { value: 'other',    label: '其他' },
+    ].map(o => `<option value="${o.value}"${item?.category===o.value?' selected':''}>${o.label}</option>`).join('');
+
+    root.innerHTML = `
+      <div class="form-section">
+        <div class="section-title">📚 经典详情</div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>简称（卡片显示）</label>
+            <input id="f-short-title" placeholder="心经" value="${escHtml(item?.shortTitle||'')}">
+          </div>
+          <div class="form-group">
+            <label>译者/作者</label>
+            <input id="f-author" placeholder="玄奘法师 译" value="${escHtml(item?.author||'')}">
+          </div>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>所属部类</label>
+            <select id="f-category">${categoryOptions}</select>
+          </div>
+          <div class="form-group">
+            <label>阅读时长</label>
+            <input id="f-read-time" placeholder="5分钟" value="${escHtml(item?.readTime||'')}">
+          </div>
+          <div class="form-group">
+            <label>章节数</label>
+            <input id="f-chapters" type="number" min="1" placeholder="1" value="${item?.chapters||''}">
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>评分（0-5）</label>
+            <input id="f-rating" type="number" step="0.1" min="0" max="5" placeholder="4.9" value="${item?.rating??''}">
+          </div>
+          <div class="form-group">
+            <label>封面主色（HEX）</label>
+            <input id="f-cover-color" type="color" value="${item?.coverColor||'#8b5a2b'}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>正文 Markdown（可留空，用于在线阅读）</label>
+          <textarea id="f-content-md" class="code-editor" rows="8" placeholder="## 第一品&#10;&#10;正文内容…">${escHtml(item?.content_md||'')}</textarea>
+        </div>
+        <div class="form-group">
+          <label>外链 URL（点击跳转，可选）</label>
+          <input id="f-article-url" placeholder="https://cbeta.org/…" value="${escHtml(item?.article_url||'')}">
+        </div>
+        <div class="form-group">
+          <label>排序权重（越小越靠前）</label>
+          <input id="f-sort" type="number" min="0" placeholder="0" value="${item?.sort??0}">
+        </div>
+      </div>`;
+  }
+
   else if (type === 'article' || type === 'forum') {
     const moduleOptions = ['home','pilgrimage','vegan','library','forum']
       .map(m => `<option value="${m}"${(item?.module_key===m||(!item&&type==='forum'&&m==='forum'))?' selected':''}>${m}</option>`)
@@ -831,6 +904,26 @@ function collectFormData() {
       calories:    $('f-calories')?.value.trim() || '',
       ingredients: ($('f-ingredients')?.value||'').split('\n').map(s=>s.trim()).filter(Boolean),
       fullDesc:    $('f-full-desc')?.value.trim() || '',
+    };
+  }
+
+  if (type === 'sutra') {
+    const catVal = $('f-category')?.value || 'prajna';
+    const catLabels = { prajna:'般若部', pure:'净土部', chan:'禅宗', mahayana:'大乘部', vinaya:'律典', tantra:'密宗', other:'其他' };
+    return {
+      ...base,
+      shortTitle:  $('f-short-title')?.value.trim() || base.name,
+      author:      $('f-author')?.value.trim()       || '',
+      category:    catVal,
+      label:       catLabels[catVal] || '其他',
+      readTime:    $('f-read-time')?.value.trim()    || '',
+      chapters:    parseInt($('f-chapters')?.value)  || 1,
+      rating:      parseFloat($('f-rating')?.value)  || null,
+      coverColor:  $('f-cover-color')?.value         || '#8b5a2b',
+      desc:        base.shortDesc,
+      content_md:  $('f-content-md')?.value.trim()   || '',
+      article_url: $('f-article-url')?.value.trim()  || '',
+      sort:        parseInt($('f-sort')?.value)       || 0,
     };
   }
 
