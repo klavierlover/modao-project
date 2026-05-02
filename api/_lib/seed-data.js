@@ -168,4 +168,71 @@ const FORUM_POSTS = [
   { id:8, title:'在日常中修行｜每件事都是道场', cover:'https://images.unsplash.com/photo-1517638851339-a711cfcf3279?w=500&q=80', excerpt:'洗碗、扫地、做饭，都可以是修行。分享如何把生活每个瞬间转为正念练习...', section:'生活禅', author:'禅茶一味', likes:2345, comments:434, collects:890, slug:'ri-chang-xiu-xing', sort:7 },
 ];
 
-module.exports = { PILGRIMAGE_SITES, WUHAN_RESTAURANTS, VEGAN_RECIPES, FORUM_POSTS };
+const SUTRAS = [
+  {
+    id: 1, title: '般若波罗蜜多心经', shortTitle: '心经', author: '玄奘法师 译',
+    category: 'prajna', label: '般若部',
+    cover: 'https://images.unsplash.com/photo-1601144531169-d65b87c10c28?w=400&q=80',
+    coverColor: '#8b5a2b',
+    desc: '佛法精髓，260字揭示空性真谛，通行千载，是最广为流传的佛经。',
+    readingCount: 8562, noteCount: 234, readTime: '5分钟', rating: 4.9, chapters: 1, visible: true, sort: 0,
+  },
+  {
+    id: 2, title: '金刚般若波罗蜜经', shortTitle: '金刚经', author: '鸠摩罗什 译',
+    category: 'prajna', label: '般若部',
+    cover: 'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?w=400&q=80',
+    coverColor: '#3d5a80',
+    desc: '以般若智慧破除一切执着，开显诸法实相，为大乘佛法核心经典。',
+    readingCount: 6834, noteCount: 189, readTime: '45分钟', rating: 4.8, chapters: 32, visible: true, sort: 1,
+  },
+  {
+    id: 3, title: '佛说阿弥陀经', shortTitle: '阿弥陀经', author: '鸠摩罗什 译',
+    category: 'pure', label: '净土部',
+    cover: 'https://images.unsplash.com/photo-1564769625392-651b2c1f9e29?w=400&q=80',
+    coverColor: '#c9a227',
+    desc: '详述西方极乐世界庄严，劝发念佛往生之愿，净土三经之一。',
+    readingCount: 5629, noteCount: 156, readTime: '15分钟', rating: 4.9, chapters: 1, visible: true, sort: 2,
+  },
+  {
+    id: 4, title: '六祖坛经', shortTitle: '坛经', author: '惠能 口述',
+    category: 'chan', label: '禅宗',
+    cover: 'https://images.unsplash.com/photo-1598190648569-05c0c3ebd461?w=400&q=80',
+    coverColor: '#2d4a2b',
+    desc: '禅宗六祖惠能大师的言行录，唯一被尊为"经"的祖师言教。',
+    readingCount: 7234, noteCount: 412, readTime: '2小时', rating: 4.9, chapters: 10, visible: true, sort: 3,
+  },
+  {
+    id: 5, title: '地藏菩萨本愿经', shortTitle: '地藏经', author: '实叉难陀 译',
+    category: 'pure', label: '净土部',
+    cover: 'https://images.unsplash.com/photo-1564769625905-50e93615e769?w=400&q=80',
+    coverColor: '#5d3a3a',
+    desc: '地藏菩萨发愿度化地狱众生的本愿功德，孝道第一经。',
+    readingCount: 4526, noteCount: 198, readTime: '1.5小时', rating: 4.8, chapters: 13, visible: true, sort: 4,
+  },
+  {
+    id: 6, title: '妙法莲华经', shortTitle: '法华经', author: '鸠摩罗什 译',
+    category: 'mahayana', label: '大乘部',
+    cover: 'https://images.unsplash.com/photo-1555980027-9faa4f8a72b2?w=400&q=80',
+    coverColor: '#8b3e3e',
+    desc: '经中之王，开权显实，会三归一，揭示一切众生皆可成佛。',
+    readingCount: 3215, noteCount: 256, readTime: '4小时', rating: 4.9, chapters: 28, visible: true, sort: 5,
+  },
+  {
+    id: 7, title: '四十二章经', shortTitle: '四十二章经', author: '摄摩腾、竺法兰 共译',
+    category: 'chan', label: '禅宗',
+    cover: 'https://images.unsplash.com/photo-1571907483089-3c4e6e1c4f3c?w=400&q=80',
+    coverColor: '#6d4c32',
+    desc: '中国第一部汉译佛经，42段精简教诲，适合初学入门。',
+    readingCount: 3824, noteCount: 89, readTime: '20分钟', rating: 4.7, chapters: 42, visible: true, sort: 6,
+  },
+  {
+    id: 8, title: '梵网经菩萨戒本', shortTitle: '梵网经', author: '鸠摩罗什 译',
+    category: 'vinaya', label: '律典',
+    cover: 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=400&q=80',
+    coverColor: '#4a5a8b',
+    desc: '大乘菩萨戒根本经典，十重四十八轻戒，发菩提心之基。',
+    readingCount: 1823, noteCount: 67, readTime: '1.5小时', rating: 4.8, chapters: 10, visible: true, sort: 7,
+  },
+];
+
+module.exports = { PILGRIMAGE_SITES, WUHAN_RESTAURANTS, VEGAN_RECIPES, FORUM_POSTS, SUTRAS };

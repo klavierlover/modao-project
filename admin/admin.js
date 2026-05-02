@@ -1146,10 +1146,11 @@ function bindEvents() {
   $('save-settings-btn').onclick = saveSettings;
 
   // Hub
-  $('hub-new-btn').onclick = () => openPublisher(null, 'site');
-  $('reload-btn').onclick  = loadAllContent;
-  $('hub-search').oninput  = e => { state.hubSearch = e.target.value; renderHub(); };
-  $('seed-btn').onclick    = seedInitialData;
+  $('hub-new-btn').onclick     = () => openPublisher(null, 'site');
+  $('reload-btn').onclick      = loadAllContent;
+  $('hub-search').oninput      = e => { state.hubSearch = e.target.value; renderHub(); };
+  $('seed-btn').onclick        = seedInitialData;
+  $('seed-library-btn').onclick = seedLibraryData;
 
   // Filter pills
   $('filter-pills').querySelectorAll('.pill').forEach(p => {
@@ -1259,7 +1260,7 @@ async function seedInitialData() {
   }
 
   const ok = await confirmDialog(
-    '将把前端现有的 8 个朝圣地点、12 家素食餐厅、4 个菜谱、8 条论坛帖子导入数据库。\n\n如后台已有数据，此操作将被拒绝（防止重复导入）。确认继续？',
+    '将把前端现有的 8 个朝圣地点、12 家素食餐厅、4 个菜谱、8 条论坛帖子、8 部佛经导入数据库。\n\n如后台已有朝圣数据，此操作将被拒绝（防止重复导入）。确认继续？',
     '📥 导入初始数据',
     '确认导入'
   );
@@ -1281,6 +1282,37 @@ async function seedInitialData() {
     } else {
       showToast(`导入失败：${err.message}`, true);
     }
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   单独导入书库
+   ═══════════════════════════════════════════════ */
+async function seedLibraryData() {
+  const role = state.profile?.role;
+  if (role !== 'owner') { showToast('只有 owner 角色可以执行数据导入', true); return; }
+
+  const ok = await confirmDialog(
+    '将导入 8 部初始佛经（心经、金刚经、阿弥陀经等）到书库。\n\n此操作会覆盖现有书库数据，确认继续？',
+    '📚 导入书库数据',
+    '确认导入'
+  );
+  if (!ok) return;
+
+  const btn = $('seed-library-btn');
+  setLoading(btn, true);
+  try {
+    const data = await api('/api/admin/seed', {
+      method: 'POST',
+      headers: { ...authHdr(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ libraryOnly: true }),
+    });
+    showToast(data.message || '书库导入成功！');
+    await loadAllContent();
+  } catch (err) {
+    showToast(`导入失败：${err.message}`, true);
   } finally {
     setLoading(btn, false);
   }

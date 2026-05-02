@@ -15,7 +15,7 @@
 const { getSupabaseAdmin } = require('./_lib/supabase');
 const { cors, sendJson, readJsonBody } = require('./_lib/http');
 const { requireRole } = require('./_lib/auth');
-const { PILGRIMAGE_SITES, WUHAN_RESTAURANTS, VEGAN_RECIPES, FORUM_POSTS } = require('./_lib/seed-data');
+const { PILGRIMAGE_SITES, WUHAN_RESTAURANTS, VEGAN_RECIPES, FORUM_POSTS, SUTRAS } = require('./_lib/seed-data');
 
 /* ─── 子路由提取 ─── */
 function getSubRoute(req) {
@@ -324,9 +324,26 @@ async function handleSeed(req, res) {
     if (!auth.ok) return sendJson(res, auth.status, { ok: false, error: auth.message });
     const supabase = getSupabaseAdmin();
 
-    const { data: existing } = await supabase.from('content_blocks').select('id')
+    const body = await readJsonBody(req).catch(() => ({}));
+    const libraryOnly = body.libraryOnly === true;
+
+    const { data: existingPilgrimage } = await supabase.from('content_blocks').select('id')
       .eq('module_key', 'pilgrimage').eq('block_key', 'module_root').eq('status', 'draft').maybeSingle();
-    if (existing) return sendJson(res, 409, { ok: false, error: '后台已存在朝圣数据，无需重复导入。若需强制重置，请直接在 Supabase 控制台操作。' });
+
+    // 仅导入书库模式：只处理 library，跳过其他模块
+    if (libraryOnly) {
+      const now = new Date().toISOString();
+      const userId = auth.user.id;
+      const { error: libErr } = await supabase.from('content_blocks').upsert({
+        module_key: 'library', block_key: 'module_root',
+        payload: { sutras: SUTRAS }, status: 'draft', updated_by: userId, updated_at: now,
+      }, { onConflict: 'module_key,block_key,status' });
+      if (libErr) throw new Error('佛学书库写入失败: ' + libErr.message);
+      await publishModule(supabase, 'library', userId, '书库初始数据导入');
+      return sendJson(res, 200, { ok: true, message: `成功导入并发布 ${SUTRAS.length} 部佛经`, counts: { sutras: SUTRAS.length } });
+    }
+
+    if (existingPilgrimage) return sendJson(res, 409, { ok: false, error: '后台已存在朝圣数据，无需重复导入。若需单独导入书库，请点击「仅导入书库」。' });
 
     const now = new Date().toISOString();
     const userId = auth.user.id;
@@ -353,14 +370,22 @@ async function handleSeed(req, res) {
     const { error: forumErr } = await supabase.from('articles').upsert(forumArticles, { onConflict: 'module_key,slug,status' });
     if (forumErr) throw new Error('论坛帖子写入失败: ' + forumErr.message);
 
+    // 佛学书库
+    const { error: libraryErr } = await supabase.from('content_blocks').upsert({
+      module_key: 'library', block_key: 'module_root',
+      payload: { sutras: SUTRAS }, status: 'draft', updated_by: userId, updated_at: now,
+    }, { onConflict: 'module_key,block_key,status' });
+    if (libraryErr) throw new Error('佛学书库写入失败: ' + libraryErr.message);
+
     await publishModule(supabase, 'pilgrimage', userId, notes);
     await publishModule(supabase, 'vegan', userId, notes);
     await publishModule(supabase, 'forum', userId, notes);
+    await publishModule(supabase, 'library', userId, notes);
 
     return sendJson(res, 200, {
       ok: true,
-      message: `成功导入并发布：${PILGRIMAGE_SITES.length} 个朝圣地点、${WUHAN_RESTAURANTS.length} 家素食餐厅、${VEGAN_RECIPES.length} 个菜谱、${FORUM_POSTS.length} 条论坛帖子`,
-      counts: { sites: PILGRIMAGE_SITES.length, restaurants: WUHAN_RESTAURANTS.length, recipes: VEGAN_RECIPES.length, forum: FORUM_POSTS.length },
+      message: `成功导入并发布：${PILGRIMAGE_SITES.length} 个朝圣地点、${WUHAN_RESTAURANTS.length} 家素食餐厅、${VEGAN_RECIPES.length} 个菜谱、${FORUM_POSTS.length} 条论坛帖子、${SUTRAS.length} 部佛经`,
+      counts: { sites: PILGRIMAGE_SITES.length, restaurants: WUHAN_RESTAURANTS.length, recipes: VEGAN_RECIPES.length, forum: FORUM_POSTS.length, sutras: SUTRAS.length },
     });
   } catch (err) {
     console.error('[seed] error:', err);
