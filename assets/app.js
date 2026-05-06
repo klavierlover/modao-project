@@ -996,6 +996,13 @@ async function authedFetchJson(url, options = {}) {
       resp = await fetch(url, { ...options, headers });
     }
   }
+  // 刷新后仍为 401，说明登录态彻底失效，自动清除 session 并弹出登录框
+  if (resp.status === 401) {
+    handleSessionExpired();
+    const err = new Error('登录已过期，请重新登录');
+    err.sessionExpired = true;
+    throw err;
+  }
   const data = await resp.json().catch(() => ({}));
   if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
   return data;
@@ -1134,6 +1141,14 @@ async function logoutUser() {
   renderPracticeTasks();
   document.getElementById('user-menu')?.classList.remove('open');
   showToast('已退出登录');
+}
+function handleSessionExpired() {
+  localStorage.removeItem(SESSION_STORAGE_KEY);
+  App.userProfile = null;
+  App.practiceTasks = [];
+  renderAuthState();
+  renderPracticeTasks();
+  openAuthModal();
 }
 function toggleUserMenu() {
   document.getElementById('user-menu')?.classList.toggle('open');
@@ -3386,7 +3401,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     try {
       await syncUserProfile();
     } catch (err) {
-      showToast(`用户数据同步失败：${err.message}`);
+      if (!err.sessionExpired) showToast(`用户数据同步失败：${err.message}`);
     }
   }
   // 优先使用 Supabase Realtime 订阅 publish_versions 变更，
