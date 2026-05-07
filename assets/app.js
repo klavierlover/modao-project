@@ -3656,4 +3656,12 @@ Object.assign(window, {
   updatePracticeProgressPrompt,
   editPracticeContent,
   deletePracticeTask,
+  openSearch,
+  closeSearch,
+  executeSearch,
+  openMsgPanel,
+  closeMsgPanel,
+  readMsg,
+  markAllMsgRead,
+  toggleForumSort,
 });
