@@ -1047,7 +1047,26 @@ function executeSearch(query) {
   const container = document.getElementById('search-results');
   if (!container) return;
   if (!q) {
-    container.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--ink-40)">输入关键词开始搜索</div>';
+    const hotWords = ['心经', '禅修', '朝圣', '金刚经', '素食', '五台山', '打坐', '楞严经'];
+    container.innerHTML = `
+      <div style="padding:20px 18px 8px">
+        <div class="search-section-title" style="padding:0 0 10px">热门搜索</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          ${hotWords.map(w => `<span onclick="document.getElementById('search-input').value='${w}';executeSearch('${w}')"
+            style="padding:5px 14px;border-radius:20px;background:var(--paper-warm);font-size:13px;cursor:pointer;border:1px solid var(--ink-10)">${w}</span>`).join('')}
+        </div>
+      </div>
+      <div style="padding:16px 18px 8px;border-top:1px solid var(--ink-5);margin-top:8px">
+        <div class="search-section-title" style="padding:0 0 10px">快捷入口</div>
+        <div style="display:flex;gap:10px">
+          ${[['📝','论坛','forum'],['📖','书库','library'],['🗺️','朝圣','pilgrim'],['🥬','茹素','vegan']].map(([icon,label,page]) =>
+            `<div onclick="closeSearch();showPage('${page}')"
+              style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;background:var(--paper-warm);cursor:pointer;border:1px solid var(--ink-10)">
+              <div style="font-size:22px">${icon}</div>
+              <div style="font-size:12px;margin-top:4px;color:var(--ink-60)">${label}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
     return;
   }
   const ql = q.toLowerCase();
