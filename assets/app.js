@@ -1030,6 +1030,123 @@ function openAuthModal(forceRegister = false) {
 function closeAuthModal() {
   document.getElementById('auth-overlay')?.classList.remove('open');
 }
+
+// ── 全局搜索 ──────────────────────────────────────────────
+function openSearch() {
+  document.getElementById('search-overlay').classList.add('open');
+  const input = document.getElementById('search-input');
+  input.value = '';
+  setTimeout(() => input.focus(), 120);
+  executeSearch('');
+}
+function closeSearch() {
+  document.getElementById('search-overlay').classList.remove('open');
+}
+function executeSearch(query) {
+  const q = (query || '').trim();
+  const container = document.getElementById('search-results');
+  if (!container) return;
+  if (!q) {
+    container.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--ink-40)">输入关键词开始搜索</div>';
+    return;
+  }
+  const ql = q.toLowerCase();
+  const forum = (window.FORUM_POSTS || [])
+    .filter(p => p.title?.includes(q) || (p.excerpt||'').toLowerCase().includes(ql) || p.section?.includes(q))
+    .slice(0, 5);
+  const sutras = (window.SUTRAS || [])
+    .filter(s => s.title?.includes(q) || s.shortTitle?.includes(q) || (s.author||'').includes(q) || (s.desc||'').includes(q))
+    .slice(0, 4);
+  const pilgrim = (window.PILGRIMAGE_SITES || [])
+    .filter(s => s.name?.includes(q) || s.region?.includes(q) || (s.tags||[]).some(t=>t.includes(q)) || (s.desc||'').includes(q))
+    .slice(0, 4);
+  let html = '';
+  if (forum.length) {
+    html += `<div class="search-section-title">论坛帖子</div>`;
+    html += forum.map(p => `
+      <div class="search-result-item" onclick="closeSearch();showPage('forum');setTimeout(()=>openForumPost(${p.id}),300)">
+        <span style="font-size:20px">📝</span>
+        <div><div class="search-result-title">${p.title}</div>
+        <div class="search-result-sub">${p.section}</div></div>
+      </div>`).join('');
+  }
+  if (sutras.length) {
+    html += `<div class="search-section-title">佛学书库</div>`;
+    html += sutras.map(s => `
+      <div class="search-result-item" onclick="closeSearch();showPage('library');setTimeout(()=>openReader(${s.id}),300)">
+        <span style="font-size:20px">📖</span>
+        <div><div class="search-result-title">${s.title}</div>
+        <div class="search-result-sub">${s.author} · ${s.label}</div></div>
+      </div>`).join('');
+  }
+  if (pilgrim.length) {
+    html += `<div class="search-section-title">朝圣圣地</div>`;
+    html += pilgrim.map(s => `
+      <div class="search-result-item" onclick="closeSearch();showPage('pilgrim');setTimeout(()=>openSiteDetail(${s.id}),300)">
+        <span style="font-size:20px">🗺️</span>
+        <div><div class="search-result-title">${s.name}</div>
+        <div class="search-result-sub">${s.region}</div></div>
+      </div>`).join('');
+  }
+  if (!html) {
+    html = `<div style="text-align:center;padding:48px 20px;color:var(--ink-40)">未找到「${q}」相关内容</div>`;
+  }
+  container.innerHTML = html;
+}
+
+// ── 消息通知 ──────────────────────────────────────────────
+const MSG_READ_KEY = 'modao_msg_read';
+const SYSTEM_MSGS = [
+  { id: 'msg1', icon: '🪷', title: '欢迎加入莫道修行社区', desc: '愿您在此找到内心的宁静与智慧之路。', time: '今日' },
+  { id: 'msg2', icon: '📖', title: '新增佛学书库功能', desc: '金刚经、楞严经等 10 部经典已上线，欢迎阅读。', time: '2天前' },
+  { id: 'msg3', icon: '🔔', title: '每日功课提醒', desc: '坚持修行，功不唐捐。今日功课待完成。', time: '今日' },
+  { id: 'msg4', icon: '🗺️', title: '朝圣地图新增圣地', desc: '新增五台山、峨眉山等朝圣圣地详情。', time: '3天前' },
+  { id: 'msg5', icon: '✨', title: '论坛「朝圣分享」专区开放', desc: '欢迎分享您的朝圣故事，与同修共勉。', time: '1周前' },
+];
+function _getMsgReadSet() {
+  try { return new Set(JSON.parse(localStorage.getItem(MSG_READ_KEY) || '[]')); } catch { return new Set(); }
+}
+function _saveMsgReadSet(set) {
+  localStorage.setItem(MSG_READ_KEY, JSON.stringify([...set]));
+}
+function _updateMsgDot() {
+  const readSet = _getMsgReadSet();
+  const hasUnread = SYSTEM_MSGS.some(m => !readSet.has(m.id));
+  document.getElementById('msg-btn')?.classList.toggle('icon-btn-dot', hasUnread);
+}
+function openMsgPanel() {
+  document.getElementById('msg-overlay').classList.add('open');
+  const readSet = _getMsgReadSet();
+  const html = SYSTEM_MSGS.map(m => `
+    <div class="msg-item ${readSet.has(m.id) ? '' : 'unread'}" onclick="readMsg('${m.id}')">
+      <div class="msg-item-icon">${m.icon}</div>
+      <div class="msg-item-body">
+        <div class="msg-item-title">${m.title}</div>
+        <div class="msg-item-desc">${m.desc}</div>
+        <div class="msg-item-time">${m.time}</div>
+      </div>
+      ${readSet.has(m.id) ? '' : '<div class="msg-unread-dot"></div>'}
+    </div>`).join('');
+  document.getElementById('msg-list').innerHTML = html;
+}
+function closeMsgPanel() {
+  document.getElementById('msg-overlay').classList.remove('open');
+}
+function readMsg(id) {
+  const readSet = _getMsgReadSet();
+  readSet.add(id);
+  _saveMsgReadSet(readSet);
+  const el = document.querySelector(`.msg-item[onclick="readMsg('${id}')"]`);
+  el?.classList.remove('unread');
+  el?.querySelector('.msg-unread-dot')?.remove();
+  _updateMsgDot();
+}
+function markAllMsgRead() {
+  _saveMsgReadSet(new Set(SYSTEM_MSGS.map(m => m.id)));
+  openMsgPanel();
+  _updateMsgDot();
+}
+
 function selectAvatarEmoji(emoji, el) {
   registerAvatarSelection = emoji || '';
   // 更新新版预览框
@@ -2352,11 +2469,16 @@ function renderPilgrimMarkers() {
     const marker = new AMap.Marker({
       position: getPilgrimLngLat(site),
       title: site.name,
-      offset: new AMap.Pixel(-12, -30),
+      offset: new AMap.Pixel(-14, -36),
+      zIndex: Math.round((90 - (site.lat || 30)) * 100),
       content: `
-        <div style="width:24px;height:30px;background:#1a1a1a;border:2px solid #c89b3c;border-radius:16px 16px 16px 0;transform:rotate(-45deg);position:relative">
-          <span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(45deg);color:#c89b3c;font-size:10px;font-weight:700">${site.id}</span>
-        </div>`,
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36"
+             style="cursor:pointer;filter:drop-shadow(0 2px 5px rgba(0,0,0,.55))">
+          <path d="M14 0C6.3 0 0 6.3 0 14c0 9.8 14 22 14 22s14-12.2 14-22C28 6.3 21.7 0 14 0z"
+                fill="#c89b3c" stroke="#1a1a1a" stroke-width="1.5"/>
+          <text x="14" y="18" text-anchor="middle" fill="#1a1a1a"
+                font-size="10" font-weight="800" font-family="sans-serif">${site.id}</text>
+        </svg>`,
     });
     marker.on('click', () => openSiteDetail(site.id));
     marker.setMap(PilgrimState.map);
@@ -2889,6 +3011,13 @@ function buildForumCard(p) {
     </div>`;
 }
 
+let _forumSort = 'latest'; // 'latest' | 'hot'
+function toggleForumSort(btn) {
+  _forumSort = _forumSort === 'latest' ? 'hot' : 'latest';
+  if (btn) btn.textContent = _forumSort === 'hot' ? '🕐 最新' : '🔥 最热';
+  renderForum();
+}
+
 async function renderForum() {
   const masonry = document.getElementById('forum-masonry');
   if (!masonry) return;
@@ -2923,12 +3052,22 @@ async function renderForum() {
   // 合并硬编码 + 用户投稿
   const allPosts = [...ugcPosts, ...(window.FORUM_POSTS || [])];
 
-  if (!allPosts.length) {
-    masonry.innerHTML = `<div style="text-align:center;padding:60px;color:var(--ink-40)">暂无帖子，来发第一篇吧 ✍️</div>`;
+  // 分类筛选
+  const activeChip = document.querySelector('.forum-filter-bar .chip.active');
+  const category = activeChip?.textContent?.trim() || '全部';
+  const filtered = category === '全部' ? allPosts : allPosts.filter(p => p.section === category);
+
+  // 排序
+  const sorted = _forumSort === 'hot'
+    ? [...filtered].sort((a, b) => (b.likes || 0) - (a.likes || 0))
+    : filtered;
+
+  if (!sorted.length) {
+    masonry.innerHTML = `<div style="text-align:center;padding:60px;color:var(--ink-40)">该分类暂无帖子，来发第一篇吧 ✍️</div>`;
     return;
   }
 
-  masonry.innerHTML = allPosts.map(buildForumCard).join('');
+  masonry.innerHTML = sorted.map(buildForumCard).join('');
 }
 
 function openForumPost(id) {
@@ -3396,6 +3535,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }, true);
   renderAuthState();
   renderPracticeTasks();
+  _updateMsgDot();
   const session = readSession();
   if (session?.mode === 'user' && session?.accessToken) {
     try {

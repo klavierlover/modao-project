@@ -34,8 +34,8 @@
   </div>
 
   <div class="nav-right">
-    <button class="icon-btn" title="搜索"  onclick="showToast('搜索功能即将上线')">🔍</button>
-    <button class="icon-btn icon-btn-dot" title="消息" onclick="showToast('您有 3 条新消息')">💬</button>
+    <button class="icon-btn" title="搜索" onclick="openSearch()">🔍</button>
+    <button class="icon-btn icon-btn-dot" id="msg-btn" title="消息" onclick="openMsgPanel()">💬</button>
     <button class="auth-status-btn" id="auth-status-btn" onclick="openAuthModal()">未登录</button>
     <div class="avatar-btn" id="user-avatar-btn" onclick="toggleUserMenu()" title="我的" style="display:none">
       <img id="user-avatar-img" src="https://images.unsplash.com/photo-1494790108755-2616c7e0c8ca?w=80&q=80" alt="我的">
@@ -355,6 +355,33 @@
   </div>
 </div>
 
+<!-- 搜索面板 -->
+<div class="modal-overlay" id="search-overlay" onclick="if(event.target===this)closeSearch()">
+  <div class="search-panel">
+    <div class="search-header">
+      <span class="search-icon-label">🔍</span>
+      <input type="text" id="search-input" class="search-input-field"
+             placeholder="搜索论坛、书库、朝圣地…" oninput="executeSearch(this.value)">
+      <button class="modal-close" onclick="closeSearch()">✕</button>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+
+<!-- 消息通知面板 -->
+<div class="modal-overlay" id="msg-overlay" onclick="if(event.target===this)closeMsgPanel()">
+  <div class="msg-panel">
+    <div class="msg-panel-header">
+      <span style="font-weight:700;font-size:16px">消息通知</span>
+      <button class="modal-close" onclick="closeMsgPanel()">✕</button>
+    </div>
+    <div id="msg-list" class="msg-list"></div>
+    <div class="msg-panel-footer">
+      <button onclick="markAllMsgRead()">全部标为已读</button>
+    </div>
+  </div>
+</div>
+
 <!-- 阅读器 Modal -->
 <div class="modal-overlay" id="reader-overlay" onclick="if(event.target===this)closeReader()">
   <div class="modal reader-modal">
@@ -668,7 +695,7 @@
         <div class="page-subtitle">COMMUNITY · 同修交流</div>
       </div>
       <div style="display:flex;gap:10px">
-        <button class="btn btn-outline" onclick="showToast('切换排序')">🔥 最热</button>
+        <button class="btn btn-outline" id="forum-sort-btn" onclick="toggleForumSort(this)">🔥 最热</button>
         <button class="btn btn-primary" onclick="openNewPost('forum')">✍️ 发帖</button>
       </div>
     </div>
@@ -676,12 +703,12 @@
     <!-- 分类筛选 -->
     <div class="forum-filter-bar">
       <button class="chip active" onclick="setChip(this);renderForum()">全部</button>
-      <button class="chip" onclick="setChip(this)">修法心得</button>
-      <button class="chip" onclick="setChip(this)">经典讨论</button>
-      <button class="chip" onclick="setChip(this)">朝圣分享</button>
-      <button class="chip" onclick="setChip(this)">素食推荐</button>
-      <button class="chip" onclick="setChip(this)">问道解惑</button>
-      <button class="chip" onclick="setChip(this)">生活禅</button>
+      <button class="chip" onclick="setChip(this);renderForum()">修法心得</button>
+      <button class="chip" onclick="setChip(this);renderForum()">经典讨论</button>
+      <button class="chip" onclick="setChip(this);renderForum()">朝圣分享</button>
+      <button class="chip" onclick="setChip(this);renderForum()">素食推荐</button>
+      <button class="chip" onclick="setChip(this);renderForum()">问道解惑</button>
+      <button class="chip" onclick="setChip(this);renderForum()">生活禅</button>
     </div>
 
     <!-- 瀑布流内容 -->
