@@ -2292,7 +2292,8 @@ const PilgrimState = {
 const VeganMapState = {
   map: null,
   marker: null,
-  listMarkers: [],
+  listMarkers: new Map(), // id → AMap.Marker
+  activeMarkerId: null,   // 当前被隐藏的金色列表标记 id
 };
 
 function getPilgrimLngLat(site) {
@@ -2423,10 +2424,14 @@ function initVeganAmap() {
 }
 
 function veganClearListMarkers() {
-  if (!VeganMapState.listMarkers.length) return;
+  if (!VeganMapState.listMarkers.size) return;
   VeganMapState.listMarkers.forEach(m => m.setMap(null));
-  VeganMapState.listMarkers = [];
+  VeganMapState.listMarkers = new Map();
+  VeganMapState.activeMarkerId = null;
 }
+
+const VEGAN_PIN_GOLD = `<div style="width:20px;height:28px;background:#c89b3c;border:2px solid #1a1a1a;border-radius:12px 12px 12px 0;transform:rotate(-45deg);box-shadow:0 3px 10px rgba(0,0,0,.28)"></div>`;
+const VEGAN_PIN_RED  = `<div style="width:24px;height:34px;background:#a0312c;border:2.5px solid #fff;border-radius:14px 14px 14px 0;transform:rotate(-45deg);box-shadow:0 4px 14px rgba(0,0,0,.4)"></div>`;
 
 function veganRenderMapPins(list) {
   if (!VeganMapState.map || !window.AMap) return;
@@ -2437,11 +2442,11 @@ function veganRenderMapPins(list) {
       title: r.name,
       offset: new AMap.Pixel(-10, -28),
       zIndex: 90,
-      content: `<div style="width:20px;height:28px;background:#c89b3c;border:2px solid #1a1a1a;border-radius:12px 12px 12px 0;transform:rotate(-45deg);box-shadow:0 3px 10px rgba(0,0,0,.28)"></div>`,
+      content: VEGAN_PIN_GOLD,
     });
     marker.on('click', () => veganOpenDetail(r.id));
     marker.setMap(VeganMapState.map);
-    VeganMapState.listMarkers.push(marker);
+    VeganMapState.listMarkers.set(r.id, marker);
   });
 }
 
@@ -2734,6 +2739,13 @@ function veganOpenDetail(id){
   document.getElementById('vegan-rest-view')?.classList.add('detail-open');
   adaptVeganHeroTextColor();
   veganRenderList();
+  // 将上一个选中标记复原为金色
+  if (VeganMapState.activeMarkerId !== null && VeganMapState.activeMarkerId !== id) {
+    VeganMapState.listMarkers.get(VeganMapState.activeMarkerId)?.setContent(VEGAN_PIN_GOLD);
+  }
+  // 把当前标记变为红色（原地变色，无第二个标记）
+  VeganMapState.listMarkers.get(id)?.setContent(VEGAN_PIN_RED);
+  VeganMapState.activeMarkerId = id;
   veganUpdateMap(r.lat,r.lng);
 }
 
@@ -2782,30 +2794,19 @@ function veganCloseDetail(){
 
 function veganUpdateMap(lat,lng){
   ensureVeganMap();
-  if (!VeganMapState.map || !window.AMap) return;
-  const pos = [lng, lat];
-  VeganMapState.map.setZoomAndCenter(14, pos, true);
-  if (!VeganMapState.marker) {
-    VeganMapState.marker = new AMap.Marker({
-      position: pos,
-      zIndex: 120,
-      content: `<div style="width:24px;height:34px;background:#a0312c;border:2px solid #fff;border-radius:14px 14px 14px 0;transform:rotate(-45deg);box-shadow:0 4px 14px rgba(0,0,0,.35)"></div>`,
-    });
-    VeganMapState.marker.setMap(VeganMapState.map);
-  } else {
-    VeganMapState.marker.setPosition(pos);
-  }
+  if (!VeganMapState.map) return;
+  VeganMapState.map.setZoomAndCenter(14, [lng, lat], true);
 }
 
 function veganResetMap(){
   ensureVeganMap();
   if (VeganMapState.map) {
     VeganMapState.map.setZoomAndCenter(11, [114.3055, 30.5628], true);
-    if (VeganMapState.marker) {
-      VeganMapState.marker.setMap(null);
-      VeganMapState.marker = null;
+    // 把选中标记还原为金色
+    if (VeganMapState.activeMarkerId !== null) {
+      VeganMapState.listMarkers.get(VeganMapState.activeMarkerId)?.setContent(VEGAN_PIN_GOLD);
+      VeganMapState.activeMarkerId = null;
     }
-    veganRenderMapPins(veganGetFiltered());
   }
 }
 
