@@ -2975,8 +2975,9 @@ nav {
 }
 .vegan-detail-panel .vdp-close {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 14px;
+  right: 16px;
+  left: auto;
   z-index: 10;
   width: 34px;
   height: 34px;
