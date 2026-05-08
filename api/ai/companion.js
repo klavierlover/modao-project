@@ -1,8 +1,10 @@
 const { cors, sendJson, readJsonBody } = require('../_lib/http');
 const { requireUser } = require('../_lib/auth');
 
-const DEFAULT_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
-const DEFAULT_BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/chat/completions';
+const DEFAULT_DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+const DEFAULT_DEEPSEEK_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/chat/completions';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 // 速率限制：登录用户每分钟 20 次，游客（IP）每分钟 5 次
 const RATE_LIMIT_USER = 20;
@@ -31,6 +33,82 @@ function getClientIp(req) {
   );
 }
 
+/**
+ * 将 OpenAI 格式的 messages 转换为 Gemini contents 格式
+ * system 消息提取为 systemInstruction
+ */
+function toGeminiContents(messages) {
+  const systemParts = [];
+  const contents = [];
+
+  for (const msg of messages) {
+    if (msg.role === 'system') {
+      systemParts.push({ text: msg.content || '' });
+    } else {
+      const role = msg.role === 'assistant' ? 'model' : 'user';
+      contents.push({ role, parts: [{ text: msg.content || '' }] });
+    }
+  }
+
+  return { systemParts, contents };
+}
+
+/**
+ * 调用 Gemini API，返回文本字符串（失败时 throw）
+ */
+async function callGemini(messages, temperature, apiKey) {
+  const { systemParts, contents } = toGeminiContents(messages);
+  const url = `${GEMINI_BASE_URL}/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+
+  const body = {
+    contents,
+    generationConfig: { temperature },
+  };
+  if (systemParts.length) {
+    body.systemInstruction = { parts: systemParts };
+  }
+
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    const errMsg = data?.error?.message || `Gemini HTTP ${resp.status}`;
+    throw new Error(errMsg);
+  }
+
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (typeof text !== 'string') throw new Error('Gemini 返回格式异常');
+  return text.trim();
+}
+
+/**
+ * 调用 DeepSeek API，返回文本字符串（失败时 throw）
+ */
+async function callDeepSeek(messages, temperature, apiKey) {
+  const model = DEFAULT_DEEPSEEK_MODEL;
+  const resp = await fetch(DEFAULT_DEEPSEEK_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({ model, messages, temperature, stream: false }),
+  });
+
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    throw new Error(data?.error?.message || `DeepSeek HTTP ${resp.status}`);
+  }
+
+  const text = data?.choices?.[0]?.message?.content;
+  if (typeof text !== 'string') throw new Error('DeepSeek 返回格式异常');
+  return text.trim();
+}
+
 module.exports = async function handler(req, res) {
   cors(req, res);
   if (req.method === 'OPTIONS') return sendJson(res, 200, { ok: true });
@@ -48,33 +126,33 @@ module.exports = async function handler(req, res) {
       return sendJson(res, 429, { ok: false, error: '请求过于频繁，请稍候再试' });
     }
 
-    const key = process.env.DEEPSEEK_API_KEY || '';
-    if (!key) return sendJson(res, 500, { ok: false, error: 'Missing DEEPSEEK_API_KEY' });
-
     const body = await readJsonBody(req);
     const messages = Array.isArray(body.messages) ? body.messages : [];
     if (!messages.length) return sendJson(res, 400, { ok: false, error: 'messages is required' });
     if (messages.length > 40) return sendJson(res, 400, { ok: false, error: 'Too many messages (max 40)' });
 
-    const model = body.model || DEFAULT_MODEL;
     const temperature = Number(body.temperature ?? 0.7);
 
-    const resp = await fetch(DEFAULT_BASE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({ model, messages, temperature, stream: false }),
-    });
+    const geminiKey = process.env.GEMINI_API_KEY || '';
+    const deepseekKey = process.env.DEEPSEEK_API_KEY || '';
 
-    const data = await resp.json().catch(() => ({}));
-    if (!resp.ok) {
-      return sendJson(res, resp.status, { ok: false, error: data?.error?.message || `DeepSeek HTTP ${resp.status}` });
+    // 优先使用 Gemini（免费），失败时降级到 DeepSeek
+    if (geminiKey) {
+      try {
+        const text = await callGemini(messages, temperature, geminiKey);
+        return sendJson(res, 200, { ok: true, text, provider: 'gemini' });
+      } catch (geminiErr) {
+        console.error('[companion] Gemini failed, falling back to DeepSeek:', geminiErr.message);
+        // 继续尝试 DeepSeek
+      }
     }
 
-    const text = data?.choices?.[0]?.message?.content || '';
-    return sendJson(res, 200, { ok: true, text: String(text).trim() });
+    if (!deepseekKey) {
+      return sendJson(res, 500, { ok: false, error: '暂无可用的 AI 服务，请稍候再试' });
+    }
+
+    const text = await callDeepSeek(messages, temperature, deepseekKey);
+    return sendJson(res, 200, { ok: true, text, provider: 'deepseek' });
   } catch (err) {
     return sendJson(res, 500, { ok: false, error: err.message || 'Unexpected server error' });
   }
