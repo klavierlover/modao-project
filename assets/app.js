@@ -872,16 +872,30 @@ function initImmersivePages() {
       <div class="immersive-hero-inner">
         <div class="immersive-hero-title">${conf.title}</div>
         <div class="immersive-hero-quote">${conf.quote}</div>
-        <div class="immersive-hero-hint">点击任意处或向下滚动进入</div>
+        <div class="immersive-hero-hint">点击任意处 · 上划或滚动进入</div>
       </div>
     `;
 
     hero.addEventListener('click', () => collapseImmersivePage(page, true));
+
+    // 鼠标滚轮（桌面）
     pageEl.addEventListener('wheel', (e) => {
       if (!pageEl.classList.contains('immersive-open')) return;
       e.preventDefault();
       collapseImmersivePage(page, true);
     }, { passive: false });
+
+    // 触摸上划（手机）
+    let _touchY = 0;
+    pageEl.addEventListener('touchstart', (e) => {
+      if (!pageEl.classList.contains('immersive-open')) return;
+      _touchY = e.touches[0].clientY;
+    }, { passive: true });
+    pageEl.addEventListener('touchend', (e) => {
+      if (!pageEl.classList.contains('immersive-open')) return;
+      const dy = _touchY - e.changedTouches[0].clientY;
+      if (dy > 40) collapseImmersivePage(page, true);
+    }, { passive: true });
 
     pageEl.classList.add('with-immersive');
     pageEl.appendChild(hero);

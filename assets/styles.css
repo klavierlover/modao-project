@@ -860,13 +860,152 @@ nav {
 .mt-8 { margin-top: 32px; }
 .hidden { display: none !important; }
 
-/* Media */
+/* ══════════════════════════════════════════════════════════
+   移动端全局样式 — 与桌面版保持同等质感与字体
+══════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  nav { padding: 0 16px; }
-  .nav-tabs { gap: 0; }
-  .nav-tab { padding: 6px 10px; font-size: 12px; }
+
+  /* ── 导航栏 ── */
+  nav {
+    padding: 0 12px;
+    height: 52px;
+    gap: 8px;
+  }
+  .nav-logo { gap: 7px; }
+  .logo-mark { width: 26px; height: 26px; }
+  .nav-title { font-size: 18px !important; letter-spacing: 0.5px !important; }
+  .nav-sub   { font-size: 8px !important; letter-spacing: 2px !important; }
+
+  /* 导航 tab 横向可滚动，视觉不显示滚动条 */
+  .nav-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0;
+    flex-shrink: 1;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    padding: 5px 11px;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .nav-right { gap: 2px; flex-shrink: 0; }
+  .icon-btn  { width: 32px; height: 32px; font-size: 14px; }
+  .auth-status-btn {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  .user-avatar-btn { width: 30px; height: 30px; }
+
+  /* ── nav 高度同步到全局变量 ── */
+  :root { --nav-h: 52px; }
+
+  /* ── 容器 ── */
   .container { padding: 0 16px; }
+
+  /* ── 沉浸式入场页 Hero（核心动效）── */
+  .page.with-immersive .immersive-hero-title {
+    font-size: clamp(44px, 14vw, 64px);
+  }
+  .page.with-immersive .immersive-hero-quote {
+    font-size: clamp(15px, 4.5vw, 22px);
+    padding: 0 20px;
+    text-align: center;
+  }
+  .page.with-immersive .immersive-hero-hint {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+  }
+  /* 折叠后 header */
+  .page.with-immersive.immersive-collapsed .immersive-hero {
+    height: 110px;
+  }
+  .page.with-immersive.immersive-collapsed .immersive-hero-title {
+    font-size: clamp(32px, 10vw, 46px);
+  }
+  .page.with-immersive.immersive-collapsed .immersive-hero-inner {
+    padding: 14px 18px;
+    gap: 4px;
+  }
+
+  /* ── 首页 Hero Banner ── */
+  .hero-wrap { padding: 16px 16px 36px; }
+  .hero-banner {
+    height: 340px;
+    border-radius: 18px;
+  }
+  .hero-content { padding: 22px 22px 28px; }
+  .hero-title   { font-size: 52px; letter-spacing: 2px; }
+  .hero-desc    { font-size: 13px; margin-bottom: 22px; }
+  .hero-cta     { gap: 10px; }
+  .hero-banner-meta { top: 20px; right: 20px; }
+  .hero-banner-meta .meta-val { font-size: 20px !important; }
+  #home-tibetan-date { font-size: 17px !important; }
+
+  /* ── 快速入口宫格 ── */
+  .quick-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .quick-item { border-radius: 14px; }
+  .quick-icon { font-size: 28px; }
+  .quick-label { font-size: 12px; }
+
+  /* ── 首页卡片区 ── */
+  .section-title-row h2 { font-size: 18px; }
+  .section-card { padding: 18px; border-radius: 16px; }
+
+  /* ── 今日功课 ── */
+  .daily-card { padding: 20px; border-radius: 16px; }
+  .daily-card-date { font-size: 20px; }
+  .daily-stats-row { gap: 12px; }
+  .daily-stat-val  { font-size: 22px; }
+  .daily-stat-label { font-size: 10px; }
+
+  /* ── 同修精选 Masonry ── */
+  .masonry { column-count: 1; gap: 12px; }
+  .masonry-item { border-radius: 14px; margin-bottom: 12px; }
+
+  /* ── 标题组 ── */
   .page-title-group h1 { font-size: 28px; }
+
+  /* ── 修法伴侣 ── */
+  .companion-page { padding: 16px; gap: 16px; }
+  .chat-history { padding: 12px; gap: 10px; }
+  .msg-bubble   { font-size: 14px; line-height: 1.7; }
+  .chat-input-wrap { padding: 10px 14px; }
+
+  /* ── 佛学书库 ── */
+  .library-hero { padding: 24px 20px; }
+  .library-hero-title { font-size: clamp(26px, 8vw, 36px); }
+  .library-container  { padding: 16px; }
+  .sutra-card { padding: 14px; }
+
+  /* ── 修行计数 ── */
+  .counter-page   { padding: 16px; }
+  .counter-circle { width: clamp(160px, 50vw, 220px); height: clamp(160px, 50vw, 220px); }
+  .counter-num    { font-size: clamp(48px, 14vw, 72px); }
+
+  /* ── 朝圣 ── */
+  .pilgrim-layout { grid-template-columns: 1fr; }
+  .pilgrim-sidebar { height: 48vw; min-height: 200px; }
+  .pilgrim-site-card { padding: 14px; }
+
+  /* ── 论坛 ── */
+  .forum-page    { padding: 16px; }
+  .forum-masonry { column-count: 1; }
+  .forum-post    { border-radius: 14px; margin-bottom: 12px; }
+
+  /* ── 模态框 ── */
+  .modal-box { width: 94%; border-radius: 20px; }
+  .auth-modal { width: 94%; }
+}
+
+/* 极小屏（≤390px）额外修正 */
+@media (max-width: 390px) {
+  .nav-title { font-size: 16px !important; }
+  .hero-title { font-size: 40px; }
+  .quick-grid { grid-template-columns: repeat(2, 1fr); }
+  .nav-tab { padding: 5px 8px; font-size: 11px; }
 }
 /* ===== 首页 Hero ===== */
 .hero-wrap {
