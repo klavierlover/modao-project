@@ -1621,6 +1621,7 @@ nav {
   padding: 24px;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   gap: 16px;
   background: var(--paper);
 }
@@ -4344,5 +4345,41 @@ nav {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+  }
+}
+
+/* ══ 修法伴侣：手机端聊天布局优化 ══ */
+@media (max-width: 768px) {
+  /* 聊天主区填满页面高度 */
+  #page-companion .chat-main {
+    height: calc(100vh - var(--nav-h));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  /* 顶栏更紧凑 */
+  #page-companion .chat-topbar {
+    padding: 10px 16px !important;
+    flex-shrink: 0;
+  }
+  /* 消息区：弹性填充，消息从底部往上排列 */
+  #page-companion .chat-messages {
+    flex: 1 !important;
+    min-height: 0 !important;
+    padding: 16px !important;
+    justify-content: flex-end !important;
+  }
+  /* 快捷回复紧贴消息下方 */
+  #page-companion .quick-replies-row {
+    flex-shrink: 0;
+    padding: 8px 12px !important;
+    border-top: 0.5px solid var(--border);
+    background: var(--surface);
+  }
+  /* 输入框紧贴底部 */
+  #page-companion .chat-input-wrap {
+    flex-shrink: 0;
+    padding: 10px 12px 14px !important;
+    background: var(--surface);
   }
 }
