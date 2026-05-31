@@ -1,0 +1,13 @@
+{
+  "appId": "com.modao.app",
+  "appName": "莫道",
+  "webDir": "www",
+  "server": {
+    "url": "https://muodao.com",
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#faf8f4"
+  }
+}

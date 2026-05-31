@@ -867,37 +867,45 @@ nav {
 
   /* ── 导航栏 ── */
   nav {
-    padding: 0 12px;
-    height: 52px;
-    gap: 8px;
+    padding: 0 10px;
+    height: 50px;
+    gap: 6px;
   }
-  .nav-logo { gap: 7px; }
-  .logo-mark { width: 26px; height: 26px; }
-  .nav-title { font-size: 18px !important; letter-spacing: 0.5px !important; }
-  .nav-sub   { font-size: 8px !important; letter-spacing: 2px !important; }
+  /* logo 区域固定宽度，不让它挤压 tab */
+  .nav-logo {
+    gap: 5px;
+    flex-shrink: 0;
+    min-width: 0;
+  }
+  .logo-mark { width: 24px; height: 24px; flex-shrink: 0; }
+  .nav-logo-text { display: none; }   /* 手机上隐藏"莫道/MODAO"文字，只保留图标 */
 
-  /* 导航 tab 横向可滚动，视觉不显示滚动条 */
+  /* 导航 tab 横向可滚动 */
   .nav-tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 0;
-    flex-shrink: 1;
+    flex: 1 1 0;
+    min-width: 0;
   }
   .nav-tabs::-webkit-scrollbar { display: none; }
   .nav-tab {
-    padding: 5px 11px;
+    padding: 5px 10px;
     font-size: 12px;
     white-space: nowrap;
     flex-shrink: 0;
   }
-  .nav-right { gap: 2px; flex-shrink: 0; }
-  .icon-btn  { width: 32px; height: 32px; font-size: 14px; }
+
+  /* 右侧操作区紧凑 */
+  .nav-right { gap: 0; flex-shrink: 0; }
+  .icon-btn  { width: 30px; height: 30px; font-size: 13px; }
   .auth-status-btn {
     font-size: 11px;
-    padding: 4px 10px;
+    padding: 4px 8px;
+    white-space: nowrap;
   }
-  .user-avatar-btn { width: 30px; height: 30px; }
+  .user-avatar-btn { width: 28px; height: 28px; }
 
   /* ── nav 高度同步到全局变量 ── */
   :root { --nav-h: 52px; }
@@ -940,9 +948,41 @@ nav {
   .hero-title   { font-size: 52px; letter-spacing: 2px; }
   .hero-desc    { font-size: 13px; margin-bottom: 22px; }
   .hero-cta     { gap: 10px; }
-  .hero-banner-meta { top: 20px; right: 20px; }
-  .hero-banner-meta .meta-val { font-size: 20px !important; }
-  #home-tibetan-date { font-size: 17px !important; }
+  /* ── 日期区：紧凑单行显示 ── */
+  .hero-banner-meta {
+    top: 12px; right: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+  }
+  .hero-banner-meta .meta-label {
+    font-size: 9px !important;
+    letter-spacing: 1px;
+    opacity: 0.7;
+  }
+  .hero-banner-meta .meta-val {
+    font-family: 'Noto Serif SC', serif !important;
+    font-size: 13px !important;
+    margin-top: 0 !important;
+    letter-spacing: 0.3px;
+    font-weight: 300;
+  }
+  #home-tibetan-date {
+    font-family: 'Noto Serif SC', serif !important;
+    font-size: 11px !important;
+    font-weight: 300 !important;
+    opacity: .72 !important;
+  }
+
+  /* ── Hero 内容舒适排布 ── */
+  .hero-content { padding: 16px 16px 20px; }
+  .hero-title   { font-size: 44px; margin-bottom: 8px; letter-spacing: 2px; }
+  .hero-desc    { font-size: 12px; line-height: 1.65; margin-bottom: 16px;
+                  display: -webkit-box; -webkit-line-clamp: 3;
+                  -webkit-box-orient: vertical; overflow: hidden; }
+  .hero-cta     { gap: 8px; }
+  .hero-badge   { font-size: 10px; padding: 4px 10px; margin-bottom: 10px; }
 
   /* ── 快速入口宫格 ── */
   .quick-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -4208,3 +4248,101 @@ nav {
   background: none; border: none; cursor: pointer;
 }
 .msg-panel-footer button:hover { color: var(--ink); }
+
+/* ══ 移动端最终覆盖（必须在文件末尾，优先级最高）══ */
+@media (max-width: 768px) {
+  .hero-banner-meta .meta-val,
+  #home-lunar-date,
+  #home-tibetan-date {
+    font-family: 'Noto Serif SC', 'PingFang SC', sans-serif !important;
+    font-weight: 300 !important;
+  }
+  #home-lunar-date   { font-size: 13px !important; }
+  #home-tibetan-date { font-size: 11px !important; opacity: .7 !important; }
+  .hero-banner-meta .meta-label { font-size: 9px !important; }
+}
+
+/* ══ 导航右侧：手机端极简化 ══ */
+@media (max-width: 768px) {
+  /* 登录按钮缩成"人"图标，不显示文字 */
+  .auth-status-btn {
+    font-size: 0 !important;        /* 隐藏文字 */
+    width: 30px !important;
+    height: 30px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    background: var(--paper-warm) !important;
+    border: 1px solid var(--border) !important;
+    position: relative;
+  }
+  .auth-status-btn::after {
+    content: '👤';
+    font-size: 14px;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* 搜索和消息图标也缩小 */
+  .icon-btn { width: 28px !important; height: 28px !important; font-size: 13px !important; }
+  /* nav-right 缩紧 */
+  .nav-right { gap: 2px !important; }
+}
+
+/* ══ 移动端双行导航 ══ */
+@media (max-width: 768px) {
+  nav {
+    height: auto !important;
+    flex-wrap: wrap !important;
+    padding: 0 12px !important;
+    gap: 0 !important;
+  }
+  :root { --nav-h: 88px; }
+
+  /* 第一行：logo + 右侧图标 */
+  .nav-logo {
+    flex: 1 !important;
+    padding: 8px 0 6px !important;
+  }
+  .nav-right {
+    padding: 8px 0 6px !important;
+  }
+
+  /* 第二行：tabs 占满整宽 */
+  .nav-tabs {
+    order: 3 !important;
+    width: 100% !important;
+    flex: none !important;
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    border-top: 0.5px solid var(--border) !important;
+    padding: 4px 0 !important;
+    gap: 2px !important;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    flex-shrink: 0 !important;
+    padding: 5px 12px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* ══ 7 个 tab 等宽铺满整行 ══ */
+@media (max-width: 768px) {
+  .nav-tabs {
+    overflow-x: visible !important;
+  }
+  .nav-tab {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    padding: 5px 2px !important;
+    font-size: 11px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+}

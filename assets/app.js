@@ -1766,9 +1766,20 @@ function updateHomeCalendarDisplay() {
   if (tibetanEl) {
     try {
       const tibetanLike = new Intl.DateTimeFormat('bo-CN-u-ca-chinese', { year: 'numeric', month: 'long', day: 'numeric' }).format(now);
-      tibetanEl.textContent = `藏历 ${tibetanLike}`;
+      // 如果返回结果包含英文字母，说明格式不支持，降级显示公历
+      if (/[a-zA-Z]/.test(tibetanLike)) {
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        tibetanEl.textContent = `藏历 ${y}年${m}月${d}日`;
+      } else {
+        tibetanEl.textContent = `藏历 ${tibetanLike}`;
+      }
     } catch (_err) {
-      tibetanEl.textContent = `藏历 ${lunarEl?.textContent?.replace('农历 ', '') || '日期不可用'}`;
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      tibetanEl.textContent = `藏历 ${y}年${m}月${d}日`;
     }
   }
 }
@@ -3544,14 +3555,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Auto show onboard on first visit
-  if (!localStorage.getItem('modao-visited')) {
-    setTimeout(showOnboard, 1200);
-  }
-  // Auto show auth modal on first open without session
-  if (!readSession()) {
-    setTimeout(() => openAuthModal(true), 280);
-  }
+  // Auto show onboard on first visit (跳过 onboarding，直接进入 App)
+  // if (!localStorage.getItem('modao-visited')) {
+  //   setTimeout(showOnboard, 1200);
+  // }
+  // 移动端 App 不自动弹出登录框，用户可自行点击登录
+  // if (!readSession()) {
+  //   setTimeout(() => openAuthModal(true), 280);
+  // }
 
   // Escape closes modals
   document.addEventListener('keydown', e => {
