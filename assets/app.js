@@ -717,27 +717,27 @@ const IMMERSIVE_HERO_CONFIG = {
   companion: {
     title: '伴侣',
     quote: '先安其心，再修其行。',
-    image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1800&q=80'
+    image: './assets/images/hero-companion.jpg'
   },
   library: {
     title: '书库',
     quote: '经卷未必在手，智慧常可在心。',
-    image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1800&q=80'
+    image: './assets/images/hero-library.jpg'
   },
   counter: {
     title: '计数',
     quote: '一念一息，皆是精进。',
-    image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1800&q=80'
+    image: './assets/images/hero-counter.jpg'
   },
   pilgrimage: {
     title: '朝圣',
     quote: '莫舍己道，勿扰他心。',
-    image: 'https://y2.ifengimg.com/a/2015_34/75f0a8211e105c3.jpg'
+    image: './assets/images/home-hero-larunggar.jpg'
   },
   forum: {
     title: '论坛',
     quote: '与同修共论，向自心求证。',
-    image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1800&q=80'
+    image: './assets/images/hero-forum.jpg'
   }
 };
 
