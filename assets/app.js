@@ -2391,7 +2391,16 @@ function getAmapSecurityCode() {
 }
 
 function ensurePilgrimMap() {
-  if (PilgrimState.amapReady) return;
+  if (PilgrimState.amapReady) {
+    // 再次进入朝圣页时容器尺寸可能变化，重新校正一次视野
+    if (PilgrimState.map && !PilgrimState.activeId) {
+      setTimeout(() => {
+        PilgrimState.map.resize();
+        PilgrimState.map.setZoomAndCenter(5, [104.1, 35.8], true);
+      }, 100);
+    }
+    return;
+  }
   const key = getAmapKey();
   const securityCode = getAmapSecurityCode();
   if (!key) {
@@ -2499,6 +2508,17 @@ function initPilgrimAmap() {
     viewMode: '2D',
   });
   PilgrimState.amapReady = true;
+  // 地图首帧渲染时容器尺寸可能未就绪，导致中心跑偏到东南亚；
+  // complete 后强制复位到中国整体视野，并在尺寸稳定后再校正一次。
+  const recenterChina = () => {
+    if (!PilgrimState.map) return;
+    PilgrimState.map.setZoomAndCenter(5, [104.1, 35.8], true);
+  };
+  PilgrimState.map.on('complete', () => {
+    PilgrimState.map.resize();
+    recenterChina();
+    setTimeout(recenterChina, 300);
+  });
   PilgrimState.map.on('zoomend', () => {
     const z = PilgrimState.map.getZoom();
     const layout = document.querySelector('.pilgrim-layout');
