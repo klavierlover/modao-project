@@ -4587,11 +4587,23 @@ nav {
 
 /* ═══════════════════════ 朝圣页移动端 override ═══════════════════════ */
 @media (max-width: 768px) {
+  /* 沉浸页弹性满屏：整页不滚动，卡片区内部滚动，地图完整显示在下方 */
+  #page-pilgrimage.with-immersive.active {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  #page-pilgrimage.with-immersive .immersive-hero { flex: 0 0 auto; }
+  #page-pilgrimage.with-immersive .page-main {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+  }
   /* 默认：地图占约一半，列表区更多 */
   .pilgrim-layout {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 230px;
-    height: calc(100vh - var(--nav-h));
+    height: 100%;
   }
   /* 点「放大地图」后：恢复较大地图视野 */
   .pilgrim-layout.map-expanded {
