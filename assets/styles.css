@@ -3331,42 +3331,23 @@ nav {
     height: 100%;
     min-height: 0;
   }
-  /* 餐厅列表在上 */
-  .vegan-rest-sidebar {
-    width: 100%;
-    order: 0;
-    flex: 1 1 0;
-    min-height: 0;
-  }
-  /* 地图在下，默认较小，点「放大地图」展开 */
   .vegan-rest-map-wrap {
     display: block;
-    order: 1;
-    height: 200px;
-    min-height: 200px;
+    order: 0;
+    height: 35vh;
+    min-height: 220px;
     flex: 0 0 auto;
-    border-top: 1px solid var(--border);
-    transition: height .3s ease;
+    border-bottom: 1px solid var(--border);
   }
-  .vegan-modern-content.veg-map-expanded .vegan-rest-map-wrap {
-    height: 46vh;
-    min-height: 300px;
+  .vegan-rest-sidebar {
+    width: 100%;
+    order: 1;
+    flex: 1 1 0;
+    min-height: 0;
   }
   .vegan-gmap { width: 100%; height: 100%; }
   .vegan-modern-content.detail-open .vegan-detail-panel { width: 100%; }
   .recipe-detail-body { grid-template-columns: 1fr; }
-}
-
-/* 茹素：手机端头部压缩（约现高一半），slogan 仅在入场全屏页显示 */
-@media (max-width: 768px) {
-  #page-vegan .vegan-modern { --vegan-topbar-h: 94px !important; }
-  #page-vegan .vegan-modern:not(.landing) .vegan-landing-slogan { display: none !important; }
-  #page-vegan .vegan-modern.collapsed .vegan-modern-head {
-    padding: 8px 16px 10px !important;
-    gap: 6px;
-  }
-  #page-vegan .vegan-modern.collapsed .vegan-modern-head h1 { font-size: 26px !important; }
-  #page-vegan .vegan-modern-tabs { margin-top: 0 !important; }
 }
 
 /* ===== Vegan Header Hard Override ===== */
