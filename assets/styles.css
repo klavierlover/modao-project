@@ -4615,4 +4615,20 @@ nav {
   .pilgrim-layout.pilgrim-zoomed .pilgrim-filters { display: none; }
   .pilgrim-layout.pilgrim-zoomed .pilgrim-site-card:not(.active) { display: none; }
   .pilgrim-layout.pilgrim-zoomed .pilgrim-sites-list { padding: 8px 16px !important; }
+
+  /* 圣地详情：移动端改为全屏覆盖层（原本困在小地图容器里，显示不全/找不到关闭键） */
+  .site-detail-panel {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    z-index: 2000;
+    transform: translateY(100%);
+    transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .site-detail-panel.open { transform: translateY(0); }
+  .site-detail-panel .sdp-close {
+    top: 44px;
+    width: 38px;
+    height: 38px;
+  }
 }
