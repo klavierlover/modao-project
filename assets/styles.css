@@ -3370,14 +3370,54 @@ nav {
   .vegan-rest-map-wrap .map-size-toggle { display: flex; }
 }
 
-/* 茹素手机端头部压缩约一半 + 隐藏 slogan（只在入场全屏页显示 slogan） */
+/* 茹素手机端：头部收起态压到极简单行（标题 + tab 同行），筛选区紧凑、区域单行横滑 */
 @media (max-width: 768px) {
-  #page-vegan .vegan-modern { --vegan-topbar-h: 84px !important; }
+  #page-vegan .vegan-modern { --vegan-topbar-h: 54px !important; }
   #page-vegan .vegan-modern:not(.landing) .vegan-landing-slogan { display: none !important; }
-  #page-vegan .vegan-modern.collapsed .vegan-modern-head { padding: 8px 16px !important; gap: 4px !important; }
-  #page-vegan .vegan-modern.collapsed .vegan-modern-head h1 { font-size: 24px !important; }
-  #page-vegan .vegan-modern.collapsed .vegan-modern-tabs { margin-top: 2px !important; padding: 5px !important; }
-  #page-vegan .vegan-modern.collapsed .vegan-modern-tab { padding: 6px 14px !important; font-size: 12px !important; }
+
+  /* 收起态：茹素标题在左、两个 tab 在右，同一行 */
+  #page-vegan .vegan-modern.collapsed .vegan-modern-head {
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 14px !important;
+    gap: 10px !important;
+  }
+  #page-vegan .vegan-modern.collapsed .vegan-modern-head > div:first-child {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+  }
+  #page-vegan .vegan-modern.collapsed .vegan-modern-head h1 { font-size: 22px !important; }
+  #page-vegan .vegan-modern.collapsed .vegan-modern-head .sub { display: none; }
+  #page-vegan .vegan-modern.collapsed .vegan-modern-tabs {
+    margin: 0 !important;
+    padding: 3px !important;
+    gap: 4px !important;
+    width: auto !important;
+    flex-shrink: 0;
+  }
+  #page-vegan .vegan-modern.collapsed .vegan-modern-tab {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+  }
+
+  /* 筛选区更紧凑 */
+  #page-vegan .vegan-rest-filter-row { padding: 8px 12px !important; gap: 6px; }
+  #page-vegan .vegan-rest-filter-row input { padding: 7px 10px !important; }
+  /* 区域筛选：单行横向滚动 */
+  #page-vegan .vegan-rest-filter-tags {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 12px !important;
+    gap: 6px;
+  }
+  #page-vegan .vegan-rest-filter-tags::-webkit-scrollbar { display: none; }
+  #page-vegan .vegan-rest-filter-tags button { white-space: nowrap; flex: 0 0 auto; }
+  #page-vegan .vegan-rest-sort-row { padding: 6px 12px !important; }
 }
 
 /* ===== Vegan Header Hard Override ===== */
