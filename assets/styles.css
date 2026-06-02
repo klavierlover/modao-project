@@ -3325,29 +3325,49 @@ nav {
 .recipe-search-row button { display: none; }
 
 @media (max-width: 1100px) {
+  /* 用 flex:1 正确填满 head 以下空间（不要用 height:100%，否则会溢出导致下方元素高度塌成 0） */
   .vegan-modern-content {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1 1 auto;
     min-height: 0;
   }
-  .vegan-rest-map-wrap {
-    display: block;
-    order: 0;
-    height: 35vh;
-    min-height: 220px;
-    flex: 0 0 auto;
-    border-bottom: 1px solid var(--border);
-  }
+  /* 餐厅列表在上 */
   .vegan-rest-sidebar {
     width: 100%;
-    order: 1;
+    order: 0;
     flex: 1 1 0;
     min-height: 0;
+  }
+  /* 地图在下，默认小，点「放大地图」展开（仿朝圣） */
+  .vegan-rest-map-wrap {
+    display: block;
+    order: 1;
+    flex: 0 0 auto;
+    height: 200px;
+    min-height: 200px;
+    border-top: 1px solid var(--border);
+    transition: height .3s ease;
+  }
+  .vegan-modern-content.veg-map-expanded .vegan-rest-map-wrap {
+    height: 48vh;
+    min-height: 300px;
   }
   .vegan-gmap { width: 100%; height: 100%; }
   .vegan-modern-content.detail-open .vegan-detail-panel { width: 100%; }
   .recipe-detail-body { grid-template-columns: 1fr; }
+  /* 放大地图按钮（复用 .map-size-toggle，≤768 由通用规则显示） */
+  .vegan-rest-map-wrap .map-size-toggle { display: flex; }
+}
+
+/* 茹素手机端头部压缩约一半 + 隐藏 slogan（只在入场全屏页显示 slogan） */
+@media (max-width: 768px) {
+  #page-vegan .vegan-modern { --vegan-topbar-h: 84px !important; }
+  #page-vegan .vegan-modern:not(.landing) .vegan-landing-slogan { display: none !important; }
+  #page-vegan .vegan-modern.collapsed .vegan-modern-head { padding: 8px 16px !important; gap: 4px !important; }
+  #page-vegan .vegan-modern.collapsed .vegan-modern-head h1 { font-size: 24px !important; }
+  #page-vegan .vegan-modern.collapsed .vegan-modern-tabs { margin-top: 2px !important; padding: 5px !important; }
+  #page-vegan .vegan-modern.collapsed .vegan-modern-tab { padding: 6px 14px !important; font-size: 12px !important; }
 }
 
 /* ===== Vegan Header Hard Override ===== */

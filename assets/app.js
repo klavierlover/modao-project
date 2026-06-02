@@ -2964,6 +2964,16 @@ function veganResetMap(){
   }
 }
 
+// 茹素移动端：地图默认小，点按放大/收起（仿朝圣）
+function toggleVeganMapSize(){
+  const c = document.getElementById('vegan-rest-view');
+  if (!c) return;
+  const expanded = c.classList.toggle('veg-map-expanded');
+  const btn = document.getElementById('vegan-map-size-toggle');
+  if (btn) btn.innerHTML = expanded ? '⤡ 收起地图' : '⤢ 放大地图';
+  if (VeganMapState.map) setTimeout(() => VeganMapState.map.resize(), 300);
+}
+
 function veganFilter(){
   VeganState.search=document.getElementById('vegan-search')?.value.trim()||'';
   veganRenderList();
@@ -3082,6 +3092,13 @@ function switchVeganTab(tab, _el, skipHeroExpand = false){
   document.getElementById('vegan-rest-view').style.display = tab === 'restaurants' ? '' : 'none';
   document.getElementById('vegan-recipe-view').style.display = tab === 'recipes' ? '' : 'none';
   if (tab !== 'restaurants') veganCloseDetail();
+  // 进入餐厅视图后地图容器才可见，需让高德重算尺寸并补渲染标记，否则不显示点
+  if (tab === 'restaurants' && VeganMapState.map) {
+    setTimeout(() => {
+      VeganMapState.map.resize();
+      veganRenderMapPins(veganGetFiltered());
+    }, 360);
+  }
 }
 
 function expandVeganFromHero() {
@@ -3132,6 +3149,10 @@ function renderRecipes() { renderRecipeHome(); }
 
 function renderVegan(){
   ensureVeganMap();
+  // 每次进入默认地图收起态
+  document.getElementById('vegan-rest-view')?.classList.remove('veg-map-expanded');
+  const vBtn = document.getElementById('vegan-map-size-toggle');
+  if (vBtn) vBtn.innerHTML = '⤢ 放大地图';
   ensureRecipeDataShape();
   initVeganLandingInteractions();
   const wasCollapsed = VeganState.heroCollapsed;
@@ -3775,6 +3796,7 @@ Object.assign(window, {
   veganSetFilter,
   veganSort,
   veganResetMap,
+  toggleVeganMapSize,
   veganOpenDetail,
   veganCloseDetail,
   searchRecipes,
