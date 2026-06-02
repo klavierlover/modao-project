@@ -2676,6 +2676,12 @@ function openSiteDetail(id) {
   document.getElementById('trip-guide-budget').textContent = `💰 预算参考：${budget}`;
   populateRouteTargets(id);
   updatePilgrimNearby(site);
+  // 移动端：面板移到 body，脱离带 transform 的祖先(.page/.page-main)，
+  // 否则 position:fixed 会相对祖先定位、跑进文档流（地图下方出现内容）
+  if (window.matchMedia('(max-width: 768px)').matches && panel.parentElement !== document.body) {
+    panel._origParent = panel.parentElement;
+    document.body.appendChild(panel);
+  }
   panel.classList.add('open');
 }
 
@@ -2683,7 +2689,13 @@ function closeSiteDetail() {
   const prevId = PilgrimState.activeId;
   PilgrimState.activeId = null;
   if (PilgrimState.driving) PilgrimState.driving.clear();
-  document.getElementById('site-detail-panel').classList.remove('open');
+  const panel = document.getElementById('site-detail-panel');
+  panel.classList.remove('open');
+  // 还原面板到原容器（移动端打开时移到了 body）
+  if (panel._origParent) {
+    panel._origParent.appendChild(panel);
+    panel._origParent = null;
+  }
   document.querySelectorAll('.pilgrim-site-card').forEach(el => el.classList.remove('active'));
   if (prevId) updatePilgrimMarkerStyle(prevId, false);
   document.querySelector('.pilgrim-layout')?.classList.remove('pilgrim-zoomed');
