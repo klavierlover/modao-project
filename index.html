@@ -51,6 +51,15 @@
 <div class="page active" id="page-home">
   <div class="hero-wrap">
 
+    <!-- 问候条 -->
+    <div class="home-greeting">
+      <div>
+        <div class="home-greeting-hi" id="home-greeting-hi">晨安 · 愿您今日精进</div>
+        <div class="home-greeting-sub" id="home-greeting-sub">农历加载中…</div>
+      </div>
+      <div class="home-greeting-yi" id="home-greeting-yi">今日宜 · 诵经</div>
+    </div>
+
     <!-- Hero Banner -->
     <div class="hero-banner">
       <div class="hero-banner-meta">
@@ -67,6 +76,15 @@
           <button class="btn btn-lg" style="background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.3)" onclick="showPage('library')">翻开经典</button>
         </div>
       </div>
+    </div>
+
+    <!-- 近期活动 -->
+    <div class="home-section">
+      <div class="section-head">
+        <div class="section-title">近期活动</div>
+        <a class="section-more" onclick="showPage('forum')">全部 →</a>
+      </div>
+      <div class="activity-strip" id="home-activity-strip"></div>
     </div>
 
     <!-- 金刚区 快捷入口 -->
@@ -538,6 +556,9 @@
             <div class="trip-guide-item" id="trip-guide-budget">💰 预算参考：¥1500-¥2500 / 2天</div>
           </div>
         </div>
+
+        <!-- 地图放大/收起（移动端） -->
+        <button class="map-size-toggle" id="map-size-toggle" onclick="togglePilgrimMapSize()">⤢ 放大地图</button>
 
         <!-- 缩放控件 -->
         <div class="map-controls">

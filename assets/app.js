@@ -1706,8 +1706,53 @@ function renderAchievements() {
 }
 
 // ============= 首页 =============
+function renderHomeGreeting() {
+  const hiEl = document.getElementById('home-greeting-hi');
+  const yiEl = document.getElementById('home-greeting-yi');
+  if (hiEl) {
+    const h = new Date().getHours();
+    let greet = '晨安';
+    if (h >= 5 && h < 11) greet = '晨安';
+    else if (h >= 11 && h < 13) greet = '午安';
+    else if (h >= 13 && h < 18) greet = '午后好';
+    else if (h >= 18 && h < 23) greet = '晚安';
+    else greet = '夜深了';
+    hiEl.textContent = `${greet} · 愿您今日精进`;
+  }
+  if (yiEl) {
+    const yiList = ['诵经', '静坐', '持咒', '布施', '抄经', '放生', '随喜'];
+    const dayIdx = Math.floor(Date.now() / 86400000) % yiList.length;
+    yiEl.textContent = `今日宜 · ${yiList[dayIdx]}`;
+  }
+}
+
+const HOME_ACTIVITIES = [
+  { tag: '法会', title: '浴佛节祈福法会', meta: '6月12日 · 灵隐寺', cover: './assets/images/u/photo-1506905925346-21bda4d32df4.jpg' },
+  { tag: '共修', title: '周末禅坐共修营', meta: '每周六 09:00 · 线上', cover: './assets/images/u/photo-1528181304800-259b08848526.jpg' },
+  { tag: '节气', title: '芒种 · 惜福素食', meta: '6月5日 · 节气专题', cover: './assets/images/u/photo-1540189549336-e6e99c3679fe.jpg' },
+  { tag: '讲座', title: '《金刚经》导读', meta: '6月18日 · 慧明法师', cover: './assets/images/u/photo-1473093226795-af9932fe5856.jpg' },
+];
+
+function renderActivityStrip() {
+  const strip = document.getElementById('home-activity-strip');
+  if (!strip) return;
+  strip.innerHTML = HOME_ACTIVITIES.map(a => `
+    <div class="activity-card" onclick="showToast('活动详情即将上线 🙏')">
+      <div class="activity-cover" style="background-image:url('${a.cover}')">
+        <span class="activity-tag">${a.tag}</span>
+      </div>
+      <div class="activity-info">
+        <div class="activity-title">${a.title}</div>
+        <div class="activity-meta">${a.meta}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
 function renderHome() {
   updateHomeCalendarDisplay();
+  renderHomeGreeting();
+  renderActivityStrip();
   renderAchievements();
   // 瀑布流推荐内容
   const masonry = document.getElementById('home-masonry');
@@ -1763,6 +1808,14 @@ function updateHomeCalendarDisplay() {
       lunarEl.textContent = '农历 日期不可用';
     }
   }
+  const greetingSubEl = document.getElementById('home-greeting-sub');
+  if (greetingSubEl) {
+    const y = now.getFullYear();
+    const mm = now.getMonth() + 1;
+    const dd = now.getDate();
+    const lunarTxt = lunarEl ? lunarEl.textContent : '';
+    greetingSubEl.textContent = `${y}年${mm}月${dd}日 ${weekDays[now.getDay()]} · ${lunarTxt}`;
+  }
   if (tibetanEl) {
     try {
       const tibetanLike = new Intl.DateTimeFormat('bo-CN-u-ca-chinese', { year: 'numeric', month: 'long', day: 'numeric' }).format(now);
@@ -1798,10 +1851,6 @@ function initCompanion() {
   const greeting = `${comp.greeting}\n\n欢迎来到莫道。我已看到您今日的修行记录——早课念佛和禅坐都已完成，精进！\n\n您今天想继续完成剩下的功课，还是有什么修行上的困惑想与我探讨？`;
   appendMessage('ai', comp.avatar, greeting);
   addCompanionHistory('assistant', greeting);
-  if (!App.llmHintShown) {
-    App.llmHintShown = true;
-    showToast('AI 优先使用服务器端 DeepSeek，如未生效请检查 DEEPSEEK_API_KEY 环境变量。', 3200);
-  }
 }
 
 async function sendMessage() {
@@ -2342,6 +2391,10 @@ function getPilgrimSitesView() {
 
 function renderPilgrimage() {
   renderPilgrimList();
+  // 每次进入默认半高地图
+  document.querySelector('.pilgrim-layout')?.classList.remove('map-expanded');
+  const sizeBtn = document.getElementById('map-size-toggle');
+  if (sizeBtn) sizeBtn.innerHTML = '⤢ 放大地图';
   ensurePilgrimMap();
 }
 
@@ -2677,6 +2730,27 @@ function pilgrimResetMap() {
   if (PilgrimState.driving) PilgrimState.driving.clear();
   PilgrimState.map.setZoomAndCenter(5, [104.1, 35.8], true);
   closeSiteDetail();
+}
+
+// 移动端：地图半高 <-> 放大切换
+function setPilgrimMapExpanded(expanded) {
+  const layout = document.querySelector('.pilgrim-layout');
+  const btn = document.getElementById('map-size-toggle');
+  if (!layout) return;
+  layout.classList.toggle('map-expanded', expanded);
+  if (btn) btn.innerHTML = expanded ? '⤡ 收起地图' : '⤢ 放大地图';
+  // 高度变化后让高德重新计算尺寸，避免留白/偏移
+  if (PilgrimState.map) {
+    setTimeout(() => {
+      PilgrimState.map.resize();
+      if (!PilgrimState.activeId) PilgrimState.map.setZoomAndCenter(5, [104.1, 35.8], true);
+    }, 260);
+  }
+}
+
+function togglePilgrimMapSize() {
+  const layout = document.querySelector('.pilgrim-layout');
+  setPilgrimMapExpanded(!layout?.classList.contains('map-expanded'));
 }
 
 function populateRouteTargets(currentId) {
@@ -3692,6 +3766,7 @@ Object.assign(window, {
   pilgrimZoomIn,
   pilgrimZoomOut,
   pilgrimResetMap,
+  togglePilgrimMapSize,
   openPilgrimNavigation,
   planPilgrimRoute,
   playAudioGuide,

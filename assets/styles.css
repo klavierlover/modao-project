@@ -1054,6 +1054,87 @@ nav {
   padding: 40px 32px 80px;
 }
 
+/* 问候条 */
+.home-greeting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.home-greeting-hi {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 1px;
+  color: var(--ink);
+}
+.home-greeting-sub {
+  font-size: 12px;
+  color: var(--ink-40);
+  margin-top: 5px;
+  letter-spacing: .5px;
+}
+.home-greeting-yi {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a6d1f;
+  background: rgba(200,155,60,.14);
+  border: 1px solid rgba(200,155,60,.40);
+  padding: 7px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* 近期活动 横滑条 */
+.activity-strip {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 4px 2px 8px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.activity-strip::-webkit-scrollbar { display: none; }
+.activity-card {
+  flex: 0 0 auto;
+  width: 230px;
+  scroll-snap-align: start;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+}
+.activity-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.10); }
+.activity-cover {
+  height: 110px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+.activity-tag {
+  position: absolute;
+  top: 10px; left: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(26,26,26,.62);
+  backdrop-filter: blur(4px);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+.activity-info { padding: 12px 14px 14px; }
+.activity-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.activity-meta { font-size: 12px; color: var(--ink-40); letter-spacing: .3px; }
+
 .hero-banner {
   position: relative;
   height: 480px;
@@ -2558,6 +2639,9 @@ nav {
   gap: 6px;
   z-index: 10;
 }
+
+/* 放大/收起地图按钮：仅移动端显示（见 @media max-width:768px） */
+.map-size-toggle { display: none; }
 
 .map-ctrl-btn {
   width: 40px; height: 40px;
@@ -4404,10 +4488,33 @@ nav {
 
 /* ═══════════════════════ 朝圣页移动端 override ═══════════════════════ */
 @media (max-width: 768px) {
+  /* 默认：地图占约一半，列表区更多 */
   .pilgrim-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: 360px 1fr;
+    grid-template-rows: 1fr 230px;
     height: calc(100vh - var(--nav-h));
+  }
+  /* 点「放大地图」后：恢复较大地图视野 */
+  .pilgrim-layout.map-expanded {
+    grid-template-rows: 300px 1fr;
+  }
+  .map-size-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 12;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a1a1a;
+    background: rgba(255,255,255,0.94);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    cursor: pointer;
   }
   .pilgrim-sidebar { height: auto; min-height: 0; }
   .pilgrim-sidebar-head {
