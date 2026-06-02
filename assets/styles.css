@@ -42,10 +42,20 @@
   --nav-h: 60px;
   --content-max: 1280px;
   
-  /* 字体 */
-  --font-sans: 'PingFang SC', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --font-serif: 'Noto Serif SC', 'Songti SC', serif;
-  --font-display: 'Ma Shan Zheng', 'Noto Serif SC', serif;
+  /* 字体：正文/衬线全部使用各平台系统自带中文字体，零网络下载、秒级渲染 */
+  --font-sans: 'PingFang SC', 'HarmonyOS Sans SC', 'MiSans', 'Source Han Sans CN', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: 'Songti SC', 'STSong', 'Source Han Serif SC', 'Noto Serif CJK SC', 'SimSun', serif;
+  /* 仅标题书法字使用自托管子集，缺字时回退系统衬线 */
+  --font-display: 'Ma Shan Zheng', 'Songti SC', 'STSong', serif;
+}
+
+/* 书法标题字：子集化自托管（约 566KB，仅含界面用到的汉字），swap 不阻塞首屏 */
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/MaShanZheng-subset.woff2') format('woff2');
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -541,8 +551,8 @@ nav {
 .splash-bg {
   position: absolute;
   inset: 0;
-  background: url('/assets/images/splash-bg.jpg') center/cover no-repeat,
-              url('/assets/images/home-hero-larunggar.jpg') center/cover no-repeat;
+  background: url('/assets/images/splash-bg.webp') center/cover no-repeat,
+              url('/assets/images/home-hero-larunggar.webp') center/cover no-repeat;
   filter: blur(8px) brightness(.55) saturate(.7);
   transform: scale(1.08);
 }
@@ -567,7 +577,7 @@ nav {
   filter: drop-shadow(0 4px 20px rgba(200,155,60,.5));
 }
 .splash-title, .splash-subtitle {
-  font-family: 'Ma Shan Zheng','Noto Serif SC',serif;
+  font-family: 'Ma Shan Zheng','Songti SC','STSong',serif;
   font-size: clamp(40px,10vw,70px);
   color: #f5e6c8;
   letter-spacing: .28em;
@@ -576,7 +586,7 @@ nav {
 }
 .splash-subtitle { margin-bottom: 32px; }
 .splash-brand {
-  font-family: 'Noto Serif SC',serif;
+  font-family: 'Songti SC','STSong',serif;
   font-size: 13px;
   color: rgba(245,230,200,.45);
   letter-spacing: .45em;
@@ -616,7 +626,7 @@ nav {
   content: '';
   position: absolute;
   inset: 0;
-  background: url('./assets/images/u/photo-1526772662000-3f88f10405ff.jpg') center/cover;
+  background: url('/assets/images/u/photo-1526772662000-3f88f10405ff.webp') center/cover;
   opacity: .2;
 }
 .auth-hero-lotus {
@@ -962,14 +972,14 @@ nav {
     opacity: 0.7;
   }
   .hero-banner-meta .meta-val {
-    font-family: 'Noto Serif SC', serif !important;
+    font-family: 'Songti SC', 'STSong', serif !important;
     font-size: 13px !important;
     margin-top: 0 !important;
     letter-spacing: 0.3px;
     font-weight: 300;
   }
   #home-tibetan-date {
-    font-family: 'Noto Serif SC', serif !important;
+    font-family: 'Songti SC', 'STSong', serif !important;
     font-size: 11px !important;
     font-weight: 300 !important;
     opacity: .72 !important;
@@ -1144,7 +1154,7 @@ nav {
   background:
     linear-gradient(120deg, rgba(255,188,92,0.18) 0%, rgba(255,130,74,0.08) 42%, rgba(66,111,182,0.06) 100%),
     radial-gradient(125% 92% at 20% 20%, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.04) 52%, rgba(0,0,0,0.10) 100%),
-    #1a1a1a url('/assets/images/home-hero-larunggar.jpg') center/cover no-repeat;
+    #1a1a1a url('/assets/images/home-hero-larunggar.webp') center/cover no-repeat;
   background-blend-mode: screen, soft-light, normal;
   filter: saturate(1.2) brightness(1.08) contrast(1.06);
   transform: translateZ(0);
@@ -2098,7 +2108,7 @@ nav {
   position: absolute;
   top: 0; right: 0; bottom: 0;
   width: 60%;
-  background: url('./assets/images/u/photo-1591779051696-1c3fa1469a79.jpg') center/cover no-repeat;
+  background: url('/assets/images/u/photo-1591779051696-1c3fa1469a79.webp') center/cover no-repeat;
   opacity: 0.15;
 }
 
@@ -3099,7 +3109,7 @@ nav {
   inset: 0;
   background-image:
     linear-gradient(135deg, rgba(20,20,20,.55), rgba(20,20,20,.15)),
-    url("./assets/images/u/photo-1512621776951-a57141f2eefd.jpg");
+    url("/assets/images/u/photo-1512621776951-a57141f2eefd.webp");
   background-size: cover;
   background-position: center;
   filter: saturate(.9);
@@ -3133,7 +3143,7 @@ nav {
   align-items: center;
   background-image:
     linear-gradient(135deg, rgba(0,0,0,.52), rgba(0,0,0,.3)),
-    url("./assets/images/u/photo-1498837167922-ddd27525d352.jpg");
+    url("/assets/images/u/photo-1498837167922-ddd27525d352.webp");
   background-size: cover;
   background-position: center;
   border: 1px solid rgba(255,255,255,.3);
@@ -4357,7 +4367,7 @@ nav {
   .hero-banner-meta .meta-val,
   #home-lunar-date,
   #home-tibetan-date {
-    font-family: 'Noto Serif SC', 'PingFang SC', sans-serif !important;
+    font-family: 'Songti SC', 'PingFang SC', sans-serif !important;
     font-weight: 300 !important;
   }
   #home-lunar-date   { font-size: 13px !important; }

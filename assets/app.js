@@ -4,11 +4,11 @@ window.PILGRIMAGE_SITES = [
     id: 1,
     name: '布达拉宫',
     region: '西藏 · 拉萨',
-    cover: './assets/images/u/repl-1606310804520.jpg',
+    cover: './assets/images/u/repl-1606310804520.webp',
     gallery: [
-      './assets/images/u/repl-1606310804520.jpg',
-      './assets/images/u/photo-1526772662000-3f88f10405ff.jpg',
-      './assets/images/u/photo-1540541338287-41700207dee6.jpg',
+      './assets/images/u/repl-1606310804520.webp',
+      './assets/images/u/photo-1526772662000-3f88f10405ff.webp',
+      './assets/images/u/photo-1540541338287-41700207dee6.webp',
     ],
     tags: ['世界遗产', '藏传佛教', '达赖喇嘛宫殿'],
     altitude: '3700m',
@@ -32,11 +32,11 @@ window.PILGRIMAGE_SITES = [
     id: 2,
     name: '五台山',
     region: '山西 · 忻州',
-    cover: './assets/images/u/photo-1528181304800-259b08848526.jpg',
+    cover: './assets/images/u/photo-1528181304800-259b08848526.webp',
     gallery: [
-      './assets/images/u/photo-1528181304800-259b08848526.jpg',
-      './assets/images/u/photo-1509114397022-ed747cca3f65.jpg',
-      './assets/images/u/photo-1580137189272-c9379f8864fd.jpg',
+      './assets/images/u/photo-1528181304800-259b08848526.webp',
+      './assets/images/u/photo-1509114397022-ed747cca3f65.webp',
+      './assets/images/u/photo-1580137189272-c9379f8864fd.webp',
     ],
     tags: ['文殊道场', '四大名山', '显通寺'],
     altitude: '3061m',
@@ -60,11 +60,11 @@ window.PILGRIMAGE_SITES = [
     id: 3,
     name: '峨眉山',
     region: '四川 · 乐山',
-    cover: './assets/images/u/photo-1506905925346-21bda4d32df4.jpg',
+    cover: './assets/images/u/photo-1506905925346-21bda4d32df4.webp',
     gallery: [
-      './assets/images/u/photo-1506905925346-21bda4d32df4.jpg',
-      './assets/images/u/photo-1464822759023-fed622ff2c3b.jpg',
-      './assets/images/u/photo-1519046904884-53103b34b206.jpg',
+      './assets/images/u/photo-1506905925346-21bda4d32df4.webp',
+      './assets/images/u/photo-1464822759023-fed622ff2c3b.webp',
+      './assets/images/u/photo-1519046904884-53103b34b206.webp',
     ],
     tags: ['普贤道场', '世界双遗产', '金顶'],
     altitude: '3099m',
@@ -88,11 +88,11 @@ window.PILGRIMAGE_SITES = [
     id: 4,
     name: '普陀山',
     region: '浙江 · 舟山',
-    cover: './assets/images/u/photo-1580137189272-c9379f8864fd.jpg',
+    cover: './assets/images/u/photo-1580137189272-c9379f8864fd.webp',
     gallery: [
-      './assets/images/u/photo-1580137189272-c9379f8864fd.jpg',
-      './assets/images/u/repl-1598190648569.jpg',
-      './assets/images/u/photo-1548013146-72479768bada.jpg',
+      './assets/images/u/photo-1580137189272-c9379f8864fd.webp',
+      './assets/images/u/repl-1598190648569.webp',
+      './assets/images/u/photo-1548013146-72479768bada.webp',
     ],
     tags: ['观音道场', '海天佛国', '南海观音'],
     altitude: '286m',
@@ -116,10 +116,10 @@ window.PILGRIMAGE_SITES = [
     id: 5,
     name: '九华山',
     region: '安徽 · 池州',
-    cover: './assets/images/u/photo-1548013146-72479768bada.jpg',
+    cover: './assets/images/u/photo-1548013146-72479768bada.webp',
     gallery: [
-      './assets/images/u/photo-1548013146-72479768bada.jpg',
-      './assets/images/u/photo-1506905925346-21bda4d32df4.jpg',
+      './assets/images/u/photo-1548013146-72479768bada.webp',
+      './assets/images/u/photo-1506905925346-21bda4d32df4.webp',
     ],
     tags: ['地藏道场', '肉身舍利', '九十九峰'],
     altitude: '1342m',
@@ -143,10 +143,10 @@ window.PILGRIMAGE_SITES = [
     id: 6,
     name: '少林寺',
     region: '河南 · 登封',
-    cover: './assets/images/u/photo-1591779051696-1c3fa1469a79.jpg',
+    cover: './assets/images/u/photo-1591779051696-1c3fa1469a79.webp',
     gallery: [
-      './assets/images/u/photo-1591779051696-1c3fa1469a79.jpg',
-      './assets/images/u/photo-1599707367072-cd6ada2bc375.jpg',
+      './assets/images/u/photo-1591779051696-1c3fa1469a79.webp',
+      './assets/images/u/photo-1599707367072-cd6ada2bc375.webp',
     ],
     tags: ['禅宗祖庭', '天下第一名刹', '达摩面壁'],
     altitude: '1492m',
@@ -170,10 +170,10 @@ window.PILGRIMAGE_SITES = [
     id: 7,
     name: '大昭寺',
     region: '西藏 · 拉萨',
-    cover: './assets/images/u/photo-1540541338287-41700207dee6.jpg',
+    cover: './assets/images/u/photo-1540541338287-41700207dee6.webp',
     gallery: [
-      './assets/images/u/photo-1540541338287-41700207dee6.jpg',
-      './assets/images/u/photo-1526772662000-3f88f10405ff.jpg',
+      './assets/images/u/photo-1540541338287-41700207dee6.webp',
+      './assets/images/u/photo-1526772662000-3f88f10405ff.webp',
     ],
     tags: ['藏传佛教', '释迦牟尼12岁等身像', '八廓街'],
     altitude: '3650m',
@@ -197,10 +197,10 @@ window.PILGRIMAGE_SITES = [
     id: 8,
     name: '塔尔寺',
     region: '青海 · 湟中',
-    cover: './assets/images/u/photo-1526772662000-3f88f10405ff.jpg',
+    cover: './assets/images/u/photo-1526772662000-3f88f10405ff.webp',
     gallery: [
-      './assets/images/u/photo-1526772662000-3f88f10405ff.jpg',
-      './assets/images/u/repl-1606310804520.jpg',
+      './assets/images/u/photo-1526772662000-3f88f10405ff.webp',
+      './assets/images/u/repl-1606310804520.webp',
     ],
     tags: ['格鲁派六大寺', '酥油花', '宗喀巴大师'],
     altitude: '2660m',
@@ -236,24 +236,24 @@ const PILGRIMAGE_GEO = {
 // 素食餐厅数据
 // ── 武汉真实素食餐厅数据（来源：Google Maps / 本地宝 / 大众点评）──
 window.WUHAN_RESTAURANTS = [
-  { id:1, name:'归元寺素斋（云集斋）', district:'hanyang', type:'temple', address:'汉阳区归元寺路20号归元禅寺内', district_label:'汉阳区', lat:30.544794, lng:114.260517, rating:4.9, ratingCount:2108, pricePerPerson:58, cuisine:'寺院素斋', hours:'08:00–17:00', phone:'027-8484-2673', emoji:'⛩️', isOpen:true, tags:['寺院正宗','历史悠久','素宴定制','禁葱蒜'], tagColors:['green','','',''], signature:['罗汉斋','素东坡','素狮子头','香积素面'], dishEmojis:['🍲','🥩','🍢','🍜'], desc:'坐落于武汉归元禅寺内，已有百余年历史。正宗寺院素斋，食材天然，禁用葱蒜。新加坡前总理李光耀曾到此品尝并大加赞赏。', reviews:[{name:'法喜充满',score:5,time:'3天前',text:'在归元寺上完香后进来吃了午斋，素狮子头和罗汉斋绝了！环境清幽，伴着经文进餐，心旷神怡！'},{name:'武汉本地人',score:5,time:'1周前',text:'来武汉一定要打卡！素东坡肉以豆腐和面筋制成，口感惊喜。'}], photos:['./assets/images/u/repl-1563379926898.jpg','./assets/images/u/photo-1547496502-affa22d38842.jpg'], mapsUrl:'https://uri.amap.com/marker?position=114.260517,30.544794&name=%E5%BD%92%E5%85%83%E5%AF%BA%E7%B4%A0%E6%96%8B%EF%BC%88%E4%BA%91%E9%9B%86%E6%96%8B%EF%BC%89&coordinate=wgs84&callnative=1' },
-  { id:2, name:'宝通寺素食馆', district:'wuchang', type:'temple', address:'武昌区武珞路549号宝通禅寺旁', district_label:'武昌区', lat:30.530699, lng:114.341173, rating:3.7, ratingCount:568, pricePerPerson:45, cuisine:'寺院素斋', hours:'10:00–20:00', phone:'027-8787-3015', emoji:'🏯', isOpen:true, tags:['宝通禅寺旁','仿荤名菜','实惠'], tagColors:['green','',''], signature:['素鱼块','素叉烧','素卤味拼盘','砂锅素菜'], dishEmojis:['🐟','🥩','🍱','🍲'], desc:'毗邻宝通禅寺，以豆腐制品和面筋仿荤菜为特色。素鱼块形神兼备，纹理逼真。', reviews:[{name:'随缘居士',score:4,time:'2天前',text:'就在宝通寺大门口旁，素鱼块做得真的像！价格实在。'},{name:'Sprout Noodle',score:4,time:'1个月前',text:'The taste is indeed quite good! Made with bean products to mimic meat.'}], photos:['./assets/images/u/photo-1473093226795-af9932fe5856.jpg','./assets/images/u/photo-1490645935967-10de6ba17061.jpg'], mapsUrl:'https://uri.amap.com/marker?position=114.341173,30.530699&name=%E5%AE%9D%E9%80%9A%E5%AF%BA%E7%B4%A0%E9%A3%9F%E9%A6%86&coordinate=wgs84&callnative=1' },
-  { id:3, name:'膳缘居天然素食馆', district:'wuchang', type:'', address:'武昌区武珞路627号（洪山街道口商圈）', district_label:'武昌区', lat:30.530650, lng:114.341498, rating:4.2, ratingCount:312, pricePerPerson:52, cuisine:'天然素食', hours:'10:00–22:00（全年无休）', phone:'027-8787-0432', emoji:'🌿', isOpen:true, tags:['全年无休','天然食材','养生'], tagColors:['green','',''], signature:['石锅素豆花','野菜拼盘','素腊汁饭','时蔬饺子'], dishEmojis:['🍲','🥗','🍚','🥟'], desc:'强调天然无添加，食材以当季有机蔬菜为主，部分食材来自湖北农村直供基地。', reviews:[{name:'Wilkins Jackson',score:4,time:'2周前',text:'Delicious vegetarian food adjacent to a beautiful Buddhist temple. Highly recommended!'},{name:'清心素食者',score:4,time:'3天前',text:'石锅豆花很嫩滑，汤底清澈鲜甜。就在街道口，交通方便。'}], photos:['./assets/images/u/repl-1563379926898.jpg','./assets/images/u/photo-1512621776951-a57141f2eefd.jpg'], mapsUrl:'https://uri.amap.com/marker?position=114.341498,30.530650&name=%E8%86%B3%E7%BC%98%E5%B1%85%E5%A4%A9%E7%84%B6%E7%B4%A0%E9%A3%9F%E9%A6%86&coordinate=wgs84&callnative=1' },
-  { id:4, name:'绿野仙踪素食文化主题餐厅', district:'jiangan', type:'', address:'江岸区香港路83号（六医院对面）', district_label:'江岸区', lat:30.599304, lng:114.289547, rating:4.1, ratingCount:445, pricePerPerson:68, cuisine:'创意素食', hours:'10:30–21:30', phone:'027-8351-7805', emoji:'🌲', isOpen:true, tags:['主题装修','创意料理','打卡地'], tagColors:['','gold',''], signature:['素食拼盘','菌菇汤锅','绿野素沙拉','素食点心'], dishEmojis:['🥗','🍄','🥬','🍡'], desc:'以森林为设计主题，绿植茂盛、氛围清新，是武汉江岸区颇具特色的创意素食餐厅。', reviews:[{name:'探店达人',score:4,time:'4天前',text:'环境真的很美，满满的绿植，菌菇锅底非常鲜甜。适合朋友聚餐和拍照。'}], photos:['./assets/images/u/photo-1490645935967-10de6ba17061.jpg','./assets/images/u/photo-1512621776951-a57141f2eefd.jpg'], mapsUrl:'https://uri.amap.com/marker?position=114.289547,30.599304&name=%E7%BB%BF%E9%87%8E%E4%BB%99%E8%B8%AA%E7%B4%A0%E9%A3%9F%E6%96%87%E5%8C%96%E4%B8%BB%E9%A2%98%E9%A4%90%E5%8E%85&coordinate=wgs84&callnative=1' },
-  { id:5, name:'长春观素餐厅', district:'wuchang', type:'temple', address:'武昌区武珞路145号（长春观道观旁）', district_label:'武昌区', lat:30.539826, lng:114.320623, rating:4.0, ratingCount:198, pricePerPerson:40, cuisine:'道家素斋', hours:'09:00–17:00', phone:'027-8885-4229', emoji:'☯️', isOpen:false, tags:['道家素斋','实惠','古典氛围'], tagColors:['green','',''], signature:['道家素卤','素腊肉','五谷饭','八宝粥'], dishEmojis:['🍖','🥓','🍚','🥣'], desc:'依托武汉著名道观长春观，提供道家特色素斋。口味清淡，以当季食材为主，价格亲民。', reviews:[{name:'余胜义',score:4,time:'5天前',text:'素腊肉真的太像了！不知道怎么做的，口感和真肉一样！'},{name:'道友小张',score:4,time:'2周前',text:'来长春观礼拜后在这里用斋，感觉整个人都安静下来了。五谷饭扎实。'}], photos:['./assets/images/u/photo-1547496502-affa22d38842.jpg','./assets/images/u/photo-1473093226795-af9932fe5856.jpg'], mapsUrl:'https://uri.amap.com/marker?position=114.320623,30.539826&name=%E9%95%BF%E6%98%A5%E8%A7%82%E7%B4%A0%E9%A4%90%E5%8E%85&coordinate=wgs84&callnative=1' },
-  { id:6, name:'素满香·全民素食自助（汉口店）', district:'jiangan', type:'', address:'江岸区后湖大道汉口城市广场内', district_label:'江岸区', lat:30.6240, lng:114.3100, rating:4.4, ratingCount:8410, pricePerPerson:28, cuisine:'素食自助', hours:'10:30–21:00', phone:null, emoji:'🍽️', isOpen:true, tags:['自助任吃','¥28/位','性价比之王','好评榜TOP4'], tagColors:['green','gold','gold',''], signature:['素食自助20+道','素卤味','现炒时蔬','素甜品'], dishEmojis:['🍽️','🥡','🥬','🍮'], desc:'后湖大道上的素食自助餐厅，以超高性价比著称。仅需28元可享受20余道素菜任意取用，大众点评后湖素食好评榜第4名。', reviews:[{name:'小康同学',score:5,time:'2天前',text:'28块！二十几道菜！素卤味超级好吃，甜品也有，简直是宝藏素食店！'},{name:'后湖居民',score:4,time:'1周前',text:'在这里吃了好多次，每次菜品有变化。建议避开饭点，否则要等位。'}], photos:['./assets/images/u/photo-1512621776951-a57141f2eefd.jpg','./assets/images/u/photo-1540189549336-e6e99c3679fe.jpg'], mapsUrl:null },
-  { id:7, name:'聚善斋素食馆', district:'hanyang', type:'temple', address:'汉阳区翠微路70号（归元寺大门前）', district_label:'汉阳区', lat:30.5459, lng:114.26140, rating:4.6, ratingCount:1236, pricePerPerson:50, cuisine:'寺院素食', hours:'09:00–20:30', phone:null, emoji:'🙏', isOpen:true, tags:['归元寺门口','品种繁多','仿荤精品'], tagColors:['green','',''], signature:['熏鱼（素）','糖醋素排','素红烧肉','素炸酱面'], dishEmojis:['🐟','🍖','🥩','🍜'], desc:'位于归元禅寺大门正前方，以仿荤菜见长。素熏鱼形神兼备，糖醋素排酸甜可口，品种丰富。', reviews:[{name:'阿弥陀佛',score:5,time:'2天前',text:'每次来归元寺都要来这里！素熏鱼纹理做得太逼真了，佩服！'},{name:'武汉食客',score:4,time:'5天前',text:'品种繁多，菜单几十种，服务热情。素红烧肉软糯入味！'}], photos:['./assets/images/u/photo-1473093226795-af9932fe5856.jpg','./assets/images/u/photo-1547496502-affa22d38842.jpg'], mapsUrl:null },
-  { id:8, name:'菜锦辉素食餐厅', district:'jianghan', type:'', address:'江汉区江汉路商圈', district_label:'江汉区', lat:30.584064, lng:114.287348, rating:4.3, ratingCount:389, pricePerPerson:72, cuisine:'精致素食', hours:'11:00–21:30', phone:'027-8284-0425', emoji:'🌺', isOpen:true, tags:['精致摆盘','江汉路旁','商务聚餐'], tagColors:['gold','',''], signature:['水晶素蒸饺','文思豆腐','素佛跳墙','素食拼盘'], dishEmojis:['🥟','🍲','🏺','🍱'], desc:'位于江汉路步行街附近，主打商务素食。文思豆腐刀工精湛，素佛跳墙食材丰富，适合商务宴请。', reviews:[{name:'商务老陈',score:5,time:'3天前',text:'带客户来吃，文思豆腐做得很精致，素佛跳墙很有诚意！'},{name:'素食新手',score:4,time:'1周前',text:'水晶蒸饺皮薄馅足，能看到里面的馅料，很好看也好吃！'}], photos:['./assets/images/u/photo-1547496502-affa22d38842.jpg','./assets/images/u/photo-1473093226795-af9932fe5856.jpg'], mapsUrl:'https://uri.amap.com/marker?position=114.287348,30.584064&name=%E8%8F%9C%E9%94%A6%E8%BE%89%E7%B4%A0%E9%A3%9F%E9%A4%90%E5%8E%85&coordinate=wgs84&callnative=1' },
-  { id:9, name:'归元宝莲养生素食馆', district:'hanyang', type:'', address:'汉阳区翠微路20号（归元禅寺右侧）', district_label:'汉阳区', lat:30.544900, lng:114.262680, rating:4.5, ratingCount:756, pricePerPerson:65, cuisine:'养生素食', hours:'09:00–21:00', phone:null, emoji:'🪷', isOpen:true, tags:['养生药膳','归元寺旁','药食同源'], tagColors:['green','green',''], signature:['药膳素汤','莲子八宝饭','素扣肉','健康沙拉'], dishEmojis:['🍵','🎑','🍖','🥗'], desc:'紧邻归元禅寺，主打养生药膳素食。结合中医食疗理念，加入枸杞、红枣、莲子等药材。', reviews:[{name:'养生达人',score:5,time:'1天前',text:'药膳素汤太好了！用了当归、枸杞、红枣，喝完浑身暖和！强烈推荐！'},{name:'莲心居士',score:4,time:'4天前',text:'莲子八宝饭甜而不腻，素扣肉以冬瓜制成，入口即化。'}], photos:['./assets/images/u/photo-1490645935967-10de6ba17061.jpg','./assets/images/u/photo-1515543237350-b3eea1ec8082.jpg'], mapsUrl:null },
-  { id:10, name:'凡言外素食茶舍', district:'wuchang', type:'', address:'洪山区东湖东路8号（东湖之畔）', district_label:'洪山区', lat:30.532350, lng:114.386490, rating:4.7, ratingCount:892, pricePerPerson:88, cuisine:'禅茶素食', hours:'10:00–22:00', phone:'027-8877-3768', emoji:'🍵', isOpen:true, tags:['东湖旁','禅茶文化','高端素食','打卡圣地'], tagColors:['','gold','gold',''], signature:['禅茶套餐','素食御膳','东湖景观素宴','手工茶食'], dishEmojis:['🍵','🥗','🌿','🍡'], desc:'坐落于东湖之畔，将禅茶文化与精致素食完美融合。依湖而建，菜肴精致考究，是武汉最具意境的素食体验地。', reviews:[{name:'文艺青年',score:5,time:'3天前',text:'东湖边上的素食茶舍，环境绝了！边喝禅茶边看东湖，身心舒畅！'},{name:'设计师小林',score:5,time:'1周前',text:'拍照圣地！手工茶食做工精致，适合特别的日子来庆祝。'}], photos:['./assets/images/u/photo-1544005313-94ddf0286df2.jpg','./assets/images/u/photo-1517638851339-a711cfcf3279.jpg'], mapsUrl:null },
-  { id:11, name:'天一素食馆', district:'wuchang', type:'', address:'洪山区珞狮路116号（武大附近）', district_label:'洪山区', lat:30.524765, lng:114.351867, rating:3.8, ratingCount:234, pricePerPerson:35, cuisine:'家常素食', hours:'09:00–21:00', phone:null, emoji:'🍃', isOpen:true, tags:['学生友好','家常味道','实惠'], tagColors:['','',''], signature:['家常豆腐','素炒时蔬','酸辣粉（素）','素包子'], dishEmojis:['🧀','🥦','🍜','🥟'], desc:'临近武汉大学，以家常素食为主，价格亲民，深受周边学生和教职工喜爱。干净卫生，实惠著称。', reviews:[{name:'武大学生',score:4,time:'昨天',text:'家门口的素食馆，便宜干净，素炒时蔬很新鲜，酸辣粉也好吃！'}], photos:['./assets/images/u/repl-1563379926898.jpg'], mapsUrl:'https://uri.amap.com/marker?position=114.351867,30.524765&name=%E5%A4%A9%E4%B8%80%E7%B4%A0%E9%A3%9F%E9%A6%86&coordinate=wgs84&callnative=1' },
-  { id:12, name:'527生活菜坊', district:'jianghan', type:'', address:'江汉区（武汉新天地附近）', district_label:'江汉区', lat:30.592602, lng:114.260465, rating:4.5, ratingCount:567, pricePerPerson:62, cuisine:'创意素食', hours:'11:00–22:00', phone:null, emoji:'🥬', isOpen:true, tags:['新天地附近','创意家常','年轻素食'], tagColors:['','gold',''], signature:['创意素食定食','季节时蔬拼','有机藜麦碗','素食汉堡'], dishEmojis:['🍱','🥗','🥣','🍔'], desc:'武汉新天地附近颇有人气的创意素食餐厅，将时尚轻食理念与中国素食传统结合，深受年轻素食者追捧。', reviews:[{name:'Vegan小白',score:5,time:'昨天',text:'素食汉堡完全不输正常汉堡，有机藜麦碗营养满满。年轻有活力的素食店！'}], photos:['./assets/images/u/photo-1540189549336-e6e99c3679fe.jpg','./assets/images/u/photo-1515543237350-b3eea1ec8082.jpg'], mapsUrl:null },
+  { id:1, name:'归元寺素斋（云集斋）', district:'hanyang', type:'temple', address:'汉阳区归元寺路20号归元禅寺内', district_label:'汉阳区', lat:30.544794, lng:114.260517, rating:4.9, ratingCount:2108, pricePerPerson:58, cuisine:'寺院素斋', hours:'08:00–17:00', phone:'027-8484-2673', emoji:'⛩️', isOpen:true, tags:['寺院正宗','历史悠久','素宴定制','禁葱蒜'], tagColors:['green','','',''], signature:['罗汉斋','素东坡','素狮子头','香积素面'], dishEmojis:['🍲','🥩','🍢','🍜'], desc:'坐落于武汉归元禅寺内，已有百余年历史。正宗寺院素斋，食材天然，禁用葱蒜。新加坡前总理李光耀曾到此品尝并大加赞赏。', reviews:[{name:'法喜充满',score:5,time:'3天前',text:'在归元寺上完香后进来吃了午斋，素狮子头和罗汉斋绝了！环境清幽，伴着经文进餐，心旷神怡！'},{name:'武汉本地人',score:5,time:'1周前',text:'来武汉一定要打卡！素东坡肉以豆腐和面筋制成，口感惊喜。'}], photos:['./assets/images/u/repl-1563379926898.webp','./assets/images/u/photo-1547496502-affa22d38842.webp'], mapsUrl:'https://uri.amap.com/marker?position=114.260517,30.544794&name=%E5%BD%92%E5%85%83%E5%AF%BA%E7%B4%A0%E6%96%8B%EF%BC%88%E4%BA%91%E9%9B%86%E6%96%8B%EF%BC%89&coordinate=wgs84&callnative=1' },
+  { id:2, name:'宝通寺素食馆', district:'wuchang', type:'temple', address:'武昌区武珞路549号宝通禅寺旁', district_label:'武昌区', lat:30.530699, lng:114.341173, rating:3.7, ratingCount:568, pricePerPerson:45, cuisine:'寺院素斋', hours:'10:00–20:00', phone:'027-8787-3015', emoji:'🏯', isOpen:true, tags:['宝通禅寺旁','仿荤名菜','实惠'], tagColors:['green','',''], signature:['素鱼块','素叉烧','素卤味拼盘','砂锅素菜'], dishEmojis:['🐟','🥩','🍱','🍲'], desc:'毗邻宝通禅寺，以豆腐制品和面筋仿荤菜为特色。素鱼块形神兼备，纹理逼真。', reviews:[{name:'随缘居士',score:4,time:'2天前',text:'就在宝通寺大门口旁，素鱼块做得真的像！价格实在。'},{name:'Sprout Noodle',score:4,time:'1个月前',text:'The taste is indeed quite good! Made with bean products to mimic meat.'}], photos:['./assets/images/u/photo-1473093226795-af9932fe5856.webp','./assets/images/u/photo-1490645935967-10de6ba17061.webp'], mapsUrl:'https://uri.amap.com/marker?position=114.341173,30.530699&name=%E5%AE%9D%E9%80%9A%E5%AF%BA%E7%B4%A0%E9%A3%9F%E9%A6%86&coordinate=wgs84&callnative=1' },
+  { id:3, name:'膳缘居天然素食馆', district:'wuchang', type:'', address:'武昌区武珞路627号（洪山街道口商圈）', district_label:'武昌区', lat:30.530650, lng:114.341498, rating:4.2, ratingCount:312, pricePerPerson:52, cuisine:'天然素食', hours:'10:00–22:00（全年无休）', phone:'027-8787-0432', emoji:'🌿', isOpen:true, tags:['全年无休','天然食材','养生'], tagColors:['green','',''], signature:['石锅素豆花','野菜拼盘','素腊汁饭','时蔬饺子'], dishEmojis:['🍲','🥗','🍚','🥟'], desc:'强调天然无添加，食材以当季有机蔬菜为主，部分食材来自湖北农村直供基地。', reviews:[{name:'Wilkins Jackson',score:4,time:'2周前',text:'Delicious vegetarian food adjacent to a beautiful Buddhist temple. Highly recommended!'},{name:'清心素食者',score:4,time:'3天前',text:'石锅豆花很嫩滑，汤底清澈鲜甜。就在街道口，交通方便。'}], photos:['./assets/images/u/repl-1563379926898.webp','./assets/images/u/photo-1512621776951-a57141f2eefd.webp'], mapsUrl:'https://uri.amap.com/marker?position=114.341498,30.530650&name=%E8%86%B3%E7%BC%98%E5%B1%85%E5%A4%A9%E7%84%B6%E7%B4%A0%E9%A3%9F%E9%A6%86&coordinate=wgs84&callnative=1' },
+  { id:4, name:'绿野仙踪素食文化主题餐厅', district:'jiangan', type:'', address:'江岸区香港路83号（六医院对面）', district_label:'江岸区', lat:30.599304, lng:114.289547, rating:4.1, ratingCount:445, pricePerPerson:68, cuisine:'创意素食', hours:'10:30–21:30', phone:'027-8351-7805', emoji:'🌲', isOpen:true, tags:['主题装修','创意料理','打卡地'], tagColors:['','gold',''], signature:['素食拼盘','菌菇汤锅','绿野素沙拉','素食点心'], dishEmojis:['🥗','🍄','🥬','🍡'], desc:'以森林为设计主题，绿植茂盛、氛围清新，是武汉江岸区颇具特色的创意素食餐厅。', reviews:[{name:'探店达人',score:4,time:'4天前',text:'环境真的很美，满满的绿植，菌菇锅底非常鲜甜。适合朋友聚餐和拍照。'}], photos:['./assets/images/u/photo-1490645935967-10de6ba17061.webp','./assets/images/u/photo-1512621776951-a57141f2eefd.webp'], mapsUrl:'https://uri.amap.com/marker?position=114.289547,30.599304&name=%E7%BB%BF%E9%87%8E%E4%BB%99%E8%B8%AA%E7%B4%A0%E9%A3%9F%E6%96%87%E5%8C%96%E4%B8%BB%E9%A2%98%E9%A4%90%E5%8E%85&coordinate=wgs84&callnative=1' },
+  { id:5, name:'长春观素餐厅', district:'wuchang', type:'temple', address:'武昌区武珞路145号（长春观道观旁）', district_label:'武昌区', lat:30.539826, lng:114.320623, rating:4.0, ratingCount:198, pricePerPerson:40, cuisine:'道家素斋', hours:'09:00–17:00', phone:'027-8885-4229', emoji:'☯️', isOpen:false, tags:['道家素斋','实惠','古典氛围'], tagColors:['green','',''], signature:['道家素卤','素腊肉','五谷饭','八宝粥'], dishEmojis:['🍖','🥓','🍚','🥣'], desc:'依托武汉著名道观长春观，提供道家特色素斋。口味清淡，以当季食材为主，价格亲民。', reviews:[{name:'余胜义',score:4,time:'5天前',text:'素腊肉真的太像了！不知道怎么做的，口感和真肉一样！'},{name:'道友小张',score:4,time:'2周前',text:'来长春观礼拜后在这里用斋，感觉整个人都安静下来了。五谷饭扎实。'}], photos:['./assets/images/u/photo-1547496502-affa22d38842.webp','./assets/images/u/photo-1473093226795-af9932fe5856.webp'], mapsUrl:'https://uri.amap.com/marker?position=114.320623,30.539826&name=%E9%95%BF%E6%98%A5%E8%A7%82%E7%B4%A0%E9%A4%90%E5%8E%85&coordinate=wgs84&callnative=1' },
+  { id:6, name:'素满香·全民素食自助（汉口店）', district:'jiangan', type:'', address:'江岸区后湖大道汉口城市广场内', district_label:'江岸区', lat:30.6240, lng:114.3100, rating:4.4, ratingCount:8410, pricePerPerson:28, cuisine:'素食自助', hours:'10:30–21:00', phone:null, emoji:'🍽️', isOpen:true, tags:['自助任吃','¥28/位','性价比之王','好评榜TOP4'], tagColors:['green','gold','gold',''], signature:['素食自助20+道','素卤味','现炒时蔬','素甜品'], dishEmojis:['🍽️','🥡','🥬','🍮'], desc:'后湖大道上的素食自助餐厅，以超高性价比著称。仅需28元可享受20余道素菜任意取用，大众点评后湖素食好评榜第4名。', reviews:[{name:'小康同学',score:5,time:'2天前',text:'28块！二十几道菜！素卤味超级好吃，甜品也有，简直是宝藏素食店！'},{name:'后湖居民',score:4,time:'1周前',text:'在这里吃了好多次，每次菜品有变化。建议避开饭点，否则要等位。'}], photos:['./assets/images/u/photo-1512621776951-a57141f2eefd.webp','./assets/images/u/photo-1540189549336-e6e99c3679fe.webp'], mapsUrl:null },
+  { id:7, name:'聚善斋素食馆', district:'hanyang', type:'temple', address:'汉阳区翠微路70号（归元寺大门前）', district_label:'汉阳区', lat:30.5459, lng:114.26140, rating:4.6, ratingCount:1236, pricePerPerson:50, cuisine:'寺院素食', hours:'09:00–20:30', phone:null, emoji:'🙏', isOpen:true, tags:['归元寺门口','品种繁多','仿荤精品'], tagColors:['green','',''], signature:['熏鱼（素）','糖醋素排','素红烧肉','素炸酱面'], dishEmojis:['🐟','🍖','🥩','🍜'], desc:'位于归元禅寺大门正前方，以仿荤菜见长。素熏鱼形神兼备，糖醋素排酸甜可口，品种丰富。', reviews:[{name:'阿弥陀佛',score:5,time:'2天前',text:'每次来归元寺都要来这里！素熏鱼纹理做得太逼真了，佩服！'},{name:'武汉食客',score:4,time:'5天前',text:'品种繁多，菜单几十种，服务热情。素红烧肉软糯入味！'}], photos:['./assets/images/u/photo-1473093226795-af9932fe5856.webp','./assets/images/u/photo-1547496502-affa22d38842.webp'], mapsUrl:null },
+  { id:8, name:'菜锦辉素食餐厅', district:'jianghan', type:'', address:'江汉区江汉路商圈', district_label:'江汉区', lat:30.584064, lng:114.287348, rating:4.3, ratingCount:389, pricePerPerson:72, cuisine:'精致素食', hours:'11:00–21:30', phone:'027-8284-0425', emoji:'🌺', isOpen:true, tags:['精致摆盘','江汉路旁','商务聚餐'], tagColors:['gold','',''], signature:['水晶素蒸饺','文思豆腐','素佛跳墙','素食拼盘'], dishEmojis:['🥟','🍲','🏺','🍱'], desc:'位于江汉路步行街附近，主打商务素食。文思豆腐刀工精湛，素佛跳墙食材丰富，适合商务宴请。', reviews:[{name:'商务老陈',score:5,time:'3天前',text:'带客户来吃，文思豆腐做得很精致，素佛跳墙很有诚意！'},{name:'素食新手',score:4,time:'1周前',text:'水晶蒸饺皮薄馅足，能看到里面的馅料，很好看也好吃！'}], photos:['./assets/images/u/photo-1547496502-affa22d38842.webp','./assets/images/u/photo-1473093226795-af9932fe5856.webp'], mapsUrl:'https://uri.amap.com/marker?position=114.287348,30.584064&name=%E8%8F%9C%E9%94%A6%E8%BE%89%E7%B4%A0%E9%A3%9F%E9%A4%90%E5%8E%85&coordinate=wgs84&callnative=1' },
+  { id:9, name:'归元宝莲养生素食馆', district:'hanyang', type:'', address:'汉阳区翠微路20号（归元禅寺右侧）', district_label:'汉阳区', lat:30.544900, lng:114.262680, rating:4.5, ratingCount:756, pricePerPerson:65, cuisine:'养生素食', hours:'09:00–21:00', phone:null, emoji:'🪷', isOpen:true, tags:['养生药膳','归元寺旁','药食同源'], tagColors:['green','green',''], signature:['药膳素汤','莲子八宝饭','素扣肉','健康沙拉'], dishEmojis:['🍵','🎑','🍖','🥗'], desc:'紧邻归元禅寺，主打养生药膳素食。结合中医食疗理念，加入枸杞、红枣、莲子等药材。', reviews:[{name:'养生达人',score:5,time:'1天前',text:'药膳素汤太好了！用了当归、枸杞、红枣，喝完浑身暖和！强烈推荐！'},{name:'莲心居士',score:4,time:'4天前',text:'莲子八宝饭甜而不腻，素扣肉以冬瓜制成，入口即化。'}], photos:['./assets/images/u/photo-1490645935967-10de6ba17061.webp','./assets/images/u/photo-1515543237350-b3eea1ec8082.webp'], mapsUrl:null },
+  { id:10, name:'凡言外素食茶舍', district:'wuchang', type:'', address:'洪山区东湖东路8号（东湖之畔）', district_label:'洪山区', lat:30.532350, lng:114.386490, rating:4.7, ratingCount:892, pricePerPerson:88, cuisine:'禅茶素食', hours:'10:00–22:00', phone:'027-8877-3768', emoji:'🍵', isOpen:true, tags:['东湖旁','禅茶文化','高端素食','打卡圣地'], tagColors:['','gold','gold',''], signature:['禅茶套餐','素食御膳','东湖景观素宴','手工茶食'], dishEmojis:['🍵','🥗','🌿','🍡'], desc:'坐落于东湖之畔，将禅茶文化与精致素食完美融合。依湖而建，菜肴精致考究，是武汉最具意境的素食体验地。', reviews:[{name:'文艺青年',score:5,time:'3天前',text:'东湖边上的素食茶舍，环境绝了！边喝禅茶边看东湖，身心舒畅！'},{name:'设计师小林',score:5,time:'1周前',text:'拍照圣地！手工茶食做工精致，适合特别的日子来庆祝。'}], photos:['./assets/images/u/photo-1544005313-94ddf0286df2.webp','./assets/images/u/photo-1517638851339-a711cfcf3279.webp'], mapsUrl:null },
+  { id:11, name:'天一素食馆', district:'wuchang', type:'', address:'洪山区珞狮路116号（武大附近）', district_label:'洪山区', lat:30.524765, lng:114.351867, rating:3.8, ratingCount:234, pricePerPerson:35, cuisine:'家常素食', hours:'09:00–21:00', phone:null, emoji:'🍃', isOpen:true, tags:['学生友好','家常味道','实惠'], tagColors:['','',''], signature:['家常豆腐','素炒时蔬','酸辣粉（素）','素包子'], dishEmojis:['🧀','🥦','🍜','🥟'], desc:'临近武汉大学，以家常素食为主，价格亲民，深受周边学生和教职工喜爱。干净卫生，实惠著称。', reviews:[{name:'武大学生',score:4,time:'昨天',text:'家门口的素食馆，便宜干净，素炒时蔬很新鲜，酸辣粉也好吃！'}], photos:['./assets/images/u/repl-1563379926898.webp'], mapsUrl:'https://uri.amap.com/marker?position=114.351867,30.524765&name=%E5%A4%A9%E4%B8%80%E7%B4%A0%E9%A3%9F%E9%A6%86&coordinate=wgs84&callnative=1' },
+  { id:12, name:'527生活菜坊', district:'jianghan', type:'', address:'江汉区（武汉新天地附近）', district_label:'江汉区', lat:30.592602, lng:114.260465, rating:4.5, ratingCount:567, pricePerPerson:62, cuisine:'创意素食', hours:'11:00–22:00', phone:null, emoji:'🥬', isOpen:true, tags:['新天地附近','创意家常','年轻素食'], tagColors:['','gold',''], signature:['创意素食定食','季节时蔬拼','有机藜麦碗','素食汉堡'], dishEmojis:['🍱','🥗','🥣','🍔'], desc:'武汉新天地附近颇有人气的创意素食餐厅，将时尚轻食理念与中国素食传统结合，深受年轻素食者追捧。', reviews:[{name:'Vegan小白',score:5,time:'昨天',text:'素食汉堡完全不输正常汉堡，有机藜麦碗营养满满。年轻有活力的素食店！'}], photos:['./assets/images/u/photo-1540189549336-e6e99c3679fe.webp','./assets/images/u/photo-1515543237350-b3eea1ec8082.webp'], mapsUrl:null },
 ];
 window.VEGAN_RECIPES = [
   {
     id: 1,
     name: '罗汉斋',
-    cover: './assets/images/u/photo-1547496502-affa22d38842.jpg',
+    cover: './assets/images/u/photo-1547496502-affa22d38842.webp',
     difficulty: '简单',
     time: '30分钟',
     calories: '280卡',
@@ -263,7 +263,7 @@ window.VEGAN_RECIPES = [
   {
     id: 2,
     name: '素东坡肉',
-    cover: './assets/images/u/photo-1512621776951-a57141f2eefd.jpg',
+    cover: './assets/images/u/photo-1512621776951-a57141f2eefd.webp',
     difficulty: '中等',
     time: '45分钟',
     calories: '320卡',
@@ -273,7 +273,7 @@ window.VEGAN_RECIPES = [
   {
     id: 3,
     name: '素食三杯菇',
-    cover: './assets/images/u/photo-1540189549336-e6e99c3679fe.jpg',
+    cover: './assets/images/u/photo-1540189549336-e6e99c3679fe.webp',
     difficulty: '简单',
     time: '20分钟',
     calories: '220卡',
@@ -283,7 +283,7 @@ window.VEGAN_RECIPES = [
   {
     id: 4,
     name: '素食春卷',
-    cover: './assets/images/u/photo-1490645935967-10de6ba17061.jpg',
+    cover: './assets/images/u/photo-1490645935967-10de6ba17061.webp',
     difficulty: '中等',
     time: '40分钟',
     calories: '180卡',
@@ -300,7 +300,7 @@ window.SUTRAS = [
     author: '玄奘法师 译',
     category: 'prajna',
     label: '般若部',
-    cover: './assets/images/u/repl-1601144531169.jpg',
+    cover: './assets/images/u/repl-1601144531169.webp',
     coverColor: '#8b5a2b',
     desc: '佛法精髓，260字揭示空性真谛，通行千载，是最广为流传的佛经。',
     readingCount: 8562,
@@ -317,7 +317,7 @@ window.SUTRAS = [
     author: '鸠摩罗什 译',
     category: 'prajna',
     label: '般若部',
-    cover: './assets/images/u/photo-1491841573634-28140fc7ced7.jpg',
+    cover: './assets/images/u/photo-1491841573634-28140fc7ced7.webp',
     coverColor: '#3d5a80',
     desc: '以般若智慧破除一切执着，开显诸法实相，为大乘佛法核心经典。',
     readingCount: 6834,
@@ -334,7 +334,7 @@ window.SUTRAS = [
     author: '鸠摩罗什 译',
     category: 'pure',
     label: '净土部',
-    cover: './assets/images/u/repl-1564769625392.jpg',
+    cover: './assets/images/u/repl-1564769625392.webp',
     coverColor: '#c9a227',
     desc: '详述西方极乐世界庄严，劝发念佛往生之愿，净土三经之一。',
     readingCount: 5629,
@@ -351,7 +351,7 @@ window.SUTRAS = [
     author: '惠能 口述',
     category: 'chan',
     label: '禅宗',
-    cover: './assets/images/u/repl-1598190648569.jpg',
+    cover: './assets/images/u/repl-1598190648569.webp',
     coverColor: '#2d4a2b',
     desc: '禅宗六祖惠能大师的言行录，唯一被尊为"经"的祖师言教。',
     readingCount: 7234,
@@ -368,7 +368,7 @@ window.SUTRAS = [
     author: '实叉难陀 译',
     category: 'pure',
     label: '净土部',
-    cover: './assets/images/u/repl-1564769625905.jpg',
+    cover: './assets/images/u/repl-1564769625905.webp',
     coverColor: '#5d3a3a',
     desc: '地藏菩萨发愿度化地狱众生的本愿功德，孝道第一经。',
     readingCount: 4526,
@@ -385,7 +385,7 @@ window.SUTRAS = [
     author: '鸠摩罗什 译',
     category: 'mahayana',
     label: '大乘部',
-    cover: './assets/images/u/repl-1555980027.jpg',
+    cover: './assets/images/u/repl-1555980027.webp',
     coverColor: '#8b3e3e',
     desc: '经中之王，开权显实，会三归一，揭示一切众生皆可成佛。',
     readingCount: 3215,
@@ -402,7 +402,7 @@ window.SUTRAS = [
     author: '摄摩腾、竺法兰 共译',
     category: 'chan',
     label: '禅宗',
-    cover: './assets/images/u/repl-1571907483089.jpg',
+    cover: './assets/images/u/repl-1571907483089.webp',
     coverColor: '#6d4c32',
     desc: '中国第一部汉译佛经，42段精简教诲，适合初学入门。',
     readingCount: 3824,
@@ -419,7 +419,7 @@ window.SUTRAS = [
     author: '鸠摩罗什 译',
     category: 'vinaya',
     label: '律典',
-    cover: './assets/images/u/photo-1544816155-12df9643f363.jpg',
+    cover: './assets/images/u/photo-1544816155-12df9643f363.webp',
     coverColor: '#4a5a8b',
     desc: '大乘菩萨戒根本经典，十重四十八轻戒，发菩提心之基。',
     readingCount: 1823,
@@ -466,7 +466,7 @@ window.FORUM_POSTS = [
     time: '2小时前',
     section: '修法心得',
     title: '禅坐三个月的体悟——从散乱到初定',
-    cover: './assets/images/u/photo-1545389336-cf090694435e.jpg',
+    cover: './assets/images/u/photo-1545389336-cf090694435e.webp',
     coverHeight: 320,
     excerpt: '今天想分享我这三个月禅坐的真实体会。刚开始打坐20分钟都觉得腿麻心烦，杂念如野马奔腾。直到某天清晨...',
     articleUrl: 'https://zh.wikipedia.org/wiki/%E7%A6%85%E4%BF%AE',
@@ -477,11 +477,11 @@ window.FORUM_POSTS = [
   {
     id: 2,
     author: '莲心居士',
-    avatar: './assets/images/u/photo-1438761681033-6461ffad8d80.jpg',
+    avatar: './assets/images/u/photo-1438761681033-6461ffad8d80.webp',
     time: '5小时前',
     section: '经典讨论',
     title: '《心经》"观自在菩萨"的深意',
-    cover: './assets/images/u/repl-1564769625392.jpg',
+    cover: './assets/images/u/repl-1564769625392.webp',
     coverHeight: 420,
     excerpt: '"观自在"并非"观世音"的简称。以般若观照一切，得自在无碍，这是修行的终极境界...',
     articleUrl: 'https://zh.wikipedia.org/wiki/%E5%BF%83%E7%BB%8F',
@@ -492,11 +492,11 @@ window.FORUM_POSTS = [
   {
     id: 3,
     author: '行脚僧',
-    avatar: './assets/images/u/photo-1472099645785-5658abf4ff4e.jpg',
+    avatar: './assets/images/u/photo-1472099645785-5658abf4ff4e.webp',
     time: '昨天',
     section: '朝圣分享',
     title: '朝礼五台山七日记——奇遇与感动',
-    cover: './assets/images/u/photo-1528181304800-259b08848526.jpg',
+    cover: './assets/images/u/photo-1528181304800-259b08848526.webp',
     coverHeight: 280,
     excerpt: '原计划三天，却因缘际会停留七日。从台怀镇到各台顶，每一步都是与文殊菩萨的对话...',
     articleUrl: 'https://zh.wikipedia.org/wiki/%E4%BA%94%E5%8F%B0%E5%B1%B1',
@@ -511,7 +511,7 @@ window.FORUM_POSTS = [
     time: '昨天',
     section: '素食推荐',
     title: '成都素食大搜罗｜10家必去',
-    cover: './assets/images/u/repl-1563379926898.jpg',
+    cover: './assets/images/u/repl-1563379926898.webp',
     coverHeight: 380,
     excerpt: '走访成都各大寺院附近的素食馆，踩坑无数，总结十家性价比之选。从文殊院旁的斋堂到...',
     articleUrl: 'https://zh.wikipedia.org/wiki/%E7%B4%A0%E9%A3%9F%E4%B8%BB%E4%B9%89',
@@ -522,11 +522,11 @@ window.FORUM_POSTS = [
   {
     id: 5,
     author: '念佛行者',
-    avatar: './assets/images/u/photo-1507003211169-0a1dd7228f2d.jpg',
+    avatar: './assets/images/u/photo-1507003211169-0a1dd7228f2d.webp',
     time: '2天前',
     section: '问道解惑',
     title: '净土法门与禅宗修行可否融合？',
-    cover: './assets/images/u/photo-1548013146-72479768bada.jpg',
+    cover: './assets/images/u/photo-1548013146-72479768bada.webp',
     coverHeight: 240,
     excerpt: '末学修习净土念佛多年，近来接触禅宗文字，深感两者相通。请教各位善知识...',
     articleUrl: 'https://zh.wikipedia.org/wiki/%E5%87%80%E5%9C%9F%E5%AE%97',
@@ -537,11 +537,11 @@ window.FORUM_POSTS = [
   {
     id: 6,
     author: '雪域行者',
-    avatar: './assets/images/u/photo-1506794778202-cad84cf45f1d.jpg',
+    avatar: './assets/images/u/photo-1506794778202-cad84cf45f1d.webp',
     time: '3天前',
     section: '朝圣分享',
     title: '西藏转山15日完整路线',
-    cover: './assets/images/u/repl-1606310804520.jpg',
+    cover: './assets/images/u/repl-1606310804520.webp',
     coverHeight: 360,
     excerpt: '冈仁波齐转山三圈的功德无量，本篇分享从拉萨到阿里的完整路线，含攻略、装备、注意事项...',
     articleUrl: 'https://zh.wikipedia.org/wiki/%E5%86%88%E4%BB%81%E6%B3%A2%E9%BD%90%E5%B3%B0',
@@ -552,11 +552,11 @@ window.FORUM_POSTS = [
   {
     id: 7,
     author: '清凉月',
-    avatar: './assets/images/u/photo-1544005313-94ddf0286df2.jpg',
+    avatar: './assets/images/u/photo-1544005313-94ddf0286df2.webp',
     time: '3天前',
     section: '修法心得',
     title: '每日早课21天，身心变化',
-    cover: './assets/images/u/photo-1591779051696-1c3fa1469a79.jpg',
+    cover: './assets/images/u/photo-1591779051696-1c3fa1469a79.webp',
     coverHeight: 300,
     excerpt: '坚持21天每天早课，睡眠、情绪、专注力都有明显变化。分享我的具体课表和心得...',
     articleUrl: 'https://zh.wikipedia.org/wiki/%E6%AD%A3%E5%BF%B5',
@@ -567,11 +567,11 @@ window.FORUM_POSTS = [
   {
     id: 8,
     author: '禅茶一味',
-    avatar: './assets/images/u/photo-1487412720507-e7ab37603c6f.jpg',
+    avatar: './assets/images/u/photo-1487412720507-e7ab37603c6f.webp',
     time: '4天前',
     section: '生活禅',
     title: '在日常中修行｜每件事都是道场',
-    cover: './assets/images/u/photo-1517638851339-a711cfcf3279.jpg',
+    cover: './assets/images/u/photo-1517638851339-a711cfcf3279.webp',
     coverHeight: 260,
     excerpt: '洗碗、扫地、做饭，都可以是修行。分享如何把生活每个瞬间转为正念练习...',
     articleUrl: 'https://zh.wikipedia.org/wiki/%E7%94%9F%E6%B4%BB%E7%A6%85',
@@ -717,27 +717,27 @@ const IMMERSIVE_HERO_CONFIG = {
   companion: {
     title: '伴侣',
     quote: '先安其心，再修其行。',
-    image: './assets/images/hero-companion.jpg'
+    image: './assets/images/hero-companion.webp'
   },
   library: {
     title: '书库',
     quote: '经卷未必在手，智慧常可在心。',
-    image: './assets/images/hero-library.jpg'
+    image: './assets/images/hero-library.webp'
   },
   counter: {
     title: '计数',
     quote: '一念一息，皆是精进。',
-    image: './assets/images/hero-counter.jpg'
+    image: './assets/images/hero-counter.webp'
   },
   pilgrimage: {
     title: '朝圣',
     quote: '莫舍己道，勿扰他心。',
-    image: './assets/images/home-hero-larunggar.jpg'
+    image: './assets/images/home-hero-larunggar.webp'
   },
   forum: {
     title: '论坛',
     quote: '与同修共论，向自心求证。',
-    image: './assets/images/hero-forum.jpg'
+    image: './assets/images/hero-forum.webp'
   }
 };
 
@@ -1727,10 +1727,10 @@ function renderHomeGreeting() {
 }
 
 const HOME_ACTIVITIES = [
-  { tag: '法会', title: '浴佛节祈福法会', meta: '6月12日 · 灵隐寺', cover: './assets/images/u/photo-1506905925346-21bda4d32df4.jpg' },
-  { tag: '共修', title: '周末禅坐共修营', meta: '每周六 09:00 · 线上', cover: './assets/images/u/photo-1528181304800-259b08848526.jpg' },
-  { tag: '节气', title: '芒种 · 惜福素食', meta: '6月5日 · 节气专题', cover: './assets/images/u/photo-1540189549336-e6e99c3679fe.jpg' },
-  { tag: '讲座', title: '《金刚经》导读', meta: '6月18日 · 慧明法师', cover: './assets/images/u/photo-1473093226795-af9932fe5856.jpg' },
+  { tag: '法会', title: '浴佛节祈福法会', meta: '6月12日 · 灵隐寺', cover: './assets/images/u/photo-1506905925346-21bda4d32df4.webp' },
+  { tag: '共修', title: '周末禅坐共修营', meta: '每周六 09:00 · 线上', cover: './assets/images/u/photo-1528181304800-259b08848526.webp' },
+  { tag: '节气', title: '芒种 · 惜福素食', meta: '6月5日 · 节气专题', cover: './assets/images/u/photo-1540189549336-e6e99c3679fe.webp' },
+  { tag: '讲座', title: '《金刚经》导读', meta: '6月18日 · 慧明法师', cover: './assets/images/u/photo-1473093226795-af9932fe5856.webp' },
 ];
 
 function renderActivityStrip() {
@@ -3254,7 +3254,7 @@ function openForumPost(id) {
 function onImageError(imgEl) {
   if (!imgEl || imgEl.dataset.fallbackApplied === '1') return;
   imgEl.dataset.fallbackApplied = '1';
-  imgEl.src = '/assets/images/home-hero-larunggar.jpg';
+  imgEl.src = '/assets/images/home-hero-larunggar.webp';
 }
 
 async function loadPublishedContent() {
@@ -3293,7 +3293,7 @@ function applyPublishedSnapshot(moduleKey, snapshot) {
         time: '刚刚更新',
         section: a.section || '同修精选',
         title: a.title,
-        cover: a.cover_url || '/assets/images/home-hero-larunggar.jpg',
+        cover: a.cover_url || '/assets/images/home-hero-larunggar.webp',
         coverHeight: 320,
         excerpt: a.summary || '',
         likes: Number(a.likes || 0),
