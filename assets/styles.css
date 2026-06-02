@@ -4486,7 +4486,8 @@ nav {
 /* ══ 修法伴侣：手机端聊天布局优化 ══ */
 @media (max-width: 768px) {
   /* 沉浸页用弹性布局：聊天区自动填满封面以下的剩余空间，输入框始终在屏幕内 */
-  #page-companion.with-immersive {
+  /* 必须限定 .active，否则 id 选择器会覆盖 .page 的隐藏规则导致本页常驻显示 */
+  #page-companion.with-immersive.active {
     display: flex;
     flex-direction: column;
     height: 100vh;
