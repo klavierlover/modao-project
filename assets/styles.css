@@ -3331,23 +3331,42 @@ nav {
     height: 100%;
     min-height: 0;
   }
-  .vegan-rest-map-wrap {
-    display: block;
-    order: 0;
-    height: 35vh;
-    min-height: 220px;
-    flex: 0 0 auto;
-    border-bottom: 1px solid var(--border);
-  }
+  /* 餐厅列表在上 */
   .vegan-rest-sidebar {
     width: 100%;
-    order: 1;
+    order: 0;
     flex: 1 1 0;
     min-height: 0;
+  }
+  /* 地图在下，默认较小，点「放大地图」展开 */
+  .vegan-rest-map-wrap {
+    display: block;
+    order: 1;
+    height: 200px;
+    min-height: 200px;
+    flex: 0 0 auto;
+    border-top: 1px solid var(--border);
+    transition: height .3s ease;
+  }
+  .vegan-modern-content.veg-map-expanded .vegan-rest-map-wrap {
+    height: 46vh;
+    min-height: 300px;
   }
   .vegan-gmap { width: 100%; height: 100%; }
   .vegan-modern-content.detail-open .vegan-detail-panel { width: 100%; }
   .recipe-detail-body { grid-template-columns: 1fr; }
+}
+
+/* 茹素：手机端头部压缩（约现高一半），slogan 仅在入场全屏页显示 */
+@media (max-width: 768px) {
+  #page-vegan .vegan-modern { --vegan-topbar-h: 94px !important; }
+  #page-vegan .vegan-modern:not(.landing) .vegan-landing-slogan { display: none !important; }
+  #page-vegan .vegan-modern.collapsed .vegan-modern-head {
+    padding: 8px 16px 10px !important;
+    gap: 6px;
+  }
+  #page-vegan .vegan-modern.collapsed .vegan-modern-head h1 { font-size: 26px !important; }
+  #page-vegan .vegan-modern-tabs { margin-top: 0 !important; }
 }
 
 /* ===== Vegan Header Hard Override ===== */
@@ -3885,6 +3904,10 @@ nav {
   .counter-types-row { grid-template-columns: repeat(2, 1fr); }
   .library-hero { padding: 28px; }
   .library-hero-title { font-size: 32px; }
+  /* 问候语保持一行；今日宜胶囊略微下移对齐 */
+  .home-greeting { align-items: center; }
+  .home-greeting-hi { font-size: 18px; white-space: nowrap; }
+  .home-greeting-yi { align-self: center; margin-top: 8px; }
 }
 
 /* ════════════════════════════════════════════
@@ -4462,9 +4485,21 @@ nav {
 
 /* ══ 修法伴侣：手机端聊天布局优化 ══ */
 @media (max-width: 768px) {
-  /* 聊天主区填满页面高度 */
+  /* 沉浸页用弹性布局：聊天区自动填满封面以下的剩余空间，输入框始终在屏幕内 */
+  #page-companion.with-immersive {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  #page-companion.with-immersive .immersive-hero { flex: 0 0 auto; }
+  #page-companion.with-immersive .page-main {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+  #page-companion .companion-page { height: 100%; }
   #page-companion .chat-main {
-    height: calc(100vh - var(--nav-h));
+    height: 100%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -4474,12 +4509,13 @@ nav {
     padding: 10px 16px !important;
     flex-shrink: 0;
   }
-  /* 消息区：弹性填充，消息从底部往上排列 */
+  /* 消息区：弹性填充，问候语贴顶展示（避免顶部大片空白） */
   #page-companion .chat-messages {
     flex: 1 !important;
     min-height: 0 !important;
     padding: 16px !important;
-    justify-content: flex-end !important;
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
   }
   /* 快捷回复紧贴消息下方 */
   #page-companion .quick-replies-row {

@@ -2964,6 +2964,16 @@ function veganResetMap(){
   }
 }
 
+// 茹素移动端：地图默认小，点按放大/收起
+function toggleVeganMapSize(){
+  const c = document.getElementById('vegan-rest-view');
+  if (!c) return;
+  const expanded = c.classList.toggle('veg-map-expanded');
+  const btn = document.getElementById('vegan-map-size-toggle');
+  if (btn) btn.innerHTML = expanded ? '⤡ 收起地图' : '⤢ 放大地图';
+  if (VeganMapState.map) setTimeout(() => VeganMapState.map.resize(), 280);
+}
+
 function veganFilter(){
   VeganState.search=document.getElementById('vegan-search')?.value.trim()||'';
   veganRenderList();
@@ -3132,6 +3142,10 @@ function renderRecipes() { renderRecipeHome(); }
 
 function renderVegan(){
   ensureVeganMap();
+  // 每次进入默认地图收起态
+  document.getElementById('vegan-rest-view')?.classList.remove('veg-map-expanded');
+  const vBtn = document.getElementById('vegan-map-size-toggle');
+  if (vBtn) vBtn.innerHTML = '⤢ 放大地图';
   ensureRecipeDataShape();
   initVeganLandingInteractions();
   const wasCollapsed = VeganState.heroCollapsed;
@@ -3775,6 +3789,7 @@ Object.assign(window, {
   veganSetFilter,
   veganSort,
   veganResetMap,
+  toggleVeganMapSize,
   veganOpenDetail,
   veganCloseDetail,
   searchRecipes,
