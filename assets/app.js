@@ -2443,6 +2443,33 @@ function getAmapSecurityCode() {
   return fromStorage || fromWindow;
 }
 
+// 统一的高德 SDK 加载器：全局只加载一次，朝圣/茹素/预载共用同一个 Promise，避免重复加载与竞态
+let _amapSdkPromise = null;
+function loadAmapSdk() {
+  if (window.AMap) return Promise.resolve(window.AMap);
+  if (_amapSdkPromise) return _amapSdkPromise;
+  const key = getAmapKey();
+  if (!key) return Promise.reject(new Error('no-amap-key'));
+  const securityCode = getAmapSecurityCode();
+  if (securityCode) window._AMapSecurityConfig = { securityJsCode: securityCode };
+  _amapSdkPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}`;
+    script.async = true;
+    script.dataset.amapLoader = '1';
+    script.onload = () => resolve(window.AMap);
+    script.onerror = () => { _amapSdkPromise = null; reject(new Error('amap-load-failed')); };
+    document.head.appendChild(script);
+  });
+  return _amapSdkPromise;
+}
+
+// 空闲时预载 SDK，等用户点进地图页时已就绪，秒开（不阻塞首屏）
+function prefetchAmapSdk() {
+  if (window.AMap || !getAmapKey()) return;
+  loadAmapSdk().catch(() => {});
+}
+
 function ensurePilgrimMap() {
   if (PilgrimState.amapReady) {
     // 再次进入朝圣页时容器尺寸可能变化，重新校正一次视野
@@ -2454,47 +2481,20 @@ function ensurePilgrimMap() {
     }
     return;
   }
-  const key = getAmapKey();
-  const securityCode = getAmapSecurityCode();
-  if (!key) {
+  if (!getAmapKey()) {
     showPilgrimMapError('未检测到高德 Key。请在控制台执行 localStorage.setItem("amap-web-key","你的Key") 后刷新页面。');
     return;
   }
-  if (securityCode) {
-    window._AMapSecurityConfig = { securityJsCode: securityCode };
-  }
-  if (window.AMap) {
-    initPilgrimAmap();
-    return;
-  }
-  const script = document.createElement('script');
-  script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}`;
-  script.async = true;
-  script.onload = () => initPilgrimAmap();
-  script.onerror = () => showPilgrimMapError('高德地图加载失败，请检查 Key、网络或域名白名单设置。');
-  document.head.appendChild(script);
+  loadAmapSdk()
+    .then(() => initPilgrimAmap())
+    .catch(() => showPilgrimMapError('高德地图加载失败，请检查 Key、网络或域名白名单设置。'));
 }
 
 function ensureVeganMap() {
-  const key = getAmapKey();
-  const securityCode = getAmapSecurityCode();
-  if (!key) return;
-  if (securityCode) {
-    window._AMapSecurityConfig = { securityJsCode: securityCode };
-  }
-  if (!window.AMap) {
-    const existing = document.querySelector('script[data-amap-loader="1"]');
-    if (existing) return;
-    const script = document.createElement('script');
-    script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(key)}`;
-    script.async = true;
-    script.dataset.amapLoader = '1';
-    script.onload = () => initVeganAmap();
-    script.onerror = () => showToast('高德地图加载失败');
-    document.head.appendChild(script);
-    return;
-  }
-  initVeganAmap();
+  if (!getAmapKey()) return;
+  loadAmapSdk()
+    .then(() => initVeganAmap())
+    .catch(() => showToast('高德地图加载失败'));
 }
 
 function initVeganAmap() {
@@ -3862,3 +3862,13 @@ Object.assign(window, {
   markAllMsgRead,
   toggleForumSort,
 });
+
+// 首屏空闲后预载高德地图 SDK，加快首次打开朝圣/茹素地图页
+(function schedulePrefetchAmap() {
+  const run = () => { try { prefetchAmapSdk(); } catch (_) {} };
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(run, { timeout: 5000 });
+  } else {
+    setTimeout(run, 3000);
+  }
+})();
