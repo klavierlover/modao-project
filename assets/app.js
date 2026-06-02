@@ -2886,7 +2886,7 @@ function veganOpenDetail(id){
       <div class="vdp-title-row"><div class="vdp-name">${r.name}</div><div class="vdp-score-box">${r.rating}<small>⭐</small></div></div>
       <div class="vdp-addr">📍 ${r.address} · <a href="${amapUrl}" target="_blank">高德导航</a></div>
       <div class="vdp-stats"><div class="vdp-stat"><div class="vdp-stat-num">${r.rating}<span>分</span></div><div class="vdp-stat-lbl">评分</div></div><div class="vdp-stat"><div class="vdp-stat-num">¥${r.pricePerPerson}</div><div class="vdp-stat-lbl">人均</div></div><div class="vdp-stat"><div class="vdp-stat-num">${fmtNum(r.ratingCount)}</div><div class="vdp-stat-lbl">评价</div></div></div>
-      <div class="vdp-sec">商家介绍</div><p style="font-size:13px;line-height:1.8;color:var(--ink-60)">${r.desc}</p>
+      <div class="vdp-sec">商家介绍</div><p style="font-size:13px;line-height:1.8;color:var(--ink-60)">${r.desc || '暂无介绍'}</p>
       <div class="vdp-sec">用户评价</div><div class="vdp-reviews">${reviewHtml || '<div class="vdp-review">暂无评论</div>'}</div>
       <div class="vdp-cta"><a href="${amapUrl}" target="_blank" class="vdp-cta-primary">🧭 导航到这里</a></div>
     </div>`;

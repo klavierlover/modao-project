@@ -3331,6 +3331,7 @@ nav {
     flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
+    position: relative; /* 详情面板绝对定位的参照 */
   }
   /* 餐厅列表在上 */
   .vegan-rest-sidebar {
@@ -3354,7 +3355,16 @@ nav {
     min-height: 300px;
   }
   .vegan-gmap { width: 100%; height: 100%; }
-  .vegan-modern-content.detail-open .vegan-detail-panel { width: 100%; }
+  /* 详情面板改为绝对覆盖层：关闭时脱离文档流，不再占据纵向高度挤压列表 */
+  .vegan-detail-panel {
+    position: absolute;
+    inset: 0;
+    width: auto !important;
+    min-width: 0;
+    z-index: 20;
+    border-left: none;
+  }
+  .vegan-modern-content.detail-open .vegan-detail-panel { width: auto !important; }
   .recipe-detail-body { grid-template-columns: 1fr; }
   /* 放大地图按钮（复用 .map-size-toggle，≤768 由通用规则显示） */
   .vegan-rest-map-wrap .map-size-toggle { display: flex; }
