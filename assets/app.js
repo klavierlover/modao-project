@@ -2499,6 +2499,16 @@ function initPilgrimAmap() {
     viewMode: '2D',
   });
   PilgrimState.amapReady = true;
+  PilgrimState.map.on('zoomend', () => {
+    const z = PilgrimState.map.getZoom();
+    const layout = document.querySelector('.pilgrim-layout');
+    if (!layout) return;
+    if (z >= 7.5 && PilgrimState.activeId) {
+      layout.classList.add('pilgrim-zoomed');
+    } else {
+      layout.classList.remove('pilgrim-zoomed');
+    }
+  });
   AMap.plugin(['AMap.Driving', 'AMap.PlaceSearch'], () => {
     PilgrimState.driving = new AMap.Driving({
       map: PilgrimState.map,
@@ -2510,24 +2520,44 @@ function initPilgrimAmap() {
   renderPilgrimMarkers();
 }
 
+function buildPilgrimMarkerSVG(site, active) {
+  const w = active ? 38 : 28;
+  const h = active ? 48 : 36;
+  const fill = active ? '#a0312c' : '#c89b3c';
+  const textColor = active ? '#fff' : '#1a1a1a';
+  const fontSize = active ? 13 : 10;
+  const textY = active ? 22 : 18;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 28 36"
+       style="cursor:pointer;filter:drop-shadow(0 ${active?4:2}px ${active?8:5}px rgba(0,0,0,.5))">
+    <path d="M14 0C6.3 0 0 6.3 0 14c0 9.8 14 22 14 22s14-12.2 14-22C28 6.3 21.7 0 14 0z"
+          fill="${fill}" stroke="#1a1a1a" stroke-width="1.5"/>
+    <text x="14" y="${textY}" text-anchor="middle" fill="${textColor}"
+          font-size="${fontSize}" font-weight="800" font-family="sans-serif">${site.id}</text>
+  </svg>`;
+}
+
+function updatePilgrimMarkerStyle(id, active) {
+  const marker = PilgrimState.markers.get(id);
+  if (!marker) return;
+  const site = PILGRIMAGE_SITES.find(s => s.id === id);
+  if (!site) return;
+  marker.setContent(buildPilgrimMarkerSVG(site, active));
+  marker.setOffset(new AMap.Pixel(active ? -19 : -14, active ? -48 : -36));
+  if (active) marker.setTop(true);
+}
+
 function renderPilgrimMarkers() {
   if (!PilgrimState.map || !PilgrimState.amapReady) return;
   PilgrimState.map.clearMap();
   PilgrimState.markers.clear();
   getPilgrimSitesView().forEach(site => {
+    const isActive = site.id === PilgrimState.activeId;
     const marker = new AMap.Marker({
       position: getPilgrimLngLat(site),
       title: site.name,
-      offset: new AMap.Pixel(-14, -36),
-      zIndex: Math.round((90 - (site.lat || 30)) * 100),
-      content: `
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36"
-             style="cursor:pointer;filter:drop-shadow(0 2px 5px rgba(0,0,0,.55))">
-          <path d="M14 0C6.3 0 0 6.3 0 14c0 9.8 14 22 14 22s14-12.2 14-22C28 6.3 21.7 0 14 0z"
-                fill="#c89b3c" stroke="#1a1a1a" stroke-width="1.5"/>
-          <text x="14" y="18" text-anchor="middle" fill="#1a1a1a"
-                font-size="10" font-weight="800" font-family="sans-serif">${site.id}</text>
-        </svg>`,
+      offset: new AMap.Pixel(isActive ? -19 : -14, isActive ? -48 : -36),
+      zIndex: Math.round((90 - (site.lat || 30)) * 100) + (isActive ? 10000 : 0),
+      content: buildPilgrimMarkerSVG(site, isActive),
     });
     marker.on('click', () => openSiteDetail(site.id));
     marker.setMap(PilgrimState.map);
@@ -2538,6 +2568,7 @@ function renderPilgrimMarkers() {
 function openSiteDetail(id) {
   const site = PILGRIMAGE_SITES.find(s => s.id === id);
   if (!site) return;
+  const prevId = PilgrimState.activeId;
   PilgrimState.activeId = id;
 
   document.querySelectorAll('.pilgrim-site-card').forEach(el => el.classList.remove('active'));
@@ -2546,9 +2577,9 @@ function openSiteDetail(id) {
 
   if (PilgrimState.map) {
     const pos = getPilgrimLngLat(site);
-    PilgrimState.map.setZoomAndCenter(7, pos, true);
-    const marker = PilgrimState.markers.get(id);
-    if (marker) marker.setTop(true);
+    if (prevId && prevId !== id) updatePilgrimMarkerStyle(prevId, false);
+    updatePilgrimMarkerStyle(id, true);
+    PilgrimState.map.setZoomAndCenter(8, pos, true);
   }
 
   const panel = document.getElementById('site-detail-panel');
@@ -2576,10 +2607,14 @@ function openSiteDetail(id) {
 }
 
 function closeSiteDetail() {
+  const prevId = PilgrimState.activeId;
   PilgrimState.activeId = null;
   if (PilgrimState.driving) PilgrimState.driving.clear();
   document.getElementById('site-detail-panel').classList.remove('open');
   document.querySelectorAll('.pilgrim-site-card').forEach(el => el.classList.remove('active'));
+  if (prevId) updatePilgrimMarkerStyle(prevId, false);
+  document.querySelector('.pilgrim-layout')?.classList.remove('pilgrim-zoomed');
+  if (PilgrimState.map) PilgrimState.map.setZoomAndCenter(5, [104.1, 35.8], true);
 }
 
 function playAudioGuide() { showToast('🎧 AI语音讲解生成中...'); }

@@ -1025,15 +1025,10 @@ nav {
   .counter-circle { width: clamp(160px, 50vw, 220px); height: clamp(160px, 50vw, 220px); }
   .counter-num    { font-size: clamp(48px, 14vw, 72px); }
 
-  /* ── 朝圣 ── */
+  /* ── 朝圣（基础移动端布局，详细 override 在文件末尾） ── */
   .pilgrim-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: 240px 1fr;
-    height: calc(100vh - var(--nav-h));
   }
-  .pilgrim-sidebar { height: auto; min-height: 0; }
-  .pilgrim-map-area { min-height: 60vh; }
-  .pilgrim-site-card { padding: 14px; }
 
   /* ── 论坛 ── */
   .forum-page    { padding: 16px; }
@@ -4405,4 +4400,54 @@ nav {
     padding: 10px 12px 14px !important;
     background: var(--surface);
   }
+}
+
+/* ═══════════════════════ 朝圣页移动端 override ═══════════════════════ */
+@media (max-width: 768px) {
+  .pilgrim-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 360px 1fr;
+    height: calc(100vh - var(--nav-h));
+  }
+  .pilgrim-sidebar { height: auto; min-height: 0; }
+  .pilgrim-sidebar-head {
+    padding: 10px 16px 8px;
+    position: relative;
+  }
+  .pilgrim-sidebar-head h2 {
+    font-size: 22px !important;
+    margin-bottom: 0 !important;
+    letter-spacing: 1.5px;
+  }
+  .pilgrim-sidebar-head .tagline { display: none !important; }
+  .pilgrim-sidebar-head .pilgrim-search {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 58%;
+    padding: 5px 12px !important;
+    margin: 0;
+  }
+  .pilgrim-sidebar-head .pilgrim-search input { font-size: 12px; }
+  .pilgrim-filters { padding: 8px 16px 0 !important; }
+  .pilgrim-sites-list { padding: 12px 16px 16px !important; gap: 10px !important; }
+  .pilgrim-site-card { padding: 10px !important; gap: 10px !important; }
+  .psite-cover { width: 80px !important; height: 80px !important; border-radius: 8px; }
+  .psite-name { font-size: 14px; }
+  .pilgrim-map-area { min-height: 0; }
+  .trip-guide-card { display: none !important; }
+  .map-overlay-top { top: 10px; left: 10px; right: 10px; pointer-events: none; }
+  .map-legend { padding: 8px 12px !important; font-size: 11px; }
+  .map-controls { bottom: 16px !important; right: 12px !important; }
+  .map-ctrl-btn { width: 36px !important; height: 36px !important; font-size: 16px !important; }
+
+  /* 缩放后：仅显示当前选中卡片 */
+  .pilgrim-layout.pilgrim-zoomed {
+    grid-template-rows: 116px 1fr;
+  }
+  .pilgrim-layout.pilgrim-zoomed .pilgrim-sidebar-head,
+  .pilgrim-layout.pilgrim-zoomed .pilgrim-filters { display: none; }
+  .pilgrim-layout.pilgrim-zoomed .pilgrim-site-card:not(.active) { display: none; }
+  .pilgrim-layout.pilgrim-zoomed .pilgrim-sites-list { padding: 8px 16px !important; }
 }
