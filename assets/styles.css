@@ -616,7 +616,7 @@ nav {
   content: '';
   position: absolute;
   inset: 0;
-  background: url('https://images.unsplash.com/photo-1526772662000-3f88f10405ff?w=800&q=60') center/cover;
+  background: url('./assets/images/u/photo-1526772662000-3f88f10405ff.jpg') center/cover;
   opacity: .2;
 }
 .auth-hero-lotus {
@@ -1026,8 +1026,13 @@ nav {
   .counter-num    { font-size: clamp(48px, 14vw, 72px); }
 
   /* ── 朝圣 ── */
-  .pilgrim-layout { grid-template-columns: 1fr; }
-  .pilgrim-sidebar { height: 48vw; min-height: 200px; }
+  .pilgrim-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 240px 1fr;
+    height: calc(100vh - var(--nav-h));
+  }
+  .pilgrim-sidebar { height: auto; min-height: 0; }
+  .pilgrim-map-area { min-height: 60vh; }
   .pilgrim-site-card { padding: 14px; }
 
   /* ── 论坛 ── */
@@ -2017,7 +2022,7 @@ nav {
   position: absolute;
   top: 0; right: 0; bottom: 0;
   width: 60%;
-  background: url('https://images.unsplash.com/photo-1544932980-04c0946076b9?w=1000&q=80') center/cover no-repeat;
+  background: url('./assets/images/u/photo-1591779051696-1c3fa1469a79.jpg') center/cover no-repeat;
   opacity: 0.15;
 }
 
@@ -3015,7 +3020,7 @@ nav {
   inset: 0;
   background-image:
     linear-gradient(135deg, rgba(20,20,20,.55), rgba(20,20,20,.15)),
-    url("https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1600&q=80");
+    url("./assets/images/u/photo-1512621776951-a57141f2eefd.jpg");
   background-size: cover;
   background-position: center;
   filter: saturate(.9);
@@ -3049,7 +3054,7 @@ nav {
   align-items: center;
   background-image:
     linear-gradient(135deg, rgba(0,0,0,.52), rgba(0,0,0,.3)),
-    url("https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=900&q=80");
+    url("./assets/images/u/photo-1498837167922-ddd27525d352.jpg");
   background-size: cover;
   background-position: center;
   border: 1px solid rgba(255,255,255,.3);
@@ -3231,9 +3236,27 @@ nav {
 .recipe-search-row button { display: none; }
 
 @media (max-width: 1100px) {
-  .vegan-modern-content { display: block; }
-  .vegan-rest-map-wrap { display: none; }
-  .vegan-rest-sidebar { width: 100%; }
+  .vegan-modern-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+  .vegan-rest-map-wrap {
+    display: block;
+    order: 0;
+    height: 35vh;
+    min-height: 220px;
+    flex: 0 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+  .vegan-rest-sidebar {
+    width: 100%;
+    order: 1;
+    flex: 1 1 0;
+    min-height: 0;
+  }
+  .vegan-gmap { width: 100%; height: 100%; }
   .vegan-modern-content.detail-open .vegan-detail-panel { width: 100%; }
   .recipe-detail-body { grid-template-columns: 1fr; }
 }
