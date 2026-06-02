@@ -6,5 +6,23 @@
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/api/admin/:path*", "destination": "/api/admin" },
     { "source": "/api/user/:path*",  "destination": "/api/user"  }
+  ],
+  "headers": [
+    {
+      "source": "/",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }]
+    },
+    {
+      "source": "/index.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }]
+    },
+    {
+      "source": "/assets/(app.js|styles.css)",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }]
+    },
+    {
+      "source": "/assets/images/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400, must-revalidate" }]
+    }
   ]
 }
