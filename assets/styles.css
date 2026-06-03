@@ -4656,7 +4656,12 @@ nav {
   .pilgrim-map-area { min-height: 0; }
   .trip-guide-card { display: none !important; }
   .map-overlay-top { top: 10px; left: 10px; right: 10px; pointer-events: none; }
-  .map-legend { padding: 8px 12px !important; font-size: 11px; }
+  /* 图例更小，少遮挡地图 */
+  .map-legend { padding: 6px 9px !important; font-size: 10px; border-radius: 10px; }
+  .map-legend .map-legend-title { margin-bottom: 4px; font-size: 10px; }
+  .map-legend .map-legend-item { gap: 5px; margin-bottom: 2px; }
+  .map-legend .map-legend-dot { width: 8px !important; height: 8px !important; }
+  .map-overlay-top { top: 8px; left: 8px; right: 8px; }
   .map-controls { bottom: 16px !important; right: 12px !important; }
   .map-ctrl-btn { width: 36px !important; height: 36px !important; font-size: 16px !important; }
 

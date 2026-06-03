@@ -2395,6 +2395,11 @@ function renderPilgrimage() {
   document.querySelector('.pilgrim-layout')?.classList.remove('map-expanded');
   const sizeBtn = document.getElementById('map-size-toggle');
   if (sizeBtn) sizeBtn.innerHTML = '⤢ 放大地图';
+  // 移动端：详情面板常驻 body，避免被带 transform 的祖先困住、关闭态落到文档流底部
+  if (window.matchMedia('(max-width: 768px)').matches) {
+    const panel = document.getElementById('site-detail-panel');
+    if (panel && panel.parentElement !== document.body) document.body.appendChild(panel);
+  }
   ensurePilgrimMap();
 }
 
@@ -2504,7 +2509,6 @@ function initVeganAmap() {
   VeganMapState.map = new AMap.Map('vegan-gmap', {
     zoom: 11,
     center: [114.3055, 30.5628],
-    mapStyle: 'amap://styles/whitesmoke',
     viewMode: '2D',
   });
   veganRenderMapPins(veganGetFiltered());
@@ -2557,7 +2561,6 @@ function initPilgrimAmap() {
   PilgrimState.map = new AMap.Map('pilgrim-amap', {
     zoom: 5,
     center: [104.1, 35.8],
-    mapStyle: 'amap://styles/whitesmoke',
     viewMode: '2D',
   });
   PilgrimState.amapReady = true;
@@ -2676,12 +2679,6 @@ function openSiteDetail(id) {
   document.getElementById('trip-guide-budget').textContent = `💰 预算参考：${budget}`;
   populateRouteTargets(id);
   updatePilgrimNearby(site);
-  // 移动端：面板移到 body，脱离带 transform 的祖先(.page/.page-main)，
-  // 否则 position:fixed 会相对祖先定位、跑进文档流（地图下方出现内容）
-  if (window.matchMedia('(max-width: 768px)').matches && panel.parentElement !== document.body) {
-    panel._origParent = panel.parentElement;
-    document.body.appendChild(panel);
-  }
   panel.classList.add('open');
 }
 
@@ -2689,13 +2686,7 @@ function closeSiteDetail() {
   const prevId = PilgrimState.activeId;
   PilgrimState.activeId = null;
   if (PilgrimState.driving) PilgrimState.driving.clear();
-  const panel = document.getElementById('site-detail-panel');
-  panel.classList.remove('open');
-  // 还原面板到原容器（移动端打开时移到了 body）
-  if (panel._origParent) {
-    panel._origParent.appendChild(panel);
-    panel._origParent = null;
-  }
+  document.getElementById('site-detail-panel').classList.remove('open');
   document.querySelectorAll('.pilgrim-site-card').forEach(el => el.classList.remove('active'));
   if (prevId) updatePilgrimMarkerStyle(prevId, false);
   document.querySelector('.pilgrim-layout')?.classList.remove('pilgrim-zoomed');
