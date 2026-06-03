@@ -3701,7 +3701,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
     });
     chatInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
+      // 输入法组字中（中文拼音选词）时回车用于确认候选词，不能拦截发送
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) {
         e.preventDefault();
         sendMessage();
       }

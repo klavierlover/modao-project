@@ -694,7 +694,7 @@
       <div class="recipe-home" id="recipe-home">
         <div class="recipe-search-row">
           <input id="recipe-search-input" type="text" placeholder="搜索食材、菜名、做法…"
-                 oninput="searchRecipes()" onkeydown="if(event.key==='Enter')searchRecipes()">
+                 oninput="searchRecipes()" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)searchRecipes()">
         </div>
         <div class="recipe-categories" id="recipe-categories"></div>
         <div class="recipe-list" id="recipe-list"></div>
