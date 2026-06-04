@@ -311,7 +311,8 @@ nav {
   opacity: 0;
   transform: translateY(30px);
   pointer-events: none;
-  transition: opacity .35s ease, transform .4s ease;
+  /* 仅过渡 opacity：折叠态 transform 收为 none，避免成为 fixed 子元素的包含块 */
+  transition: opacity .35s ease;
 }
 .page.with-immersive.immersive-collapsed .immersive-hero {
   height: 150px;
@@ -337,7 +338,7 @@ nav {
 }
 .page.with-immersive.immersive-collapsed .page-main {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
   pointer-events: auto;
 }
 .page.with-immersive.immersive-open .page-main {
@@ -1211,7 +1212,7 @@ nav {
 
 .hero-title {
   font-family: var(--font-display);
-  font-size: 72px;
+  font-size: clamp(40px, 11vw, 72px);
   line-height: 1;
   font-weight: 400;
   margin-bottom: 16px;
@@ -3968,6 +3969,34 @@ nav {
   .home-greeting { align-items: center; }
   .home-greeting-hi { font-size: 18px; white-space: nowrap; }
   .home-greeting-yi { align-self: center; margin-top: 8px; }
+}
+
+/* ── 小屏(≤360px：iPhone SE/mini、千元安卓) 防溢出收紧 ── */
+@media (max-width: 360px) {
+  .hero-wrap { padding: 12px 12px 32px; }
+  .home-greeting-hi { font-size: 16px; }
+  .home-greeting-yi { font-size: 11px; padding: 6px 10px; }
+  .home-greeting-sub { font-size: 11px; }
+  .quick-grid { gap: 8px; }
+  .quick-item { padding: 12px 6px; }
+  .quick-label { font-size: 13px; }
+  .quick-sub { font-size: 10px; }
+  .activity-card { width: 200px; }
+  .hero-banner { height: 300px; }
+  .section-title { font-size: 17px; }
+  /* 茹素头部单行：标题与 tab 在 320 宽也不挤 */
+  #page-vegan .vegan-modern.collapsed .vegan-modern-head h1 { font-size: 20px !important; }
+  #page-vegan .vegan-modern.collapsed .vegan-modern-tab { padding: 5px 10px !important; font-size: 11px !important; }
+  /* 朝圣卡片更紧凑 */
+  .psite-cover { width: 70px !important; height: 70px !important; }
+  .pilgrim-sidebar-head .pilgrim-search { width: 54% !important; }
+}
+
+/* ── 横屏：避免全高布局把内容压扁，允许滚动 ── */
+@media (max-height: 480px) and (orientation: landscape) {
+  .pilgrim-layout, .vegan-modern, .companion-page,
+  #page-companion.with-immersive.active { height: auto !important; min-height: calc(100dvh - var(--nav-h) - var(--safe-top)); }
+  .page.with-immersive .immersive-hero { height: 70dvh; }
 }
 
 /* ════════════════════════════════════════════
