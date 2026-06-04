@@ -1,5 +1,6 @@
 const { cors, sendJson, readJsonBody } = require('../_lib/http');
 const { requireUser } = require('../_lib/auth');
+const { checkRateLimit } = require('../_lib/rate-limit');
 
 const DEFAULT_DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
 const DEFAULT_DEEPSEEK_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/chat/completions';
@@ -7,22 +8,10 @@ const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 // 速率限制：登录用户每分钟 20 次，游客（IP）每分钟 5 次
+// 实现见 _lib/rate-limit.js（Supabase 全局原子限流 + 内存兜底）
 const RATE_LIMIT_USER = 20;
 const RATE_LIMIT_GUEST = 5;
-const RATE_WINDOW_MS = 60 * 1000;
-const rateLimitMap = new Map(); // key -> { count, windowStart }
-
-function checkRateLimit(key, limit) {
-  const now = Date.now();
-  const entry = rateLimitMap.get(key);
-  if (!entry || now - entry.windowStart > RATE_WINDOW_MS) {
-    rateLimitMap.set(key, { count: 1, windowStart: now });
-    return true;
-  }
-  if (entry.count >= limit) return false;
-  entry.count += 1;
-  return true;
-}
+const RATE_WINDOW_SECONDS = 60;
 
 function getClientIp(req) {
   return (
@@ -121,7 +110,8 @@ module.exports = async function handler(req, res) {
     const rateLimitKey = isLoggedIn ? `user:${auth.user.id}` : `ip:${getClientIp(req)}`;
     const rateLimit = isLoggedIn ? RATE_LIMIT_USER : RATE_LIMIT_GUEST;
 
-    if (!checkRateLimit(rateLimitKey, rateLimit)) {
+    const allowed = await checkRateLimit(rateLimitKey, rateLimit, RATE_WINDOW_SECONDS);
+    if (!allowed) {
       res.setHeader('Retry-After', '60');
       return sendJson(res, 429, { ok: false, error: '请求过于频繁，请稍候再试' });
     }
