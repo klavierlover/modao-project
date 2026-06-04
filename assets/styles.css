@@ -4224,6 +4224,65 @@ nav {
   margin-top: 10px;
 }
 
+/* 长期目标进度条 */
+.counter-long-goal {
+  margin: 12px auto 0;
+  max-width: 320px;
+  width: 100%;
+}
+.counter-long-goal .clg-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.counter-long-goal .clg-label { color: var(--ink-60); }
+.counter-long-goal .clg-val { color: #c9a227; font-weight: 600; }
+.counter-long-goal .clg-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+.counter-long-goal .clg-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #c89b3c, #e0b84d);
+  transition: width .4s ease;
+}
+
+/* 目标弹窗：分区标签 + 长期目标类型选择 */
+.goal-section-label {
+  width: 100%;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-70, #555);
+  margin-top: 2px;
+}
+.goal-kind-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.goal-kind-btn {
+  flex: 1;
+  padding: 8px 4px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink-60);
+  transition: all .2s;
+}
+.goal-kind-btn.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  font-weight: 600;
+}
+
 /* ================================================================
    目标设置弹窗
    ================================================================ */

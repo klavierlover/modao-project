@@ -489,6 +489,8 @@
       </div>
       <!-- 目标进度百分比 -->
       <div id="counter-goal-pct" class="counter-goal-pct" style="display:none"></div>
+      <!-- 长期目标进度条 -->
+      <div id="counter-long-goal" class="counter-long-goal" style="display:none"></div>
       <div class="counter-ctrls">
         <button class="btn btn-outline" onclick="resetCounter()">清零</button>
         <button class="btn btn-ghost"   onclick="openGoalModal()">🎯 目标</button>
@@ -1089,14 +1091,26 @@
       <button class="auth-close-btn" onclick="closeGoalModal()">✕</button>
     </div>
     <div class="auth-panel" style="gap:14px">
-      <div class="auth-welcome">为「<span id="goal-modal-type">念佛</span>」设定今日目标</div>
+      <div class="auth-welcome">为「<span id="goal-modal-type">念佛</span>」设定目标</div>
+
+      <div class="goal-section-label">📅 当日目标</div>
       <div class="auth-field">
         <span class="auth-field-icon">🔢</span>
-        <input id="goal-modal-input" type="number" min="0" placeholder="输入目标次数（0 = 不设定）">
+        <input id="goal-modal-input" type="number" min="0" placeholder="今日目标次数（0 = 不设定）">
       </div>
-      <div style="font-size:12px;color:var(--ink-40);line-height:1.6">
-        设定目标后，计数圆圈外会显示金色进度环，达成时自动庆祝 🎉
+
+      <div class="goal-section-label">🏔️ 长期目标</div>
+      <div class="goal-kind-row" id="goal-kind-row">
+        <button type="button" class="goal-kind-btn active" data-kind="total"  onclick="selectGoalKind('total',this)">累计总数</button>
+        <button type="button" class="goal-kind-btn"        data-kind="streak" onclick="selectGoalKind('streak',this)">连续天数</button>
+        <button type="button" class="goal-kind-btn"        data-kind="month"  onclick="selectGoalKind('month',this)">本月</button>
       </div>
+      <div class="auth-field">
+        <span class="auth-field-icon">🎯</span>
+        <input id="goal-long-input" type="number" min="0" placeholder="长期目标数（0 = 不设定）">
+      </div>
+      <div id="goal-long-hint" style="font-size:12px;color:var(--ink-40);line-height:1.6">累计总数：按终身累计次数计算进度</div>
+
       <button class="auth-btn-primary" onclick="saveGoal()">确认目标</button>
       <button class="auth-btn-ghost"   onclick="closeGoalModal()">取消</button>
     </div>

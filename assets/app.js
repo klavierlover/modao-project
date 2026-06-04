@@ -691,6 +691,11 @@ const App = {
   companionHistory: [],
   counterCounts: { '念佛': 0, '拜佛': 0, '禅坐': 0, '读经': 0 },
   counterGoals:  { '念佛': 0, '拜佛': 0, '禅坐': 0, '读经': 0 },
+  // 长期目标：{ kind:'total'|'streak'|'month', target:N }
+  counterLongGoals: { '念佛': null, '拜佛': null, '禅坐': null, '读经': null },
+  // 按月累计：{ ym:'YYYY-MM', counts:{类型:次数} }
+  counterMonth: { ym: '', counts: {} },
+  currentGoalKind: 'total',
   currentCounterType: '念佛',
   weeklyData: [45, 78, 32, 91, 56, 108, 65],
   likedPosts: new Set(),
@@ -2219,6 +2224,7 @@ function renderCounter() {
 
   // 目标进度环
   updateCounterProgress();
+  updateLongGoalProgress();
 
   // Chart
   renderWeeklyChart();
@@ -2244,25 +2250,123 @@ function renderWeeklyChart() {
   `).join('');
 }
 
+// ---- 目标持久化 ----
+const COUNTER_STATE_KEY = 'modao-counter-state';
+function persistCounterState() {
+  try {
+    localStorage.setItem(COUNTER_STATE_KEY, JSON.stringify({
+      goals: App.counterGoals,
+      longGoals: App.counterLongGoals,
+      month: App.counterMonth,
+    }));
+  } catch (_e) {}
+}
+function loadCounterState() {
+  try {
+    const raw = localStorage.getItem(COUNTER_STATE_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s.goals) App.counterGoals = { ...App.counterGoals, ...s.goals };
+      if (s.longGoals) App.counterLongGoals = { ...App.counterLongGoals, ...s.longGoals };
+      if (s.month) App.counterMonth = s.month;
+    }
+  } catch (_e) {}
+  ensureCounterMonth();
+}
+function ensureCounterMonth() {
+  const ym = new Date().toISOString().slice(0, 7);
+  if (!App.counterMonth || App.counterMonth.ym !== ym) {
+    App.counterMonth = { ym, counts: {} };
+    persistCounterState();
+  }
+}
+
+const LONG_GOAL_KINDS = {
+  total:  { label: '累计总数', unit: '遍', hint: '按终身累计次数计算进度' },
+  streak: { label: '连续天数', unit: '天', hint: '按连续打卡天数计算进度' },
+  month:  { label: '本月',     unit: '遍', hint: '按当月累计次数计算，月底重置' },
+};
+const TOTAL_STAT_KEY = { '念佛': 'totalChant', '禅坐': 'totalMeditation', '读经': 'totalReading', '拜佛': 'totalBow' };
+
+function getLongGoalCurrent(type, kind) {
+  if (kind === 'streak') {
+    const stats = loadAchievementStats();
+    return Number(App.userProfile?.checkin_streak || stats.streak || 0);
+  }
+  if (kind === 'month') {
+    ensureCounterMonth();
+    return Number(App.counterMonth.counts[type] || 0);
+  }
+  // total
+  const stats = loadAchievementStats();
+  return Number(stats[TOTAL_STAT_KEY[type]] || 0);
+}
+
 // ---- 目标设置 ----
+function selectGoalKind(kind, el) {
+  App.currentGoalKind = kind;
+  document.querySelectorAll('#goal-kind-row .goal-kind-btn').forEach(b => b.classList.toggle('active', b === el));
+  const hintEl = document.getElementById('goal-long-hint');
+  if (hintEl) hintEl.textContent = LONG_GOAL_KINDS[kind].hint;
+}
+
 function openGoalModal() {
   const cur = App.currentCounterType;
-  const goal = App.counterGoals[cur] || 0;
   document.getElementById('goal-modal-type').textContent = cur;
   const inp = document.getElementById('goal-modal-input');
-  if (inp) inp.value = goal > 0 ? goal : '';
+  const dailyGoal = App.counterGoals[cur] || 0;
+  if (inp) inp.value = dailyGoal > 0 ? dailyGoal : '';
+  // 长期目标
+  const lg = App.counterLongGoals[cur];
+  const kind = lg?.kind || 'total';
+  App.currentGoalKind = kind;
+  document.querySelectorAll('#goal-kind-row .goal-kind-btn').forEach(b => b.classList.toggle('active', b.dataset.kind === kind));
+  const hintEl = document.getElementById('goal-long-hint');
+  if (hintEl) hintEl.textContent = LONG_GOAL_KINDS[kind].hint;
+  const longInp = document.getElementById('goal-long-input');
+  if (longInp) longInp.value = lg?.target > 0 ? lg.target : '';
   document.getElementById('goal-modal')?.classList.add('open');
 }
 function closeGoalModal() {
   document.getElementById('goal-modal')?.classList.remove('open');
 }
 function saveGoal() {
+  const cur = App.currentCounterType;
   const val = parseInt(document.getElementById('goal-modal-input')?.value || '0', 10);
-  if (isNaN(val) || val < 0) return showToast('请输入有效的目标数');
-  App.counterGoals[App.currentCounterType] = val;
+  if (isNaN(val) || val < 0) return showToast('请输入有效的当日目标数');
+  const longVal = parseInt(document.getElementById('goal-long-input')?.value || '0', 10);
+  if (isNaN(longVal) || longVal < 0) return showToast('请输入有效的长期目标数');
+
+  App.counterGoals[cur] = val;
+  App.counterLongGoals[cur] = longVal > 0 ? { kind: App.currentGoalKind, target: longVal } : null;
+  persistCounterState();
   closeGoalModal();
   renderCounter();
-  showToast(val > 0 ? `🎯 已设置目标：${val} 次` : '已清除目标');
+
+  const parts = [];
+  if (val > 0) parts.push(`当日 ${val} 次`);
+  if (longVal > 0) parts.push(`${LONG_GOAL_KINDS[App.currentGoalKind].label} ${longVal}`);
+  showToast(parts.length ? `🎯 已设置目标：${parts.join(' · ')}` : '已清除目标');
+}
+
+// 长期目标进度条
+function updateLongGoalProgress() {
+  const el = document.getElementById('counter-long-goal');
+  if (!el) return;
+  const cur = App.currentCounterType;
+  const lg = App.counterLongGoals[cur];
+  if (!lg || !(lg.target > 0)) { el.style.display = 'none'; return; }
+  const info = LONG_GOAL_KINDS[lg.kind] || LONG_GOAL_KINDS.total;
+  const current = getLongGoalCurrent(cur, lg.kind);
+  const pct = Math.min(100, Math.round((current / lg.target) * 100));
+  const done = current >= lg.target;
+  el.style.display = '';
+  el.innerHTML = `
+    <div class="clg-head">
+      <span class="clg-label">🏔️ ${info.label}目标</span>
+      <span class="clg-val">${current} / ${lg.target} ${info.unit} · ${pct}%${done ? ' ✅' : ''}</span>
+    </div>
+    <div class="clg-bar"><div class="clg-fill" style="width:${pct}%"></div></div>`;
 }
 
 // 更新计数圆进度环
@@ -2293,9 +2397,14 @@ function updateCounterProgress() {
 function tapCounter(event) {
   App.counterCounts[App.currentCounterType]++;
   const c = App.counterCounts[App.currentCounterType];
+  // 按月累计（用于"本月"长期目标）
+  ensureCounterMonth();
+  App.counterMonth.counts[App.currentCounterType] = (App.counterMonth.counts[App.currentCounterType] || 0) + 1;
+  persistCounterState();
   document.getElementById('counter-num').textContent = c;
   document.querySelector('.counter-type-card.active .cnt-type-count').textContent = c;
   updateCounterProgress();
+  updateLongGoalProgress();
 
   // Ripple
   const circle = event.currentTarget;
@@ -2326,7 +2435,17 @@ function tapCounter(event) {
 
   // 达成目标时庆祝
   const goal = App.counterGoals[App.currentCounterType] || 0;
-  if (goal > 0 && c === goal) showToast(`🎉 恭喜！${App.currentCounterType}目标 ${goal} 次已达成！`);
+  if (goal > 0 && c === goal) showToast(`🎉 恭喜！${App.currentCounterType}当日目标 ${goal} 次已达成！`);
+
+  // 长期目标达成庆祝（仅在刚好达成的那一次）
+  const lg = App.counterLongGoals[App.currentCounterType];
+  if (lg && lg.target > 0 && (lg.kind === 'total' || lg.kind === 'month')) {
+    const cur = getLongGoalCurrent(App.currentCounterType, lg.kind);
+    if (cur === lg.target) {
+      const info = LONG_GOAL_KINDS[lg.kind];
+      showToast(`🏆 功德圆满！${App.currentCounterType}${info.label}目标 ${lg.target} 已达成！`);
+    }
+  }
 }
 
 function resetCounter() {
@@ -3732,6 +3851,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const target = e.target;
     if (target && target.tagName === 'IMG') onImageError(target);
   }, true);
+  loadCounterState();
   renderAuthState();
   renderPracticeTasks();
   _updateMsgDot();
@@ -3783,6 +3903,7 @@ Object.assign(window, {
   openGoalModal,
   closeGoalModal,
   saveGoal,
+  selectGoalKind,
   switchChartType,
   setChip,
   filterSites,
