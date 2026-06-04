@@ -41,7 +41,12 @@
   
   --nav-h: 60px;
   --content-max: 1280px;
-  
+  /* 安全区（刘海/灵动岛/底部手势条），无刘海设备回退 0 */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
   /* 字体：正文/衬线全部使用各平台系统自带中文字体，零网络下载、秒级渲染 */
   --font-sans: 'PingFang SC', 'HarmonyOS Sans SC', 'MiSans', 'Source Han Sans CN', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-serif: 'Songti SC', 'STSong', 'Source Han Serif SC', 'Noto Serif CJK SC', 'SimSun', serif;
@@ -70,6 +75,7 @@ body {
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
 }
 
@@ -94,7 +100,8 @@ a { color: inherit; text-decoration: none; }
 nav {
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: var(--nav-h);
+  height: calc(var(--nav-h) + var(--safe-top));
+  padding-top: var(--safe-top);
   background: rgba(250,248,244,0.86);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -102,7 +109,8 @@ nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
+  padding-left: max(32px, var(--safe-left));
+  padding-right: max(32px, var(--safe-right));
   z-index: 1000;
 }
 
@@ -238,7 +246,7 @@ nav {
 .user-menu button:hover { background: var(--paper-warm); }
 
 /* ===== 页面 ===== */
-.page { display: none; padding-top: var(--nav-h); min-height: 100vh; position: relative; z-index: 1; }
+.page { display: none; padding-top: calc(var(--nav-h) + var(--safe-top)); min-height: 100vh; min-height: 100dvh; position: relative; z-index: 1; }
 .page.active { display: block; animation: pageFadeIn 0.3s ease; }
 
 @keyframes pageFadeIn {
@@ -252,7 +260,7 @@ nav {
 }
 .page.with-immersive .immersive-hero {
   position: relative;
-  height: calc(100vh - var(--nav-h));
+  height: calc(100dvh - var(--nav-h) - var(--safe-top));
   overflow: hidden;
   transition: height .45s cubic-bezier(.22,.9,.28,1);
   border-bottom: 1px solid var(--border);
@@ -1524,7 +1532,7 @@ nav {
 .companion-page {
   display: grid;
   grid-template-columns: 300px 1fr 320px;
-  height: calc(100vh - var(--nav-h));
+  height: calc(100dvh - var(--nav-h) - var(--safe-top));
   max-width: 100%;
   min-height: 0;
 }
@@ -2434,7 +2442,7 @@ nav {
 .pilgrim-layout {
   display: grid;
   grid-template-columns: 440px 1fr;
-  height: calc(100vh - var(--nav-h));
+  height: calc(100dvh - var(--nav-h) - var(--safe-top));
 }
 
 .pilgrim-sidebar {
@@ -2934,7 +2942,7 @@ nav {
 /* ===== 茹素页 - 地图+列表双栏布局 ===== */
 
 /* 全屏双栏 */
-.vegan-wrap { display:grid; grid-template-columns:440px 1fr; height:calc(100vh - var(--nav-h)); }
+.vegan-wrap { display:grid; grid-template-columns:440px 1fr; height:calc(100dvh - var(--nav-h) - var(--safe-top)); }
 .vegan-list-panel { display:flex; flex-direction:column; border-right:.5px solid var(--border); overflow:hidden; background:var(--surface); }
 .vegan-map-panel  { position:relative; overflow:hidden; background:#f0e9dc; }
 
@@ -3091,7 +3099,7 @@ nav {
 @media(max-width:1100px) { .vegan-wrap { grid-template-columns:1fr; } .vegan-map-panel { display:none; } }
 
 /* ===== Vegan Modern (new) ===== */
-.vegan-modern { --vegan-head-h: 178px; height: calc(100vh - var(--nav-h)); display: flex; flex-direction: column; background: var(--bg); position: relative; }
+.vegan-modern { --vegan-head-h: 178px; height: calc(100dvh - var(--nav-h) - var(--safe-top)); display: flex; flex-direction: column; background: var(--bg); position: relative; }
 .vegan-modern-head {
   min-height: var(--vegan-head-h);
   padding: 18px 22px 20px;
@@ -3471,7 +3479,7 @@ nav {
 
 /* first-open hero mode */
 #page-vegan .vegan-modern.landing {
-  --vegan-head-h: calc(100vh - var(--nav-h)) !important;
+  --vegan-head-h: calc(100dvh - var(--nav-h) - var(--safe-top)) !important;
 }
 #page-vegan .vegan-modern.landing .vegan-modern-head {
   justify-content: center;
@@ -4542,7 +4550,7 @@ nav {
   nav {
     height: auto !important;
     flex-wrap: wrap !important;
-    padding: 0 12px !important;
+    padding: var(--safe-top) max(12px, var(--safe-right)) 0 max(12px, var(--safe-left)) !important;
     gap: 0 !important;
   }
   :root { --nav-h: 88px; }
@@ -4601,7 +4609,7 @@ nav {
   #page-companion.with-immersive.active {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100dvh;
   }
   #page-companion.with-immersive .immersive-hero { flex: 0 0 auto; }
   #page-companion.with-immersive .page-main {
@@ -4639,7 +4647,7 @@ nav {
   /* 输入框紧贴底部 */
   #page-companion .chat-input-wrap {
     flex-shrink: 0;
-    padding: 10px 12px 14px !important;
+    padding: 10px 12px calc(14px + var(--safe-bottom)) !important;
     background: var(--surface);
   }
 }
@@ -4650,7 +4658,7 @@ nav {
   #page-pilgrimage.with-immersive.active {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100dvh;
   }
   #page-pilgrimage.with-immersive .immersive-hero { flex: 0 0 auto; }
   #page-pilgrimage.with-immersive .page-main {
@@ -4721,7 +4729,7 @@ nav {
   .map-legend .map-legend-item { gap: 5px; margin-bottom: 2px; }
   .map-legend .map-legend-dot { width: 8px !important; height: 8px !important; }
   .map-overlay-top { top: 8px; left: 8px; right: 8px; }
-  .map-controls { bottom: 16px !important; right: 12px !important; }
+  .map-controls { bottom: calc(16px + var(--safe-bottom)) !important; right: 12px !important; }
   .map-ctrl-btn { width: 36px !important; height: 36px !important; font-size: 16px !important; }
 
   /* 缩放后：仅显示当前选中卡片 */
@@ -4744,7 +4752,7 @@ nav {
   }
   .site-detail-panel.open { transform: translateY(0); }
   .site-detail-panel .sdp-close {
-    top: 44px;
+    top: calc(20px + var(--safe-top));
     width: 38px;
     height: 38px;
   }
